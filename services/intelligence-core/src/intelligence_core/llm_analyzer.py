@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import time
 from collections import Counter
 from enum import StrEnum
@@ -46,6 +47,7 @@ class AnalyzerTask(StrEnum):
     POSITIONING_CONTRADICTION_EXPLANATION = "POSITIONING_CONTRADICTION_EXPLANATION"
     FLOW_CONTEXT_SUMMARY = "FLOW_CONTEXT_SUMMARY"
     POSITIONING_PLAIN_LANGUAGE = "POSITIONING_PLAIN_LANGUAGE"
+    FUSION_EXPLANATION = "FUSION_EXPLANATION"
 
 
 class ProviderConfig(BaseModel):
@@ -124,15 +126,25 @@ def validate_financial_numbers(
 ) -> None:
     """Reject every generated financial fact not exactly grounded in a typed source span."""
     allowed = {
-        (str(span.get("value")), str(span.get("unit")), str(span.get("period")),
-         str(span.get("currency")))
+        (
+            str(span.get("value")),
+            str(span.get("unit")),
+            str(span.get("period")),
+            str(span.get("currency")),
+        )
         for span in source_spans
     }
     for fact in output.get("numeric_facts", []):
-        key = (str(fact.get("value")), str(fact.get("unit")), str(fact.get("period")),
-               str(fact.get("currency")))
+        key = (
+            str(fact.get("value")),
+            str(fact.get("unit")),
+            str(fact.get("period")),
+            str(fact.get("currency")),
+        )
         if key not in allowed or not fact.get("source_span_id"):
-            raise ValueError("LLM numeric fact is not grounded in source value/unit/period/currency")
+            raise ValueError(
+                "LLM numeric fact is not grounded in source value/unit/period/currency"
+            )
 
 
 DEFAULT_PROVIDER_CONFIGS = {
@@ -167,6 +179,29 @@ DEFAULT_PROVIDER_CONFIGS = {
         credential_env="MOONSHOT_API_KEY",
     ),
 }
+
+
+def provider_configs_from_environment(
+    environment: dict[str, str] | None = None,
+) -> dict[str, ProviderConfig]:
+    """Build credential-presence-only configs without ever returning or logging secrets."""
+    env = environment if environment is not None else os.environ
+    model_env = {
+        "openai": "OPENAI_MODEL",
+        "glm": "GLM_MODEL",
+        "deepseek": "DEEPSEEK_MODEL",
+        "qwen": "QWEN_MODEL",
+        "moonshot": "MOONSHOT_MODEL",
+    }
+    return {
+        name: config.model_copy(
+            update={
+                "enabled": bool(config.credential_env and env.get(config.credential_env)),
+                "model": env.get(model_env[name], config.model),
+            }
+        )
+        for name, config in DEFAULT_PROVIDER_CONFIGS.items()
+    }
 
 
 class LLMIntelligenceAnalyzer:
@@ -209,7 +244,24 @@ class LLMIntelligenceAnalyzer:
         route = self.routes.get(task, ())
         required = min(consensus_models, len(route)) if high_materiality_ambiguous else 1
         cache_key = stable_hash(
-            {"input": input_hash, "route": route, "task": task, "consensus": required}
+            {
+                "input": input_hash,
+                "task": task,
+                "prompt_version": SAFE_PROMPT_VERSION,
+                "schema_version": "llm-analysis-result-v1",
+                "consensus": required,
+                "providers": [
+                    {
+                        "provider": provider,
+                        "model": self.configs[provider].model,
+                        "model_version": self.configs[provider].model_version,
+                        "temperature": self.configs[provider].temperature,
+                        "max_output_tokens": self.configs[provider].max_output_tokens,
+                    }
+                    for provider in route
+                    if provider in self.configs
+                ],
+            }
         )
         if cache_key in self.cache:
             cached = self.cache[cache_key]

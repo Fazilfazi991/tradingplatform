@@ -1,0 +1,42 @@
+{
+  "canonical_events": 40,
+  "cost_by_provider": {},
+  "date": "2026-08-30",
+  "duplicates": 80,
+  "entity_resolution": {
+    "ambiguous": 0,
+    "matched": 0,
+    "multi_entity": 0,
+    "unmatched": 40
+  },
+  "estimated_cost_usd": 0,
+  "events_seen": 120,
+  "fusion_state": "ABSTAIN",
+  "generated_at": "2026-08-30T19:06:00.533875+00:00",
+  "incidents": [],
+  "label": "INTERNAL LIVE INTELLIGENCE \u2014 NO TRADING RECOMMENDATION",
+  "live_sources": {
+    "rbi-press-releases-rss": "HEALTHY",
+    "sebi-rss": "HEALTHY"
+  },
+  "llm_cache_hits": 0,
+  "llm_calls": 0,
+  "llm_status": "NO_PROVIDER_CONFIGURED_UNKNOWN_ONLY",
+  "macro_state": "UNKNOWN",
+  "provenance": {
+    "engines": {
+      "flow_derivatives": "INSUFFICIENT",
+      "fundamental": "ENGINEERING_ONLY",
+      "historical": "ENGINEERING_ONLY",
+      "macro": "LIVE",
+      "news_event": "LIVE",
+      "psychology": "INSUFFICIENT",
+      "technical": "ENGINEERING_ONLY"
+    },
+    "label": "PARTIAL LIVE INTELLIGENCE \u2014 NOT A LIVE MARKET PREDICTION",
+    "mode": "PARTIAL_LIVE",
+    "prediction_state": "ABSTAIN"
+  },
+  "psychology_state": "INSUFFICIENT_PSYCHOLOGY_EVIDENCE",
+  "unknown_rate": 1.0
+}

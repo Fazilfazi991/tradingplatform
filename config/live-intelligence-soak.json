@@ -1,0 +1,15 @@
+{
+  "version": "live-soak-1",
+  "timezone": "UTC",
+  "target_duration_hours": 24,
+  "longer_target_days": 7,
+  "mode": "INTERNAL_LIVE",
+  "prediction_authorized": false,
+  "jobs": [
+    {"name": "rbi-rss", "kind": "INTERVAL", "source_id": "rbi-press-releases-rss", "cadence_seconds": 900},
+    {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900},
+    {"name": "source-health", "kind": "INTERVAL", "cadence_seconds": 3600},
+    {"name": "event-intelligence-build", "kind": "INTERVAL", "cadence_seconds": 3600},
+    {"name": "intelligence-summary", "kind": "INTERVAL", "cadence_seconds": 3600}
+  ]
+}
