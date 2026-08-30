@@ -26,7 +26,7 @@ Starting commit: `2f605662cd315479a84036b577a49be78796846b`
 - Raw replay produces identical accepted bars, quarantine rows, and semantic quality events.
   Two exports from identical inputs are byte-identical and their manifests have identical hashes.
 - A decision-time test proves an event one microsecond after T is unavailable at T.
-- Test result: 36 passed, 0 failed; statement coverage 90%; Ruff passed.
+- Test result: 38 passed, 0 failed; statement coverage 90.11%; Ruff passed.
 
 ## Blocked evidence
 
@@ -36,4 +36,3 @@ Starting commit: `2f605662cd315479a84036b577a49be78796846b`
 - Live provider behavior, session coverage, latency, rate-limit headers, endpoint boundaries, and
   live corporate-action discontinuities remain unmeasured.
 - Corporate-action enrichment is BLOCKED; second-source reconciliation is DEFERRED.
-
