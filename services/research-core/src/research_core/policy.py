@@ -33,3 +33,7 @@ class ResearchGatePolicy:
             raise ResearchGateError(
                 f"{mode.value} blocked; missing readiness gates: {', '.join(missing)}"
             )
+        if mode != ResearchMode.EXPLORATORY_REAL:
+            raise ResearchGateError(
+                f"{mode.value} blocked; Batch 4 may authorize EXPLORATORY_REAL only"
+            )

@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import date
 from decimal import Decimal
+from enum import StrEnum
 from statistics import median
 
 from verified_edge.domain import DailyBar, Instrument, UniverseDefinition
@@ -12,6 +13,33 @@ NIFTY200_V1 = UniverseDefinition(
     effective_from=date(2026, 8, 30),
     point_in_time_complete=False,
 )
+
+
+class SourceDecision(StrEnum):
+    APPROVED = "APPROVED"
+    PROVISIONAL_INTERNAL = "PROVISIONAL_INTERNAL"
+    REVIEW_REQUIRED = "REVIEW_REQUIRED"
+    BLOCKED = "BLOCKED"
+
+
+@dataclass(frozen=True)
+class MembershipSourceAssessment:
+    name: str
+    decision: SourceDecision
+    available_from: date | None
+    available_to: date | None
+    effective_dated: bool
+    terms_reviewed: bool
+    rationale: str
+
+    @property
+    def supports_historical_research(self) -> bool:
+        return (
+            self.decision == SourceDecision.APPROVED
+            and self.effective_dated
+            and self.terms_reviewed
+            and self.available_from is not None
+        )
 
 
 @dataclass(frozen=True)
