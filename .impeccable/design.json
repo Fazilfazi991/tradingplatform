@@ -1,0 +1,143 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-08-30T11:27:27.9751133Z",
+  "title": "Design System: Verified Edge",
+  "extensions": {
+    "colorMeta": {
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#07100f", "tonalRamp": ["oklch(15% 0.014 187.4)", "oklch(27% 0.014 187.4)", "oklch(39% 0.014 187.4)", "oklch(51% 0.014 187.4)", "oklch(63% 0.014 187.4)", "oklch(75% 0.014 187.4)", "oklch(87% 0.014 187.4)", "oklch(95% 0.014 187.4)"] },
+      "carbon": { "role": "neutral", "displayName": "Carbon", "canonical": "#0d1716", "tonalRamp": ["oklch(15% 0.015 188.2)", "oklch(27% 0.015 188.2)", "oklch(39% 0.015 188.2)", "oklch(51% 0.015 188.2)", "oklch(63% 0.015 188.2)", "oklch(75% 0.015 188.2)", "oklch(87% 0.015 188.2)", "oklch(95% 0.015 188.2)"] },
+      "moss": { "role": "neutral", "displayName": "Moss", "canonical": "#15221f", "tonalRamp": ["oklch(15% 0.019 178.6)", "oklch(27% 0.019 178.6)", "oklch(39% 0.019 178.6)", "oklch(51% 0.019 178.6)", "oklch(63% 0.019 178.6)", "oklch(75% 0.019 178.6)", "oklch(87% 0.019 178.6)", "oklch(95% 0.019 178.6)"] },
+      "chalk": { "role": "neutral", "displayName": "Chalk", "canonical": "#ecf2ed", "tonalRamp": ["oklch(15% 0.009 150.7)", "oklch(27% 0.009 150.7)", "oklch(39% 0.009 150.7)", "oklch(51% 0.009 150.7)", "oklch(63% 0.009 150.7)", "oklch(75% 0.009 150.7)", "oklch(87% 0.009 150.7)", "oklch(95% 0.009 150.7)"] },
+      "sage": { "role": "neutral", "displayName": "Sage", "canonical": "#9fb0a6", "tonalRamp": ["oklch(15% 0.024 160)", "oklch(27% 0.024 160)", "oklch(39% 0.024 160)", "oklch(51% 0.024 160)", "oklch(63% 0.024 160)", "oklch(75% 0.024 160)", "oklch(87% 0.024 160)", "oklch(95% 0.024 160)"] },
+      "signal-amber": { "role": "primary", "displayName": "Signal Amber", "canonical": "#e6b35c", "tonalRamp": ["oklch(15% 0.12 78.9)", "oklch(27% 0.12 78.9)", "oklch(39% 0.12 78.9)", "oklch(51% 0.12 78.9)", "oklch(63% 0.12 78.9)", "oklch(75% 0.12 78.9)", "oklch(87% 0.12 78.9)", "oklch(95% 0.12 78.9)"] },
+      "direction-jade": { "role": "secondary", "displayName": "Direction Jade", "canonical": "#48c78e", "tonalRamp": ["oklch(15% 0.14 160.4)", "oklch(27% 0.14 160.4)", "oklch(39% 0.14 160.4)", "oklch(51% 0.14 160.4)", "oklch(63% 0.14 160.4)", "oklch(75% 0.14 160.4)", "oklch(87% 0.14 160.4)", "oklch(95% 0.14 160.4)"] },
+      "direction-coral": { "role": "secondary", "displayName": "Direction Coral", "canonical": "#ef786f", "tonalRamp": ["oklch(15% 0.148 25.9)", "oklch(27% 0.148 25.9)", "oklch(39% 0.148 25.9)", "oklch(51% 0.148 25.9)", "oklch(63% 0.148 25.9)", "oklch(75% 0.148 25.9)", "oklch(87% 0.148 25.9)", "oklch(95% 0.148 25.9)"] },
+      "context-blue": { "role": "tertiary", "displayName": "Context Blue", "canonical": "#77a8c7", "tonalRamp": ["oklch(15% 0.069 236.8)", "oklch(27% 0.069 236.8)", "oklch(39% 0.069 236.8)", "oklch(51% 0.069 236.8)", "oklch(63% 0.069 236.8)", "oklch(75% 0.069 236.8)", "oklch(87% 0.069 236.8)", "oklch(95% 0.069 236.8)"] }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Editorial Display", "purpose": "Page titles and regime statements." },
+      "title": { "displayName": "Editorial Title", "purpose": "Card headlines and explanatory group names." },
+      "metric": { "displayName": "Atlas Metric", "purpose": "Market pulse values and compact numeric emphasis." },
+      "body": { "displayName": "Interface Body", "purpose": "Evidence explanations and working copy." },
+      "label": { "displayName": "State Label", "purpose": "Uppercase tags and compact status markers." },
+      "mono": { "displayName": "Provenance Mono", "purpose": "Snapshot timestamps and source availability." }
+    },
+    "shadows": [
+      { "name": "consensus-ambient", "value": "0 16px 34px rgba(0,0,0,.24)", "purpose": "Reserved for the circular consensus node." }
+    ],
+    "motion": [
+      { "name": "evidence-converge", "value": "800ms cubic-bezier(.16,1,.3,1)", "purpose": "Settles evidence bars into the consensus field on first load." },
+      { "name": "trace-stagger", "value": "60ms per row", "purpose": "Preserves the independence of the seven arriving traces." },
+      { "name": "reduced-motion", "value": "none", "purpose": "Presents the complete final state immediately when reduced motion is preferred." }
+    ],
+    "breakpoints": [
+      { "name": "compact-desktop", "value": "1050px" },
+      { "name": "mobile", "value": "760px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Navigation Item",
+      "kind": "nav",
+      "refersTo": "navigation-item",
+      "description": "Quiet rail navigation that reveals emphasis only on hover or the active route.",
+      "html": "<a class=\"ds-nav-item ds-active\" href=\"#\" aria-current=\"page\"><svg aria-hidden=\"true\" viewBox=\"0 0 24 24\"><path d=\"M12 2a10 10 0 1 0 10 10\"/><path d=\"M12 12l4-4\"/></svg><span>Overview</span></a>",
+      "css": ".ds-nav-item{display:flex;align-items:center;gap:11px;min-height:39px;padding:0 11px;border-radius:10px;color:#aebdb5;font:13px 'Manrope Variable',Arial,sans-serif;text-decoration:none}.ds-nav-item svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round}.ds-nav-item:hover,.ds-nav-item.ds-active{background:#16231f;color:var(--chalk)}.ds-nav-item.ds-active svg{color:var(--amber)}.ds-nav-item:focus-visible{outline:2px solid var(--amber);outline-offset:3px}"
+    },
+    {
+      "name": "Matte Card",
+      "kind": "card",
+      "refersTo": "panel",
+      "description": "Border-defined working surface for explanations, model summaries, and empty states.",
+      "html": "<article class=\"ds-card\"><h3>Supporting evidence</h3><p>Trend structure, historical regime similarity, sector breadth, and measured positive psychology.</p></article>",
+      "css": ".ds-card{padding:20px;background:var(--carbon);color:var(--chalk);border:1px solid #23332e;border-radius:14px;font-family:'Manrope Variable',Arial,sans-serif}.ds-card h3{margin:0 0 8px;font:500 20px/1.2 'Newsreader Variable',Georgia,serif}.ds-card p{margin:0;color:var(--sage);font-size:12px;line-height:1.7}.ds-card:hover{border-color:#33443f}.ds-card:focus-within{outline:2px solid var(--amber);outline-offset:3px}"
+    },
+    {
+      "name": "Filter",
+      "kind": "chip",
+      "refersTo": "filter",
+      "description": "Compact action pill whose amber state means active attention, not market direction.",
+      "html": "<button class=\"ds-filter ds-active\" type=\"button\" aria-pressed=\"true\">1–4 weeks</button>",
+      "css": ".ds-filter{background:var(--carbon);color:var(--chalk);border:1px solid #2a3a35;border-radius:999px;padding:8px 13px;font:11px 'Manrope Variable',Arial,sans-serif;cursor:pointer}.ds-filter:hover,.ds-filter.ds-active{border-color:var(--amber);color:var(--amber)}.ds-filter:active{transform:translateY(1px)}.ds-filter:focus-visible{outline:2px solid var(--amber);outline-offset:3px}"
+    },
+    {
+      "name": "Prototype Tag",
+      "kind": "chip",
+      "refersTo": "tag-prototype",
+      "description": "Warm provenance capsule for synthetic, demo, and research-only state.",
+      "html": "<span class=\"ds-tag-prototype\">Current market regime</span>",
+      "css": ".ds-tag-prototype{display:inline-flex;align-items:center;min-height:25px;padding:0 9px;border:1px solid #765d30;border-radius:999px;background:#2a2416;color:var(--amber);font:700 9px/1.4 'Manrope Variable',Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase}"
+    },
+    {
+      "name": "Supportive Tag",
+      "kind": "chip",
+      "refersTo": "tag-supportive",
+      "description": "Directional capsule used only for bullish or passing evidence.",
+      "html": "<span class=\"ds-tag-supportive\">Supportive</span>",
+      "css": ".ds-tag-supportive{display:inline-flex;align-items:center;min-height:25px;padding:0 9px;border:1px solid #295c47;border-radius:999px;background:transparent;color:var(--jade);font:700 9px/1.4 'Manrope Variable',Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase}"
+    },
+    {
+      "name": "Contradictory Tag",
+      "kind": "chip",
+      "refersTo": "tag-contradictory",
+      "description": "Directional capsule for bearish, blocked, or explicitly contradictory evidence.",
+      "html": "<span class=\"ds-tag-contradictory\">Primary contradiction</span>",
+      "css": ".ds-tag-contradictory{display:inline-flex;align-items:center;min-height:25px;padding:0 9px;border:1px solid #673d38;border-radius:999px;background:transparent;color:var(--coral);font:700 9px/1.4 'Manrope Variable',Arial,sans-serif;letter-spacing:.09em;text-transform:uppercase}"
+    },
+    {
+      "name": "Evidence Trace",
+      "kind": "custom",
+      "description": "Independent specialist score trace; the contradictory variant remains coral.",
+      "html": "<div class=\"ds-trace ds-contradictory\"><strong>Flows</strong><span class=\"ds-track\"><i></i></span><span class=\"ds-value\">32</span></div>",
+      "css": ".ds-trace{display:grid;grid-template-columns:105px minmax(120px,1fr) 34px;align-items:center;gap:12px;min-height:48px;border-bottom:1px solid #1f302b;color:var(--chalk);font:12px 'Manrope Variable',Arial,sans-serif}.ds-track{height:4px;background:#24332f}.ds-track i{display:block;width:78%;height:100%;background:var(--jade);transform-origin:left;animation:ds-converge .8s cubic-bezier(.16,1,.3,1) both}.ds-value{color:var(--jade)}.ds-trace.ds-contradictory .ds-track i{width:32%;background:var(--coral)}.ds-trace.ds-contradictory .ds-value{color:var(--coral)}@keyframes ds-converge{from{transform:scaleX(.25);filter:blur(3px)}to{transform:scaleX(1);filter:blur(0)}}@media(prefers-reduced-motion:reduce){.ds-track i{animation:none}}"
+    },
+    {
+      "name": "Consensus Node",
+      "kind": "custom",
+      "refersTo": "consensus-node",
+      "description": "Circular destination where the seven evidence traces resolve into a labeled synthetic view.",
+      "html": "<div class=\"ds-consensus\"><small>SYNTHETIC<br>CONSENSUS</small><span>72</span><strong>Moderately<br>bullish</strong></div>",
+      "css": ".ds-consensus{width:152px;aspect-ratio:1;display:grid;place-content:center;text-align:center;border:1px solid #39604f;border-radius:50%;background:#11211c;color:var(--chalk);box-shadow:0 16px 34px rgba(0,0,0,.24);font-family:'Manrope Variable',Arial,sans-serif}.ds-consensus small{color:var(--sage);font-size:10px;line-height:1.4}.ds-consensus span{font:500 44px/1 'Newsreader Variable',Georgia,serif;letter-spacing:-.03em}.ds-consensus strong{font-size:13px;line-height:1.45}"
+    },
+    {
+      "name": "Research Prototype Banner",
+      "kind": "custom",
+      "description": "Sticky shell-level disclosure that prevents synthetic fixtures from reading as live market data.",
+      "html": "<div class=\"ds-demo-banner\"><b>RESEARCH PROTOTYPE</b><span>Market and prediction values shown here are synthetic demo data unless explicitly marked otherwise.</span></div>",
+      "css": ".ds-demo-banner{min-height:42px;display:flex;align-items:center;justify-content:center;gap:10px;padding:9px 24px;background:#1c1a12ee;border-bottom:1px solid #594927;color:#e9ca8d;font:11px 'Manrope Variable',Arial,sans-serif;text-align:center;backdrop-filter:blur(12px)}.ds-demo-banner b{border:1px solid #8b6c31;border-radius:999px;padding:3px 8px;letter-spacing:.08em}@media(max-width:760px){.ds-demo-banner{font-size:9px;padding:8px 12px}}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Evidence Lens",
+    "overview": "Verified Edge is an Operate-mode public prediction-intelligence observatory. Its visual world is an editorial financial atlas rendered on near-black matte surfaces: rigorous enough to inspect quickly, quiet enough to read at length, and candid enough to leave disagreement in view. It is not brokerage chrome, a neon trading terminal, or a generic admin dashboard.\n\nThe system makes evidence relationships visible. Seven independent traces converge into one circular consensus node, while the contradictory Flows trace remains coral and legibly separate. Restraint is the governing aesthetic: amber marks attention and prototype provenance; jade and coral appear only when direction is genuinely being communicated.",
+    "keyCharacteristics": [
+      "Near-black matte canvases with fine green-gray rules and shallow tonal layering.",
+      "Editorial serif headlines paired with a compact, highly legible sans interface.",
+      "An asymmetric desktop rail-and-canvas composition that becomes a stacked mobile evidence record.",
+      "Explicit demo provenance at the shell, page, and data-component levels.",
+      "Authored convergence motion with an immediate reduced-motion equivalent."
+    ],
+    "rules": [
+      { "name": "The Direction Has Meaning Rule", "body": "Jade and coral are reserved for real directional semantics. A decorative accent must use the neutral or amber vocabulary instead.", "section": "colors" },
+      { "name": "The Provenance Is Warm Rule", "body": "Amber identifies prototype status, uncertainty, focus, and research attention so demo context remains perceptually distinct from model direction.", "section": "colors" },
+      { "name": "The Editorial/Data Split Rule", "body": "Newsreader interprets and emphasizes; Manrope operates and explains; monospace authenticates time and source state. Do not interchange these jobs for variety.", "section": "typography" },
+      { "name": "The Border-First Rule", "body": "Establish ordinary hierarchy with surface tone and one-pixel rules; do not add card shadows. The consensus node is the intentional exception.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep synthetic/demo provenance visible at shell, page, and data-component levels.",
+      "Do preserve all seven independent evidence traces and the circular consensus node as one readable convergence story.",
+      "Do keep contradictory Flows coral even when the overall consensus is bullish.",
+      "Do use borders and tonal layering for ordinary depth, reserving the ambient shadow for the node.",
+      "Do preserve keyboard focus, semantic headings, chart summaries, tabular numerals, and the reduced-motion final state.",
+      "Do convert desktop density into stacked mobile evidence records without hiding contradiction."
+    ],
+    "donts": [
+      "Don't use jade or coral as decorative brand color or as an unqualified status flourish.",
+      "Don't imply live data, validated probabilities, performance, execution, or financial advice.",
+      "Don't replace the evidence model with a single hero score or decorative gauge.",
+      "Don't turn the interface into neon sci-fi trading chrome, glassmorphism, or a generic admin grid.",
+      "Don't add shadows to ordinary cards or round every container into a pill.",
+      "Don't convey direction, contradiction, or blocked state through color alone."
+    ]
+  }
+}
