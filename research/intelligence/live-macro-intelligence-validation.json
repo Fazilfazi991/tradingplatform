@@ -1,0 +1,71 @@
+{
+  "classifications": {
+    "BANKING_REGULATION": 2,
+    "LIQUIDITY_OPERATION": 2,
+    "OTHER": 4,
+    "PAYMENTS": 1,
+    "SDF": 1
+  },
+  "cross_market_state": {
+    "as_of": "2026-08-30T14:50:55.656044Z",
+    "commodity_state": "UNKNOWN",
+    "contradictions": [],
+    "data_quality": "INSUFFICIENT_DATA",
+    "fx_state": "UNKNOWN",
+    "global_equity_state": "UNKNOWN",
+    "india_market_context": "UNKNOWN",
+    "provenance": {
+      "mode": "ENGINEERING_FIXTURE"
+    },
+    "rates_state": "UNKNOWN",
+    "risk_state": "UNKNOWN",
+    "source_health": {},
+    "volatility_state": "UNKNOWN"
+  },
+  "entity_associations": 0,
+  "events_processed": 10,
+  "label": "INTERNAL MACRO EVIDENCE \u2014 NOT PREDICTION",
+  "llm_status": "DISABLED_NO_CREDENTIALS",
+  "numeric_observations": 0,
+  "observed_at": "2026-08-30T14:50:55.656044+00:00",
+  "policy_state": {
+    "as_of": "2026-08-30T14:50:55.656044Z",
+    "certainty": 0.0,
+    "financial_conditions": "UNKNOWN",
+    "growth_bias": "UNKNOWN",
+    "inflation_bias": "UNKNOWN",
+    "liquidity_bias": "UNKNOWN",
+    "policy_rate_direction": "UNKNOWN",
+    "source_quality": "UNKNOWN",
+    "stance": "UNKNOWN"
+  },
+  "processing_latency_seconds": 0.44105949997901917,
+  "regime": {
+    "commodity_pressure": "UNKNOWN",
+    "explanation": [],
+    "global_risk": "UNKNOWN",
+    "growth": "UNKNOWN",
+    "inflation": "UNKNOWN",
+    "liquidity": "UNKNOWN",
+    "policy": "UNKNOWN"
+  },
+  "samples": [
+    {
+      "available_at": "2026-08-30T14:50:55.652229+00:00",
+      "classification": "BANKING_REGULATION",
+      "title": "Auction of State Government Securities"
+    },
+    {
+      "available_at": "2026-08-30T14:50:55.652229+00:00",
+      "classification": "LIQUIDITY_OPERATION",
+      "title": "RBI to conduct 15-day Variable Rate Reverse Repo (VRRR) auction under LAF on August 31, 2026"
+    },
+    {
+      "available_at": "2026-08-30T14:50:55.652229+00:00",
+      "classification": "BANKING_REGULATION",
+      "title": "Directions under Section 35 A read with Section 56 of the Banking Regulation Act, 1949 \u2013 Ashok Sahakari Bank Ltd., Ahmednagar"
+    }
+  ],
+  "source": "rbi-press-releases-rss",
+  "unknown_policy_state": true
+}
