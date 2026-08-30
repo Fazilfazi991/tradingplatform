@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3,<9", "pytest-cov>=6,<7", "ruff>=0.9,<1"]
+dev = ["pytest>=8.3,<9", "pytest-cov>=6,<7", "ruff>=0.9,<1", "mypy>=1.15,<2"]
 
 [project.scripts]
 ve-data = "verified_edge.cli:main"
@@ -34,8 +34,20 @@ packages = [
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
-markers = ["slow: deterministic end-to-end research engineering tests"]
+markers = [
+  "slow: deterministic end-to-end research engineering tests",
+  "stress: computational statistical robustness tests excluded from the fast suite",
+]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+packages = ["research_core"]
+mypy_path = ["services/research-core/src"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
+no_implicit_optional = true

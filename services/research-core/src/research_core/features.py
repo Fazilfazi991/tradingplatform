@@ -9,7 +9,17 @@ import pandas as pd
 
 from research_core.common import stable_hash
 
-FORBIDDEN_PATTERNS = ("future_", "target", "forward_", "post_event", "next_")
+FORBIDDEN_PATTERNS = (
+    "future_",
+    "target",
+    "forward_",
+    "post_event",
+    "next_",
+    "full_dataset",
+    "revised_",
+    "post_close",
+    "global_rank",
+)
 REQUIRED = {
     "instrument_id",
     "session_date",

@@ -49,7 +49,7 @@ def test_hand_checked_features_for_monotonic_series():
         {
             "instrument_id": "A",
             "session_date": dates,
-            "available_at": dates + pd.Timedelta(hours=16),
+            "available_at": pd.DatetimeIndex([date + timedelta(hours=16) for date in dates]),
             "open": close - 0.5,
             "high": close + 1,
             "low": close - 1,
@@ -78,6 +78,25 @@ def test_information_cutoff_and_leakage_names(fixture):
             fixture,
             information_cutoff=datetime(2025, 1, 1),  # noqa: DTZ001 - verifies rejection
         )
+
+
+@pytest.mark.parametrize(
+    "column",
+    [
+        "future_rolling_normalization",
+        "full_dataset_scaler",
+        "future_sector_membership",
+        "revised_macro_value",
+        "post_close_news",
+        "target_window_volatility",
+        "future_missingness",
+        "global_rank",
+        "future_adjusted_close",
+    ],
+)
+def test_expanded_leakage_attacks_are_rejected(fixture, column):
+    with pytest.raises(LeakageError):
+        build_feature_matrix(fixture.assign(**{column: 1.0}))
 
 
 def test_target_forward_return_direction_mfe_mae_and_barrier():

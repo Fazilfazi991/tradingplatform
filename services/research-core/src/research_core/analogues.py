@@ -61,7 +61,7 @@ def find_analogues(
             ["similarity", "session_date", "instrument_id"], ascending=[False, True, True]
         )
     # Avoid clusters of overlapping windows for the same instrument.
-    selected = []
+    selected: list[pd.Series] = []
     for _, row in candidates.iterrows():
         if any(
             old["instrument_id"] == row["instrument_id"]

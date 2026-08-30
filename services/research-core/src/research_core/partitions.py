@@ -52,7 +52,7 @@ def walk_forward_specs(
     embargo_sessions: int = 0,
 ) -> list[PartitionSpec]:
     ordered = sorted(set(dates))
-    result = []
+    result: list[PartitionSpec] = []
     position = train_sessions
     while position + test_sessions <= len(ordered):
         train_start = ordered[max(0, position - train_sessions)] if rolling else ordered[0]
