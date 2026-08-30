@@ -29,6 +29,12 @@ class AnalyzerTask(StrEnum):
     POLICY_DOCUMENT_SUMMARY = "POLICY_DOCUMENT_SUMMARY"
     MACRO_CONTRADICTION = "MACRO_CONTRADICTION"
     SECTOR_EXPOSURE_EXPLANATION = "SECTOR_EXPOSURE_EXPLANATION"
+    MANAGEMENT_COMMENTARY = "MANAGEMENT_COMMENTARY"
+    GUIDANCE_EXTRACTION = "GUIDANCE_EXTRACTION"
+    FILING_RISK_FACTORS = "FILING_RISK_FACTORS"
+    SEGMENT_SUMMARY = "SEGMENT_SUMMARY"
+    ONE_OFF_ITEM_IDENTIFICATION = "ONE_OFF_ITEM_IDENTIFICATION"
+    ACCOUNTING_NOTE_INTERPRETATION = "ACCOUNTING_NOTE_INTERPRETATION"
 
 
 class ProviderConfig(BaseModel):
@@ -100,6 +106,22 @@ class RoutedAnalysis(BaseModel):
 
 class LLMAnalysisUnavailable(RuntimeError):
     pass
+
+
+def validate_financial_numbers(
+    output: dict[str, Any], source_spans: tuple[dict[str, Any], ...]
+) -> None:
+    """Reject every generated financial fact not exactly grounded in a typed source span."""
+    allowed = {
+        (str(span.get("value")), str(span.get("unit")), str(span.get("period")),
+         str(span.get("currency")))
+        for span in source_spans
+    }
+    for fact in output.get("numeric_facts", []):
+        key = (str(fact.get("value")), str(fact.get("unit")), str(fact.get("period")),
+               str(fact.get("currency")))
+        if key not in allowed or not fact.get("source_span_id"):
+            raise ValueError("LLM numeric fact is not grounded in source value/unit/period/currency")
 
 
 DEFAULT_PROVIDER_CONFIGS = {

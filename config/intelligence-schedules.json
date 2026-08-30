@@ -13,6 +13,11 @@
     {"name": "daily-intelligence-build", "kind": "DAILY", "local_time": "16:30"},
     {"name": "daily-quality-audit", "kind": "DAILY", "local_time": "17:00"},
     {"name": "macro-quality-audit", "kind": "DAILY", "local_time": "17:05"},
+    {"name": "fundamental-filing-discovery", "kind": "INTERVAL", "cadence_seconds": 21600},
+    {"name": "fundamental-results-processing", "kind": "INTERVAL", "cadence_seconds": 21600},
+    {"name": "fundamental-snapshot-refresh", "kind": "DAILY", "local_time": "17:10"},
+    {"name": "fundamental-restatement-check", "kind": "WEEKLY", "weekday": 0, "local_time": "17:10"},
+    {"name": "fundamental-quality-audit", "kind": "DAILY", "local_time": "17:12"},
     {"name": "source-failure-review", "kind": "DAILY", "local_time": "17:15"},
     {"name": "intelligence-summary", "kind": "DAILY", "local_time": "17:30"},
     {"name": "source-discovery-proposal", "kind": "WEEKLY", "weekday": 0, "local_time": "09:00"}

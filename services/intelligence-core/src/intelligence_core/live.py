@@ -185,6 +185,21 @@ def operational_handlers(
         "macro-quality-audit": lambda _job, _now: {
             "status": "PASS_FIXTURE_CONTRACTS_LIVE_RBI_METADATA_ONLY"
         },
+        "fundamental-filing-discovery": lambda _job, _now: {
+            "status": "CANDIDATE_ONLY_NO_APPROVED_AUTOMATED_SOURCE"
+        },
+        "fundamental-results-processing": lambda _job, _now: {
+            "status": "ENGINEERING_FIXTURE_ONLY"
+        },
+        "fundamental-snapshot-refresh": lambda _job, _now: {
+            "status": "ENGINEERING_FIXTURE_INTERNAL_NOT_PREDICTION"
+        },
+        "fundamental-restatement-check": lambda _job, _now: {
+            "status": "ENGINEERING_FIXTURE_ONLY"
+        },
+        "fundamental-quality-audit": lambda _job, _now: {
+            "status": "PASS_FIXTURE_CONTRACTS_NO_LIVE_SOURCE"
+        },
         "event-intelligence-build": event_build,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,
