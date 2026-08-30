@@ -21,8 +21,15 @@ def synthetic_market_fixture(
         returns = np.zeros(sessions)
         for index in range(1, sessions):
             autoregressive = 0.72 * returns[index - 1] if planted_edge else 0
-            regime = 0.0012 if 40 <= index < 110 else -0.001 if 110 <= index < 170 else 0
-            returns[index] = autoregressive + regime + 0.25 * market_returns[index] + noise[index]
+            regime = (
+                0.0012
+                if planted_edge and 40 <= index < 110
+                else -0.001
+                if planted_edge and 110 <= index < 170
+                else 0
+            )
+            market_component = 0.25 * market_returns[index] if planted_edge else 0
+            returns[index] = autoregressive + regime + market_component + noise[index]
         returns[210:216] *= 3.5  # controlled volatility spike
         returns[250] += 0.075  # gap/breakout
         returns[251] -= 0.065  # sharp reversal / action-like discontinuity
