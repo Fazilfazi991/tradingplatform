@@ -4,6 +4,7 @@ from uuid import uuid4
 import pytest
 from pydantic import ValidationError
 from verified_edge.domain import InformationEvent
+from verified_edge.information_time import events_available_at
 
 
 def event(**updates):
@@ -38,3 +39,15 @@ def test_naive_information_timestamps_rejected():
     naive_timestamp = datetime.fromisoformat("2026-01-01T12:00:00")
     with pytest.raises(ValidationError):
         event(event_time=naive_timestamp)
+
+
+def test_decision_boundary_excludes_future_available_information():
+    decision_time = datetime(2026, 1, 1, 12, 0, 5, tzinfo=UTC)
+    known = event(available_at=decision_time)
+    future = event(available_at=decision_time + timedelta(microseconds=1))
+    assert events_available_at([future, known], decision_time) == [known]
+
+
+def test_decision_boundary_requires_timezone():
+    with pytest.raises(ValueError, match="timezone-aware"):
+        events_available_at([event()], datetime.fromisoformat("2026-01-01T12:00:00"))

@@ -7,6 +7,7 @@ import pytest
 from verified_edge.providers.base import MarketDataProvider
 from verified_edge.providers.upstox import (
     AuthenticationError,
+    ProviderError,
     ProviderSchemaError,
     RateLimitError,
     UpstoxMarketDataProvider,
@@ -91,3 +92,60 @@ def test_malformed_provider_payload():
     )
     with pytest.raises(ProviderSchemaError):
         provider.get_historical_daily(inst, date(2026, 1, 1), date(2026, 1, 2))
+
+
+@pytest.mark.parametrize("status", [500, 503])
+def test_server_errors_have_bounded_retries(status):
+    attempts = []
+    provider = UpstoxMarketDataProvider(
+        token="redacted",
+        client=client(lambda request: (attempts.append(request), httpx.Response(status))[1]),
+        sleeper=lambda _: None,
+    )
+    with pytest.raises(ProviderError, match="server error"):
+        provider.health_check()
+    assert len(attempts) == 3
+
+
+def test_network_timeout_has_bounded_retries():
+    attempts = []
+
+    def handler(request):
+        attempts.append(request)
+        raise httpx.ReadTimeout("controlled timeout", request=request)
+
+    provider = UpstoxMarketDataProvider(
+        token="redacted", client=client(handler), sleeper=lambda _: None
+    )
+    with pytest.raises(ProviderError, match="network failure"):
+        provider.health_check()
+    assert len(attempts) == 3
+
+
+def test_malformed_json_and_missing_candle_field_are_rejected():
+    responses = iter(
+        [httpx.Response(200, content=b"not-json"), httpx.Response(200, json={"data": {"candles": [["2026-01-02T00:00:00+05:30", 1]]}})]
+    )
+    provider = UpstoxMarketDataProvider(
+        token="redacted", base_url="https://example.test", client=client(lambda _: next(responses))
+    )
+    inst = __import__("verified_edge.domain", fromlist=["Instrument"]).Instrument(
+        exchange="NSE", segment="NSE_EQ", symbol="ALPHA", provider_instrument_key="NSE_EQ|INE1"
+    )
+    with pytest.raises(ProviderSchemaError):
+        provider.get_historical_daily(inst, date(2026, 1, 1), date(2026, 1, 2))
+    with pytest.raises(ProviderSchemaError):
+        provider.get_historical_daily(inst, date(2026, 1, 1), date(2026, 1, 2))
+
+
+def test_unexpected_candle_fields_are_preserved_without_changing_canonical_fields():
+    row = ["2026-01-02T00:00:00+05:30", 100, 110, 90, 105, 1000, 0, "new-field"]
+    parsed = UpstoxMarketDataProvider._parse_candle(row)
+    assert parsed["close"] == 105
+    assert parsed["provider_row"] == row
+
+
+def test_missing_instrument_is_explicit_failure():
+    provider = UpstoxMarketDataProvider(token="redacted", client=client(lambda _: httpx.Response(200, json=[])))
+    with pytest.raises(ProviderError, match="found 0"):
+        provider.resolve_instrument("DOES_NOT_EXIST")

@@ -57,7 +57,13 @@ class UpstoxMarketDataProvider(MarketDataProvider):
 
     def _request(self, url: str, *, retries: int = 3) -> httpx.Response:
         for attempt in range(1, retries + 1):
-            response = self._client.get(url, headers=self._headers())
+            try:
+                response = self._client.get(url, headers=self._headers())
+            except httpx.TransportError as exc:
+                if attempt == retries:
+                    raise ProviderError("Upstox network failure after bounded retries") from exc
+                self._sleep(min(2 ** (attempt - 1) + random.random() / 10, 8))
+                continue
             if response.status_code == 401:
                 raise AuthenticationError("Upstox rejected the read-only access token")
             if response.status_code == 429 or response.status_code >= 500:
