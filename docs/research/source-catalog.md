@@ -16,6 +16,11 @@
 | NSE Corporate Information RSS | Corporate events | Official RSS | REVIEW_REQUIRED | Official subscription is documented; exact feed onboarding and retention review pending | Not activated |
 | NSE Corporate Data | Corporate events | Licensed feed/SFTP | REVIEW_REQUIRED | Commercial agreement and intended-use terms required | Not activated |
 | BSE Self Data Feed Corporate API | Corporate events | Licensed API | REVIEW_REQUIRED | KYC, pricing and agreement required | Not activated |
+| RBI DBIE | India macro | Official portal | REVIEW_REQUIRED | Stable automated endpoint, vintage and retention validation pending | Fixture contract only |
+| MOSPI releases | CPI/GDP/IIP | Official files | REVIEW_REQUIRED | Release-specific parser and revision validation pending | Fixture contract only |
+| FRED/ALFRED | Global macro/vintages | Official API | REVIEW_REQUIRED | API key, terms and series-owner rights review required | Fixture contract only |
+| US BLS API | US inflation/employment | Official API | REVIEW_REQUIRED | Series and vintage validation pending | Fixture contract only |
+| US BEA API | US GDP/income | Official API | REVIEW_REQUIRED | Key/terms and vintage validation pending | Fixture contract only |
 | OI/IV/skew | Derivatives | Licensed exchange/vendor | BLOCKED_LICENSE | Entitlement required | Fixture only |
 | Social/search attention | Sentiment/psychology | Vendor/official API | REVIEW_REQUIRED | No scraping approval | Contract only |
 | Cross-market context | Global market | Licensed/public API | REVIEW_REQUIRED | Instrument-specific rights required | Contract only |
