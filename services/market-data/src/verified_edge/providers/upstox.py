@@ -12,6 +12,7 @@ from typing import Any
 from urllib.parse import quote
 
 import httpx
+from verified_edge.corporate_actions import CorporateAction, CorporateActionType
 from verified_edge.domain import Instrument
 from verified_edge.providers.base import MarketDataProvider
 
@@ -44,7 +45,7 @@ class UpstoxMarketDataProvider(MarketDataProvider):
     ) -> None:
         self._token = token or os.getenv("UPSTOX_ACCESS_TOKEN")
         self._base_url = (
-            base_url or os.getenv("UPSTOX_BASE_URL", "https://api.upstox.com")
+            base_url or os.getenv("UPSTOX_BASE_URL") or "https://api.upstox.com"
         ).rstrip("/")
         self._client = client or httpx.Client(timeout=30, follow_redirects=True)
         self._sleep = sleeper
@@ -174,6 +175,38 @@ class UpstoxMarketDataProvider(MarketDataProvider):
             f"{self._base_url}/v3/market-quote/ltp?instrument_key={instrument.provider_instrument_key}"
         )
         return response.json()
+
+    def get_corporate_actions(self, isin: str) -> list[CorporateAction]:
+        if not isin:
+            raise ProviderError("ISIN is required for corporate actions")
+        encoded = quote(isin, safe="")
+        response = self._request(f"{self._base_url}/v2/fundamentals/{encoded}/corporate-actions")
+        try:
+            records = response.json()["data"]
+            if not isinstance(records, list):
+                raise TypeError
+            actions = []
+            for record in records:
+                ratio = str(record.get("ratio") or "").split(":")
+                numerator, denominator = (ratio + [None, None])[:2]
+                effective = time.strptime(record["expiry_date"], "%d %b %Y")
+                actions.append(
+                    CorporateAction(
+                        action_type=CorporateActionType(str(record["name"]).upper()),
+                        effective_date=date(effective.tm_year, effective.tm_mon, effective.tm_mday),
+                        source="UPSTOX_FUNDAMENTALS_API",
+                        source_version="v2",
+                        numerator=Decimal(numerator) if numerator else None,
+                        denominator=Decimal(denominator) if denominator else None,
+                        cash_amount=Decimal(str(record["amount"]))
+                        if record.get("amount") is not None
+                        else None,
+                        metadata={"event_details": record.get("event_details", [])},
+                    )
+                )
+            return actions
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ProviderSchemaError("malformed Upstox corporate-action payload") from exc
 
     def get_index_data(self, code: str, start: date, end: date) -> list[dict[str, Any]]:
         instrument = next(

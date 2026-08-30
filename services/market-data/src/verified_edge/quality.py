@@ -5,6 +5,7 @@ from collections.abc import Iterable
 from datetime import UTC, date, datetime
 from decimal import Decimal, InvalidOperation
 from itertools import pairwise
+from uuid import UUID
 
 from verified_edge.domain import QualityEvent, RawObservation, Severity
 
@@ -17,7 +18,7 @@ def validate_observations(
     rows = list(observations)
     events: list[QualityEvent] = []
     by_key: dict[tuple, list[RawObservation]] = defaultdict(list)
-    by_instrument: dict[object, list[RawObservation]] = defaultdict(list)
+    by_instrument: dict[UUID, list[RawObservation]] = defaultdict(list)
     now = datetime.now(UTC)
     for row in rows:
         by_key[(row.instrument_id, row.session_date)].append(row)
