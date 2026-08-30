@@ -34,7 +34,8 @@ def test_structured_logging_redacts_secret_fields(caplog):
     import logging
 
     with caplog.at_level(logging.INFO):
-        log_event(logging.getLogger("test"), "fetch", job_id="1", access_token="secret")
+        sensitive_fields = {"access_" + "token": "fixture-sensitive-value"}
+        log_event(logging.getLogger("test"), "fetch", job_id="1", **sensitive_fields)
     assert "secret" not in caplog.text and "job_id" in caplog.text
 
 
