@@ -1,0 +1,109 @@
+{
+  "analyzer": "deterministic-v1",
+  "ended_at": "2026-08-30T14:39:31.855700+00:00",
+  "label": "INTERNAL EVENT EVIDENCE \u2014 NOT PREDICTION",
+  "llm_status": "DISABLED_NO_CREDENTIALS",
+  "sources": {
+    "rbi-press-releases-rss": {
+      "entity_matches": 0,
+      "event_types": {
+        "LIQUIDITY": 4,
+        "OTHER": 6
+      },
+      "events_processed": 10,
+      "material_events": 0,
+      "official_confirmed": 10,
+      "processing_latency_seconds": 0.6641772999428213,
+      "qa": {
+        "classification_coverage": 1.0,
+        "contradiction_rate": 0.0,
+        "duplicate_suppression_rate": 0.0,
+        "entity_match_rate": 0.0,
+        "llm_validation_failure_rate": 0.0,
+        "materiality_unknown_rate": 0.8,
+        "unknown_rate": 1.0
+      },
+      "samples": [
+        {
+          "available_at": "2026-08-30T14:39:30.359865+00:00",
+          "confirmation": "OFFICIAL_CONFIRMED",
+          "direction": "UNKNOWN",
+          "event_type": "LIQUIDITY",
+          "materiality": "HIGH",
+          "status": "CLASSIFIED",
+          "title": "Auction of State Government Securities"
+        },
+        {
+          "available_at": "2026-08-30T14:39:30.359865+00:00",
+          "confirmation": "OFFICIAL_CONFIRMED",
+          "direction": "UNKNOWN",
+          "event_type": "LIQUIDITY",
+          "materiality": "UNKNOWN",
+          "status": "INSUFFICIENT_EVIDENCE",
+          "title": "RBI to conduct 15-day Variable Rate Reverse Repo (VRRR) auction under LAF on August 31, 2026"
+        },
+        {
+          "available_at": "2026-08-30T14:39:30.359865+00:00",
+          "confirmation": "OFFICIAL_CONFIRMED",
+          "direction": "UNKNOWN",
+          "event_type": "LIQUIDITY",
+          "materiality": "HIGH",
+          "status": "CLASSIFIED",
+          "title": "Directions under Section 35 A read with Section 56 of the Banking Regulation Act, 1949 \u2013 Ashok Sahakari Bank Ltd., Ahmednagar"
+        }
+      ],
+      "sector_matches": 0
+    },
+    "sebi-rss": {
+      "entity_matches": 0,
+      "event_types": {
+        "OTHER": 27,
+        "REGULATORY": 3
+      },
+      "events_processed": 30,
+      "material_events": 0,
+      "official_confirmed": 30,
+      "processing_latency_seconds": 1.4855138000566512,
+      "qa": {
+        "classification_coverage": 1.0,
+        "contradiction_rate": 0.0,
+        "duplicate_suppression_rate": 0.0,
+        "entity_match_rate": 0.0,
+        "llm_validation_failure_rate": 0.0,
+        "materiality_unknown_rate": 1.0,
+        "unknown_rate": 1.0
+      },
+      "samples": [
+        {
+          "available_at": "2026-08-30T14:39:31.820056+00:00",
+          "confirmation": "OFFICIAL_CONFIRMED",
+          "direction": "UNKNOWN",
+          "event_type": "REGULATORY",
+          "materiality": "UNKNOWN",
+          "status": "INSUFFICIENT_EVIDENCE",
+          "title": "Final Order in the matter of Debock Industries Limited"
+        },
+        {
+          "available_at": "2026-08-30T14:39:31.820056+00:00",
+          "confirmation": "OFFICIAL_CONFIRMED",
+          "direction": "UNKNOWN",
+          "event_type": "REGULATORY",
+          "materiality": "UNKNOWN",
+          "status": "INSUFFICIENT_EVIDENCE",
+          "title": "Final Order in the matter of IPO of Trafiksol ITS Technologies Limited"
+        },
+        {
+          "available_at": "2026-08-30T14:39:31.820056+00:00",
+          "confirmation": "OFFICIAL_CONFIRMED",
+          "direction": "UNKNOWN",
+          "event_type": "OTHER",
+          "materiality": "UNKNOWN",
+          "status": "INSUFFICIENT_EVIDENCE",
+          "title": "Notice of Attachment of Bank Accounts and Demat Accounts with AP No. 15768 & 15769 of 2026 dated August 28, 2026 against Mr. Dheeraj Wadhawan  (PAN: AAOPW4517G)"
+        }
+      ],
+      "sector_matches": 0
+    }
+  },
+  "started_at": "2026-08-30T14:39:29.708728+00:00"
+}

@@ -6,6 +6,7 @@
     {"name": "rbi-rss", "kind": "INTERVAL", "source_id": "rbi-press-releases-rss", "cadence_seconds": 900},
     {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900},
     {"name": "universe-check", "kind": "DAILY", "local_time": "08:00"},
+    {"name": "event-intelligence-build", "kind": "DAILY", "local_time": "16:15"},
     {"name": "daily-intelligence-build", "kind": "DAILY", "local_time": "16:30"},
     {"name": "daily-quality-audit", "kind": "DAILY", "local_time": "17:00"},
     {"name": "source-failure-review", "kind": "DAILY", "local_time": "17:15"},

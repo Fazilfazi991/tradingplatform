@@ -7,6 +7,10 @@ from pathlib import Path
 from intelligence_core.catalog import initial_sources
 from intelligence_core.collectors import OfficialRssCollector
 from intelligence_core.durable import DurableJob, SQLiteOperationsStore
+from intelligence_core.event_intelligence import (
+    DeterministicEventAnalyzer,
+    daily_event_summary,
+)
 from intelligence_core.models import CollectionPolicy, HealthStatus
 from intelligence_core.operations import build_daily_archive, daily_summary
 from intelligence_core.reports import daily_audit_report, maintenance_report
@@ -89,6 +93,32 @@ def operational_handlers(
         )
         return {"manifest_hash": archive["manifest_hash"], "events": len(archive["events"])}
 
+    def event_build(_job: DurableJob, now: datetime) -> dict:
+        analyzer = DeterministicEventAnalyzer()
+        records = [
+            analyzer.analyze(
+                event,
+                cluster_id=event.duplicate_group_id or str(event.event_id),
+                derived_at=max(now, event.available_at),
+            )
+            for event in store.events()
+            if event.available_at <= now
+        ]
+        payload = {
+            "label": "INTERNAL EVENT EVIDENCE — NOT PREDICTION",
+            "records": [record.model_dump(mode="json") for record in records],
+            "summary": daily_event_summary(records, now),
+        }
+        root.mkdir(parents=True, exist_ok=True)
+        target = root / "event-intelligence" / f"{now.date().isoformat()}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if target.exists():
+            return {"status": "ALREADY_BUILT", "events": len(records)}
+        target.write_text(
+            json.dumps(payload, indent=2, sort_keys=True, default=str), encoding="utf-8"
+        )
+        return {"status": "BUILT", "events": len(records)}
+
     def summary(_job: DurableJob, now: datetime) -> dict:
         events = store.events()
         states = {source.source_id: HealthStatus.UNKNOWN for source in initial_sources()}
@@ -125,6 +155,7 @@ def operational_handlers(
 
     return {
         "source-health": health,
+        "event-intelligence-build": event_build,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,
         "daily-quality-audit": audit,
