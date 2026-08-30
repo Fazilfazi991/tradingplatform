@@ -16,6 +16,8 @@ node_modules/
 .next/
 *.tsbuildinfo
 .impeccable/review/
+research/experiments/
+research/artifacts/
 data/raw/
 data/quarantine/
 data/exports/
