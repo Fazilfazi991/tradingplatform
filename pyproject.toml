@@ -24,11 +24,13 @@ dev = ["pytest>=8.3,<9", "pytest-cov>=6,<7", "ruff>=0.9,<1", "mypy>=1.15,<2"]
 
 [project.scripts]
 ve-data = "verified_edge.cli:main"
+run-intelligence-demo = "intelligence_core.demo:main"
 
 [tool.hatch.build.targets.wheel]
 packages = [
   "services/market-data/src/verified_edge",
   "services/research-core/src/research_core",
+  "services/intelligence-core/src/intelligence_core",
 ]
 
 [tool.pytest.ini_options]
@@ -45,8 +47,8 @@ target-version = "py312"
 
 [tool.mypy]
 python_version = "3.12"
-packages = ["research_core"]
-mypy_path = ["services/research-core/src"]
+packages = ["research_core", "intelligence_core"]
+mypy_path = ["services/research-core/src", "services/intelligence-core/src"]
 ignore_missing_imports = true
 check_untyped_defs = true
 warn_unused_ignores = true
