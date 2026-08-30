@@ -1,0 +1,15 @@
+{
+  "version": "1",
+  "timezone": "Asia/Kolkata",
+  "jobs": [
+    {"name": "source-health", "kind": "INTERVAL", "cadence_seconds": 3600},
+    {"name": "rbi-rss", "kind": "INTERVAL", "source_id": "rbi-press-releases-rss", "cadence_seconds": 900},
+    {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900},
+    {"name": "universe-check", "kind": "DAILY", "local_time": "08:00"},
+    {"name": "daily-intelligence-build", "kind": "DAILY", "local_time": "16:30"},
+    {"name": "daily-quality-audit", "kind": "DAILY", "local_time": "17:00"},
+    {"name": "source-failure-review", "kind": "DAILY", "local_time": "17:15"},
+    {"name": "intelligence-summary", "kind": "DAILY", "local_time": "17:30"},
+    {"name": "source-discovery-proposal", "kind": "WEEKLY", "weekday": 0, "local_time": "09:00"}
+  ]
+}

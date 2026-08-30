@@ -83,6 +83,22 @@ class CollectionMode(StrEnum):
     FIXTURE = "FIXTURE"
 
 
+class IntelligenceRuntimeMode(StrEnum):
+    FIXTURE = "FIXTURE"
+    INTERNAL_LIVE = "INTERNAL_LIVE"
+    PRODUCTION_INTERNAL = "PRODUCTION_INTERNAL"
+    CUSTOMER_VISIBLE = "CUSTOMER_VISIBLE"
+
+
+class IntelligenceRuntimePolicy:
+    maximum_mode = IntelligenceRuntimeMode.INTERNAL_LIVE
+
+    @classmethod
+    def authorize(cls, mode: IntelligenceRuntimeMode) -> None:
+        if mode not in {IntelligenceRuntimeMode.FIXTURE, IntelligenceRuntimeMode.INTERNAL_LIVE}:
+            raise PermissionError(f"intelligence runtime mode blocked: {mode}")
+
+
 class IntelligenceSource(FrozenModel):
     source_id: str
     name: str
@@ -209,12 +225,27 @@ class InformationEvent(FrozenModel):
     correction_of: UUID | None = None
     supersedes: UUID | None = None
     metadata_json: dict[str, Any] = Field(default_factory=dict)
+    collection_origin: Literal["BACKFILLED", "FORWARD_COLLECTED"] = "FORWARD_COLLECTED"
+    source_available_at: datetime | None = None
+    system_observed_at: datetime | None = None
 
     @model_validator(mode="after")
     def causal_times(self) -> InformationEvent:
         if self.available_at < self.published_at or self.observed_at < self.published_at:
             raise ValueError("event cannot be available or observed before publication")
+        if self.source_available_at is None:
+            object.__setattr__(self, "source_available_at", self.published_at)
+        if self.system_observed_at is None:
+            object.__setattr__(self, "system_observed_at", self.observed_at)
         return self
+
+    @property
+    def discovery_latency_seconds(self) -> float:
+        return (self.observed_at - self.published_at).total_seconds()
+
+    @property
+    def collection_latency_seconds(self) -> float:
+        return (self.ingested_at - self.observed_at).total_seconds()
 
 
 class EntityMatch(FrozenModel):
@@ -284,3 +315,26 @@ class SourceScorecard(FrozenModel):
     entity_resolution_quality: float
     potential_predictive_value: float | None = None
     actual_validated_predictive_value: float | None = None
+
+
+class IntelligenceIncident(FrozenModel):
+    incident_id: UUID = Field(default_factory=uuid4)
+    incident_type: Literal[
+        "SOURCE_STALE",
+        "PARSER_SCHEMA_CHANGE",
+        "ENTITY_RESOLUTION_FAILURE_SPIKE",
+        "DUPLICATE_RATE_ANOMALY",
+        "SOURCE_AUTH_FAILURE",
+        "RATE_LIMIT_BREACH",
+        "DATA_VOLUME_DROP",
+        "SCHEDULER_MISSED_RUN",
+        "SNAPSHOT_FAILURE",
+    ]
+    severity: Literal["INFO", "WARNING", "HIGH", "CRITICAL"]
+    source_id: str | None = None
+    opened_at: datetime = Field(default_factory=lambda: datetime.now(UTC))
+    status: Literal["OPEN", "ACKNOWLEDGED", "RESOLVED"] = "OPEN"
+    evidence: dict[str, Any]
+    affected_data: tuple[str, ...] = ()
+    resolution: str | None = None
+    closed_at: datetime | None = None

@@ -21,5 +21,6 @@ research/artifacts/
 data/raw/
 data/quarantine/
 data/exports/
+data/local/
 data/manifests/*.json
 !data/manifests/.gitkeep
