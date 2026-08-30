@@ -12,6 +12,9 @@ dependencies = [
   "pandas>=2.2,<3",
   "pyarrow>=18,<19",
   "pydantic>=2.10,<3",
+  "scipy>=1.15,<2",
+  "scikit-learn>=1.6,<2",
+  "joblib>=1.4,<2",
   "sqlalchemy>=2.0,<3",
   "psycopg[binary]>=3.2,<4",
 ]
@@ -23,13 +26,16 @@ dev = ["pytest>=8.3,<9", "pytest-cov>=6,<7", "ruff>=0.9,<1"]
 ve-data = "verified_edge.cli:main"
 
 [tool.hatch.build.targets.wheel]
-packages = ["services/market-data/src/verified_edge"]
+packages = [
+  "services/market-data/src/verified_edge",
+  "services/research-core/src/research_core",
+]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+markers = ["slow: deterministic end-to-end research engineering tests"]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-
