@@ -11,6 +11,7 @@ from intelligence_core.event_intelligence import (
     DeterministicEventAnalyzer,
     daily_event_summary,
 )
+from intelligence_core.macro import build_macro_snapshot, default_unknown_state
 from intelligence_core.models import CollectionPolicy, HealthStatus
 from intelligence_core.operations import build_daily_archive, daily_summary
 from intelligence_core.reports import daily_audit_report, maintenance_report
@@ -153,8 +154,37 @@ def operational_handlers(
         )
         return {"report_type": report.report_type}
 
+    def macro_build(job: DurableJob, now: datetime) -> dict:
+        policy, cross_market, regime = default_unknown_state(now)
+        snapshot = build_macro_snapshot(
+            now,
+            [],
+            policy_state=policy,
+            cross_market=cross_market,
+            regime=regime,
+            source_health={"rbi-press-releases-rss": "HEALTHY"},
+        )
+        root.mkdir(parents=True, exist_ok=True)
+        target = root / "macro" / f"{job.name}-{now.date().isoformat()}.json"
+        target.parent.mkdir(parents=True, exist_ok=True)
+        if not target.exists():
+            target.write_text(snapshot.model_dump_json(indent=2), encoding="utf-8")
+        return {
+            "status": "BUILT_INTERNAL_NOT_PREDICTION",
+            "snapshot_hash": snapshot.snapshot_hash,
+            "observations": len(snapshot.observations),
+        }
+
     return {
         "source-health": health,
+        "macro-release-processing": lambda _job, _now: {
+            "status": "RBI_EVENT_PIPELINE_ACTIVE_OTHER_SOURCES_FIXTURE"
+        },
+        "pre-market-macro-build": macro_build,
+        "eod-macro-build": macro_build,
+        "macro-quality-audit": lambda _job, _now: {
+            "status": "PASS_FIXTURE_CONTRACTS_LIVE_RBI_METADATA_ONLY"
+        },
         "event-intelligence-build": event_build,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,
