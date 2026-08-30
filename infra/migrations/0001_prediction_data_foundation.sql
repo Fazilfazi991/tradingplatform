@@ -127,9 +127,20 @@ begin if old.sealed_at is not null then raise exception 'sealed dataset cannot m
 create trigger sealed_dataset_immutable before update or delete on verified_edge.datasets
 for each row execute function verified_edge.prevent_sealed_dataset_mutation();
 
-revoke all on all tables in schema verified_edge from anon, authenticated, public;
-revoke all on all sequences in schema verified_edge from anon, authenticated, public;
-revoke execute on all functions in schema verified_edge from public, anon, authenticated;
+revoke all on all tables in schema verified_edge from public;
+revoke all on all sequences in schema verified_edge from public;
+revoke execute on all functions in schema verified_edge from public;
+do $$ begin
+  if exists (select 1 from pg_roles where rolname = 'anon') then
+    execute 'revoke all on all tables in schema verified_edge from anon';
+    execute 'revoke all on all sequences in schema verified_edge from anon';
+    execute 'revoke execute on all functions in schema verified_edge from anon';
+  end if;
+  if exists (select 1 from pg_roles where rolname = 'authenticated') then
+    execute 'revoke all on all tables in schema verified_edge from authenticated';
+    execute 'revoke all on all sequences in schema verified_edge from authenticated';
+    execute 'revoke execute on all functions in schema verified_edge from authenticated';
+  end if;
+end $$;
 
 commit;
-

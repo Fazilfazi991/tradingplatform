@@ -1,4 +1,7 @@
 -- Durable operational state for autonomous internal intelligence collection.
+BEGIN;
+
+SET LOCAL search_path TO verified_edge, public;
 CREATE TABLE IF NOT EXISTS intelligence_schedules (
     name text PRIMARY KEY,
     definition jsonb NOT NULL,
@@ -51,3 +54,5 @@ CREATE INDEX IF NOT EXISTS intelligence_executions_job_started_idx
     ON intelligence_job_executions (job_name, started_at DESC);
 CREATE INDEX IF NOT EXISTS intelligence_events_source_observed_idx
     ON intelligence_events (source_id, observed_at DESC);
+
+COMMIT;

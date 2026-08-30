@@ -1,5 +1,7 @@
 BEGIN;
 
+SET LOCAL search_path TO verified_edge, public;
+
 CREATE TABLE intelligence_sources (
   source_id text PRIMARY KEY,
   name text NOT NULL,

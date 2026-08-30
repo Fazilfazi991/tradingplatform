@@ -7,9 +7,8 @@ SQL = (
 
 def test_private_schema_and_public_access_revoked():
     assert "create schema if not exists verified_edge" in SQL
-    assert (
-        "revoke all on all tables in schema verified_edge from anon, authenticated, public" in SQL
-    )
+    assert "revoke all on all tables in schema verified_edge from public" in SQL
+    assert "where rolname = 'anon'" in SQL and "where rolname = 'authenticated'" in SQL
 
 
 def test_append_only_triggers_present():
