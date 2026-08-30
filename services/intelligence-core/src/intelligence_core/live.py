@@ -209,6 +209,20 @@ def operational_handlers(
         "psychology-quality-audit": lambda _job, _now: {
             "status": "PASS_FIXTURE_CONTRACTS_NO_SOCIAL_SOURCE"
         },
+        "pre-market-positioning-build": lambda _job, _now: {
+            "status": "PRIOR_AVAILABLE_FIXTURE_ONLY_NO_DIRECTION_CALL"
+        },
+        "flow-ingestion": lambda _job, _now: {"status": "NO_APPROVED_FLOW_SOURCE"},
+        "participant-positioning-processing": lambda _job, _now: {
+            "status": "NO_APPROVED_DERIVATIVES_SOURCE"
+        },
+        "bulk-block-processing": lambda _job, _now: {"status": "CANDIDATE_ONLY"},
+        "eod-positioning-build": lambda _job, _now: {
+            "status": "ENGINEERING_FIXTURE_INTERNAL_NOT_PREDICTION"
+        },
+        "expiry-positioning-audit": lambda _job, _now: {
+            "status": "PASS_FIXTURE_EXPIRY_CONTRACTS"
+        },
         "event-intelligence-build": event_build,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,
