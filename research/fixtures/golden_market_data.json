@@ -1,0 +1,45 @@
+{
+  "description": "Two instruments, ten expected sessions, with missing, duplicate, extreme, invalid and corporate-action-like cases",
+  "expected_sessions": ["2026-01-02","2026-01-05","2026-01-06","2026-01-07","2026-01-08","2026-01-09","2026-01-12","2026-01-13","2026-01-14","2026-01-15"],
+  "instruments": [
+    {"symbol":"ALPHA","provider_key":"NSE_EQ|ALPHA"},
+    {"symbol":"BETA","provider_key":"NSE_EQ|BETA"}
+  ],
+  "cases": {
+    "missing":"ALPHA 2026-01-09",
+    "identical_duplicate":"ALPHA 2026-01-07",
+    "invalid_ohlc":"BETA 2026-01-08 high below close",
+    "extreme":"ALPHA 2026-01-12 +50% close",
+    "corporate_action_like":"BETA 2026-01-13 -50%; warning preserved pending action review"
+  },
+  "rows": [
+    ["ALPHA","2026-01-02",100,105,99,104,1000],
+    ["ALPHA","2026-01-05",104,107,103,106,1100],
+    ["ALPHA","2026-01-06",106,108,104,107,1200],
+    ["ALPHA","2026-01-07",107,109,106,108,1300],
+    ["ALPHA","2026-01-07",107,109,106,108,1300],
+    ["ALPHA","2026-01-08",108,110,107,109,1400],
+    ["ALPHA","2026-01-12",150,165,149,163.5,1800],
+    ["ALPHA","2026-01-13",164,166,160,162,1700],
+    ["ALPHA","2026-01-14",162,164,159,160,1600],
+    ["ALPHA","2026-01-15",160,163,158,162,1500],
+    ["BETA","2026-01-02",200,205,198,204,2000],
+    ["BETA","2026-01-05",204,208,202,207,2100],
+    ["BETA","2026-01-06",207,210,205,209,2200],
+    ["BETA","2026-01-07",209,212,207,211,2300],
+    ["BETA","2026-01-08",211,210,208,212,2400],
+    ["BETA","2026-01-09",212,214,210,213,2500],
+    ["BETA","2026-01-12",213,216,211,215,2600],
+    ["BETA","2026-01-13",108,110,105,107.5,5200],
+    ["BETA","2026-01-14",108,111,107,110,2800],
+    ["BETA","2026-01-15",110,112,109,111,2900]
+  ],
+  "expected": {
+    "missing_session_events": 1,
+    "duplicate_bar_events": 1,
+    "invalid_ohlc_events": 1,
+    "extreme_return_events": 2,
+    "quarantined_rows": 3,
+    "canonical_rows": 17
+  }
+}
