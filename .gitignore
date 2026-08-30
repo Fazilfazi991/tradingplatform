@@ -12,9 +12,12 @@ build/
 *.egg-info/
 .mypy_cache/
 .ruff_cache/
+node_modules/
+.next/
+*.tsbuildinfo
+.impeccable/review/
 data/raw/
 data/quarantine/
 data/exports/
 data/manifests/*.json
 !data/manifests/.gitkeep
-

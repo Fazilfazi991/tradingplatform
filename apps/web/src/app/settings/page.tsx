@@ -1,0 +1,2 @@
+import { EmptyDataState, PageHeader } from "@/components/ui";
+export default function Settings(){return <><PageHeader title="Settings">Prototype preferences and future data-source configuration.</PageHeader><div className="content"><EmptyDataState title="No configurable sources yet">Connections, accounts, and persistence are intentionally outside this product-experience batch.</EmptyDataState></div></>}

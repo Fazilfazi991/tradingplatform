@@ -1,0 +1,5 @@
+"use client";
+import { useState } from "react";
+import { models } from "@/data/demo/models";
+import { PageHeader, SectionHeader, Tag } from "@/components/ui";
+export default function Models(){const [open,setOpen]=useState<string|null>(null);return <><PageHeader title="Specialist model architecture">Independent engines interpret different evidence classes before a fusion layer considers agreement and contradiction.</PageHeader><div className="content"><section className="section"><SectionHeader title="Engine registry" note="Select an engine for details"/><div className="cards">{models.map(m=><button className="card" style={{textAlign:"left"}} key={m.name} onClick={()=>setOpen(open===m.name?null:m.name)} aria-expanded={open===m.name}><Tag tone={m.status==="Prototype"?"demo":m.status==="Blocked"?"blocked":"neutral"}>{m.status}</Tag><h3 style={{marginTop:20}}>{m.name}</h3><p>{m.purpose}</p>{open===m.name&&<div style={{marginTop:18,paddingTop:14,borderTop:"1px solid #293934"}}><p><b>Data sources:</b> {m.sources}<br/><b>Current phase:</b> {m.status}<br/><b>Last version:</b> {m.version}</p></div>}</button>)}</div></section></div></>}
