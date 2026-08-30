@@ -200,6 +200,15 @@ def operational_handlers(
         "fundamental-quality-audit": lambda _job, _now: {
             "status": "PASS_FIXTURE_CONTRACTS_NO_LIVE_SOURCE"
         },
+        "pre-market-psychology-build": lambda _job, _now: {
+            "status": "INTERNAL_NEWS_DERIVED_CONTRACT_NO_MARKET_DIRECTION"
+        },
+        "eod-psychology-build": lambda _job, _now: {
+            "status": "INTERNAL_NEWS_DERIVED_CONTRACT_NO_MARKET_DIRECTION"
+        },
+        "psychology-quality-audit": lambda _job, _now: {
+            "status": "PASS_FIXTURE_CONTRACTS_NO_SOCIAL_SOURCE"
+        },
         "event-intelligence-build": event_build,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,

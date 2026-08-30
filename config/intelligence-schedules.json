@@ -8,8 +8,10 @@
     {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900},
     {"name": "universe-check", "kind": "DAILY", "local_time": "08:00"},
     {"name": "pre-market-macro-build", "kind": "DAILY", "local_time": "08:45"},
+    {"name": "pre-market-psychology-build", "kind": "DAILY", "local_time": "08:50"},
     {"name": "event-intelligence-build", "kind": "DAILY", "local_time": "16:15"},
     {"name": "eod-macro-build", "kind": "DAILY", "local_time": "16:20"},
+    {"name": "eod-psychology-build", "kind": "DAILY", "local_time": "16:25"},
     {"name": "daily-intelligence-build", "kind": "DAILY", "local_time": "16:30"},
     {"name": "daily-quality-audit", "kind": "DAILY", "local_time": "17:00"},
     {"name": "macro-quality-audit", "kind": "DAILY", "local_time": "17:05"},
@@ -18,6 +20,7 @@
     {"name": "fundamental-snapshot-refresh", "kind": "DAILY", "local_time": "17:10"},
     {"name": "fundamental-restatement-check", "kind": "WEEKLY", "weekday": 0, "local_time": "17:10"},
     {"name": "fundamental-quality-audit", "kind": "DAILY", "local_time": "17:12"},
+    {"name": "psychology-quality-audit", "kind": "DAILY", "local_time": "17:14"},
     {"name": "source-failure-review", "kind": "DAILY", "local_time": "17:15"},
     {"name": "intelligence-summary", "kind": "DAILY", "local_time": "17:30"},
     {"name": "source-discovery-proposal", "kind": "WEEKLY", "weekday": 0, "local_time": "09:00"}
