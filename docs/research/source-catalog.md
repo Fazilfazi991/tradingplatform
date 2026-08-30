@@ -13,6 +13,9 @@
 | Professional news | News | Licensed API | BLOCKED_LICENSE | Commercial agreement required | None |
 | Fundamentals | Fundamental | Licensed/public filings | PLANNED | Rights and point-in-time revisions required | Fixture only |
 | FII/DII and ETF flows | Flow | Official/licensed file/API | PLANNED | Rights and timing validation required | Fixture only |
+| NSE Corporate Information RSS | Corporate events | Official RSS | REVIEW_REQUIRED | Official subscription is documented; exact feed onboarding and retention review pending | Not activated |
+| NSE Corporate Data | Corporate events | Licensed feed/SFTP | REVIEW_REQUIRED | Commercial agreement and intended-use terms required | Not activated |
+| BSE Self Data Feed Corporate API | Corporate events | Licensed API | REVIEW_REQUIRED | KYC, pricing and agreement required | Not activated |
 | OI/IV/skew | Derivatives | Licensed exchange/vendor | BLOCKED_LICENSE | Entitlement required | Fixture only |
 | Social/search attention | Sentiment/psychology | Vendor/official API | REVIEW_REQUIRED | No scraping approval | Contract only |
 | Cross-market context | Global market | Licensed/public API | REVIEW_REQUIRED | Instrument-specific rights required | Contract only |
