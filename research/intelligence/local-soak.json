@@ -1,0 +1,52 @@
+{
+  "cycles": [
+    {
+      "at": "2026-08-30T13:23:44.711928+00:00",
+      "health": "HEALTHY",
+      "job": "fixture-health-soak",
+      "status": "SUCCEEDED"
+    },
+    {
+      "at": "2026-08-30T13:23:49.746800+00:00",
+      "health": "HEALTHY",
+      "job": "fixture-health-soak",
+      "status": "SUCCEEDED"
+    },
+    {
+      "at": "2026-08-30T13:23:54.767936+00:00",
+      "health": "HEALTHY",
+      "job": "fixture-health-soak",
+      "status": "SUCCEEDED"
+    },
+    {
+      "at": "2026-08-30T13:23:59.800932+00:00",
+      "health": "HEALTHY",
+      "job": "fixture-health-soak",
+      "status": "SUCCEEDED"
+    },
+    {
+      "at": "2026-08-30T13:24:04.837009+00:00",
+      "health": "HEALTHY",
+      "job": "fixture-health-soak",
+      "status": "SUCCEEDED"
+    },
+    {
+      "at": "2026-08-30T13:24:09.862251+00:00",
+      "health": "HEALTHY",
+      "job": "fixture-health-soak",
+      "status": "SUCCEEDED"
+    }
+  ],
+  "cycles_completed": 6,
+  "elapsed_seconds": 31.18799999996554,
+  "ended_at": "2026-08-30T13:24:10.895127+00:00",
+  "label": "ACTUAL LOCAL FIXTURE SOAK",
+  "started_at": "2026-08-30T13:23:39.670653+00:00",
+  "state_counts": {
+    "checkpoints": 0,
+    "executions": 6,
+    "incidents": 0,
+    "leases": 0,
+    "schedules": 1
+  }
+}

@@ -75,6 +75,27 @@ def test_official_rss_fetch_parse_normalize_and_replay():
     assert item.health_check() and item.checkpoint() is None
 
 
+def test_official_alias_hosts_must_be_explicitly_configured():
+    approved = source().model_copy(
+        update={"entities_supported": ("sebi.gov.in", "www.sebi.gov.in")}
+    )
+    payload = RSS.replace(b"https://www.sebi.gov.in/a", b"https://sebi.gov.in/a")
+    item = OfficialRssCollector(
+        approved,
+        CollectionPolicy(source_id="sebi-rss", cadence_seconds=900),
+        "https://www.sebi.gov.in/sebirss.xml",
+        transport=rss_transport(payload),
+    )
+    assert len(item.replay(item.fetch(item.feed_url))) == 1
+
+
+def test_sebi_date_only_rss_timestamp_is_supported():
+    from intelligence_core.collectors import _rss_time
+
+    parsed = _rss_time("28 Aug, 2026 +0530")
+    assert parsed and parsed.astimezone(UTC).hour == 18
+
+
 @pytest.mark.parametrize(
     "url",
     [
