@@ -3,7 +3,7 @@ from uuid import uuid4
 
 import pytest
 from pydantic import ValidationError
-from verified_edge.domain import InformationEvent
+from verified_edge.domain import InformationEvent, RawObservation
 from verified_edge.information_time import events_available_at
 
 
@@ -51,3 +51,17 @@ def test_decision_boundary_excludes_future_available_information():
 def test_decision_boundary_requires_timezone():
     with pytest.raises(ValueError, match="timezone-aware"):
         events_available_at([event()], datetime.fromisoformat("2026-01-01T12:00:00"))
+
+
+def test_raw_observation_rejects_naive_provider_timestamp():
+    with pytest.raises(ValidationError, match="timezone-aware"):
+        RawObservation(
+            provider="TEST",
+            instrument_id=uuid4(),
+            session_date=datetime(2026, 1, 1, tzinfo=UTC).date(),
+            observed_at=datetime(2026, 1, 2, tzinfo=UTC),
+            source_timestamp=datetime.fromisoformat("2026-01-01T00:00:00"),
+            raw_payload={},
+            payload_hash="hash",
+            ingestion_run_id=uuid4(),
+        )

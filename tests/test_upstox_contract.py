@@ -66,6 +66,14 @@ def test_authentication_failure_without_secret():
         provider.health_check()
 
 
+def test_rejected_token_is_explicit_authentication_failure():
+    provider = UpstoxMarketDataProvider(
+        token="redacted", client=client(lambda _: httpx.Response(401))
+    )
+    with pytest.raises(AuthenticationError, match="rejected"):
+        provider.health_check()
+
+
 def test_rate_limit_bounded_retries():
     attempts = []
 
