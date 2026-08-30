@@ -114,6 +114,20 @@ class PredictionExperiment(FrozenModel):
     decision: str | None = None
     reviewer: str | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def enforce_preregistration(cls, data: Any) -> Any:
+        if isinstance(data, dict):
+            primary = data.get("primary_metric")
+            allowed = {"brier", "log_loss", "roc_auc", "pr_auc", "mae", "rmse"}
+            if primary not in allowed:
+                raise ValueError(f"primary_metric must be preregistered from {sorted(allowed)}")
+            budget = data.get("parameter_budget", {})
+            required = {"model_configurations", "feature_sets", "thresholds"}
+            if budget and (required - set(budget) or any(int(v) < 1 for v in budget.values())):
+                raise ValueError("parameter_budget must contain positive core attempt counts")
+        return data
+
     @model_validator(mode="after")
     def hash_config(self) -> PredictionExperiment:
         if not self.config_hash:
@@ -123,6 +137,9 @@ class PredictionExperiment(FrozenModel):
                 "target_id",
                 "model_spec",
                 "partition_spec",
+                "primary_metric",
+                "multiple_testing_family",
+                "parameter_budget",
                 "code_sha",
             }
             object.__setattr__(

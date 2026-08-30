@@ -140,6 +140,12 @@ def generate_report(result: dict, target: str | Path) -> Path:
     target = Path(target)
     target.parent.mkdir(parents=True, exist_ok=True)
     exp = result["experiment"]
+    context = result.get("null_context")
+    context_text = (
+        "Not supplied; the report must not infer significance from a secondary metric."
+        if context is None
+        else json.dumps(context, sort_keys=True)
+    )
     text = f"""# SYNTHETIC ENGINEERING EXPERIMENT — NOT MARKET EVIDENCE
 
 ## Hypothesis
@@ -165,6 +171,9 @@ Standardized linear coefficients: `{json.dumps(result["explanation"], sort_keys=
 
 ## Sanity and leakage checks
 Shuffled-target metrics: `{json.dumps(result["shuffle_metrics"], sort_keys=True)}`. Future/target-derived feature names are rejected separately by the feature contract.
+
+## Automatic null context
+{context_text}
 
 ## Limitations and decision
 This run validates machinery only. It is not evidence of market edge and cannot become customer-visible. Formal research remains blocked.
