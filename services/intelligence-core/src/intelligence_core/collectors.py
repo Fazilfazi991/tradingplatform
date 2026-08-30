@@ -97,7 +97,8 @@ class OfficialRssCollector(IntelligenceCollector):
         hostname = urlparse(str(source.base_url)).hostname
         if not hostname:
             raise SecurityPolicyError("source base URL has no hostname")
-        self.allowed_hosts = {hostname.lower()}
+        configured_hosts = {value.lower() for value in source.entities_supported if "." in value}
+        self.allowed_hosts = {hostname.lower(), *configured_hosts}
         validate_url(feed_url, self.allowed_hosts)
         self.transport = transport
         self._checkpoint: str | None = None
@@ -155,6 +156,9 @@ class OfficialRssCollector(IntelligenceCollector):
                     published_at=published,
                     observed_at=artifact.observed_at,
                     available_at=max(published, artifact.observed_at),
+                    collection_origin="FORWARD_COLLECTED",
+                    source_available_at=published,
+                    system_observed_at=artifact.observed_at,
                 )
             )
         return events
@@ -177,5 +181,8 @@ def _rss_time(value: str | None) -> datetime | None:
         return None
     from email.utils import parsedate_to_datetime
 
-    parsed = parsedate_to_datetime(value)
+    try:
+        parsed = parsedate_to_datetime(value)
+    except ValueError:
+        parsed = datetime.strptime(value, "%d %b, %Y %z")
     return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)

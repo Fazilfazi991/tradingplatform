@@ -33,6 +33,7 @@ def initial_sources() -> tuple[IntelligenceSource, ...]:
                 "base_url": "https://rbi.org.in",
                 "terms_url": "https://www.rbi.org.in/Scripts/rss.aspx",
                 "notes": "Official RSS for automated updates; document content rights remain separate.",
+                "entities_supported": ("rbi.org.in", "www.rbi.org.in"),
                 **shared,
             }
         ),
@@ -45,6 +46,7 @@ def initial_sources() -> tuple[IntelligenceSource, ...]:
                 "base_url": "https://www.sebi.gov.in",
                 "terms_url": "https://www.sebi.gov.in/rss.html",
                 "notes": "Official RSS; no customer republication.",
+                "entities_supported": ("sebi.gov.in", "www.sebi.gov.in"),
                 **shared,
             }
         ),
