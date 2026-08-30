@@ -223,6 +223,15 @@ def operational_handlers(
         "expiry-positioning-audit": lambda _job, _now: {
             "status": "PASS_FIXTURE_EXPIRY_CONTRACTS"
         },
+        "pre-market-fusion-build": lambda _job, _now: {
+            "status": "ABSTAIN_UNTIL_UPSTREAM_SNAPSHOTS_PRESENT"
+        },
+        "eod-fusion-build": lambda _job, _now: {
+            "status": "ENGINEERING_FIXTURE_INTERNAL_NOT_PREDICTION"
+        },
+        "fusion-quality-audit": lambda _job, _now: {
+            "status": "PASS_DETERMINISTIC_FIXTURE_CONTRACTS"
+        },
         "event-intelligence-build": event_build,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,

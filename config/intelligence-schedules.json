@@ -10,6 +10,7 @@
     {"name": "pre-market-macro-build", "kind": "DAILY", "local_time": "08:45"},
     {"name": "pre-market-psychology-build", "kind": "DAILY", "local_time": "08:50"},
     {"name": "pre-market-positioning-build", "kind": "DAILY", "local_time": "08:55"},
+    {"name": "pre-market-fusion-build", "kind": "DAILY", "local_time": "09:00"},
     {"name": "event-intelligence-build", "kind": "DAILY", "local_time": "16:15"},
     {"name": "eod-macro-build", "kind": "DAILY", "local_time": "16:20"},
     {"name": "eod-psychology-build", "kind": "DAILY", "local_time": "16:25"},
@@ -27,6 +28,8 @@
     {"name": "bulk-block-processing", "kind": "DAILY", "local_time": "18:25"},
     {"name": "eod-positioning-build", "kind": "DAILY", "local_time": "18:30"},
     {"name": "expiry-positioning-audit", "kind": "DAILY", "local_time": "18:35"},
+    {"name": "eod-fusion-build", "kind": "DAILY", "local_time": "18:40"},
+    {"name": "fusion-quality-audit", "kind": "DAILY", "local_time": "18:45"},
     {"name": "source-failure-review", "kind": "DAILY", "local_time": "17:15"},
     {"name": "intelligence-summary", "kind": "DAILY", "local_time": "17:30"},
     {"name": "source-discovery-proposal", "kind": "WEEKLY", "weekday": 0, "local_time": "09:00"}
