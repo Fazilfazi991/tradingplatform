@@ -329,6 +329,13 @@ class IntelligenceIncident(FrozenModel):
         "DATA_VOLUME_DROP",
         "SCHEDULER_MISSED_RUN",
         "SNAPSHOT_FAILURE",
+        "LLM_PROVIDER_DOWN",
+        "LLM_RATE_LIMITED",
+        "LLM_SCHEMA_FAILURE_SPIKE",
+        "LLM_COST_BUDGET_WARNING",
+        "LLM_COST_BUDGET_EXCEEDED",
+        "LLM_HALLUCINATION_QUARANTINE",
+        "SOURCE_COLLECTION_FAILURE",
     ]
     severity: Literal["INFO", "WARNING", "HIGH", "CRITICAL"]
     source_id: str | None = None

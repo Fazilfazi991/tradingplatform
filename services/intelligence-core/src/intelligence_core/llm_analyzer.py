@@ -135,6 +135,11 @@ EVENT_TYPE_TAXONOMY = (
 class OpenAIProviderError(RuntimeError):
     """Sanitized provider failure; response bodies and credentials are never exposed."""
 
+    def __init__(self, message: str, *, input_tokens: int = 0, output_tokens: int = 0) -> None:
+        super().__init__(message)
+        self.input_tokens = input_tokens
+        self.output_tokens = output_tokens
+
 
 class OpenAIResponsesAdapter:
     """OpenAI Responses API adapter implementing the provider-neutral protocol."""
@@ -242,11 +247,21 @@ class OpenAIResponsesAdapter:
             None,
         )
         if not output_text:
-            raise OpenAIProviderError("OPENAI_STRUCTURED_OUTPUT_MISSING")
+            usage = body.get("usage", {})
+            raise OpenAIProviderError(
+                "OPENAI_STRUCTURED_OUTPUT_MISSING",
+                input_tokens=int(usage.get("input_tokens", 0)),
+                output_tokens=int(usage.get("output_tokens", 0)),
+            )
         try:
             output = json.loads(output_text)
         except (json.JSONDecodeError, TypeError) as error:
-            raise OpenAIProviderError("OPENAI_STRUCTURED_OUTPUT_INVALID_JSON") from error
+            usage = body.get("usage", {})
+            raise OpenAIProviderError(
+                "OPENAI_STRUCTURED_OUTPUT_INVALID_JSON",
+                input_tokens=int(usage.get("input_tokens", 0)),
+                output_tokens=int(usage.get("output_tokens", 0)),
+            ) from error
         usage = body.get("usage", {})
         return ProviderResponse(
             output=output,

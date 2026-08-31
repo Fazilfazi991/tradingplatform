@@ -69,7 +69,7 @@ class SQLiteOperationsStore:
     def load_config(self, path: str | Path, *, now: datetime) -> None:
         config = json.loads(Path(path).read_text(encoding="utf-8"))
         for definition in config["jobs"]:
-            next_run = next_run_at(definition, now)
+            next_run = now.astimezone(UTC) if definition.get("run_immediately") else next_run_at(definition, now)
             self.connection.execute(
                 "INSERT INTO schedules(name,definition_json,version,next_run_at) VALUES(?,?,?,?) "
                 "ON CONFLICT(name) DO UPDATE SET definition_json=excluded.definition_json, version=excluded.version",

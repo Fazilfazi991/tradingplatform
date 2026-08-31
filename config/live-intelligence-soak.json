@@ -1,13 +1,28 @@
 {
-  "version": "live-soak-1",
+  "version": "live-soak-2",
   "timezone": "UTC",
   "target_duration_hours": 24,
   "longer_target_days": 7,
   "mode": "INTERNAL_LIVE",
   "prediction_authorized": false,
+  "research_mode": "ENGINEERING_FIXTURE",
+  "prompt_freeze_required": true,
+  "budget": {
+    "daily_usd": 0.25,
+    "per_event_usd": 0.01,
+    "high_materiality_review_usd": 0.05,
+    "warning_fraction": 0.8
+  },
+  "alert_thresholds": {
+    "version": "operational-alerts-v1",
+    "schema_failure_rate": 0.05,
+    "consecutive_provider_errors": 3,
+    "budget_warning_fraction": 0.8,
+    "source_stale_seconds": 2700
+  },
   "jobs": [
-    {"name": "rbi-rss", "kind": "INTERVAL", "source_id": "rbi-press-releases-rss", "cadence_seconds": 900},
-    {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900},
+    {"name": "rbi-rss", "kind": "INTERVAL", "source_id": "rbi-press-releases-rss", "cadence_seconds": 900, "run_immediately": true},
+    {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900, "run_immediately": true},
     {"name": "source-health", "kind": "INTERVAL", "cadence_seconds": 3600},
     {"name": "event-intelligence-build", "kind": "INTERVAL", "cadence_seconds": 3600},
     {"name": "intelligence-summary", "kind": "INTERVAL", "cadence_seconds": 3600}

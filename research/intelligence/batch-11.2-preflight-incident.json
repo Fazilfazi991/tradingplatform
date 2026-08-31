@@ -1,0 +1,10 @@
+{
+  "action": "EVALUATION_V1_TERMINATED_AND_RESTARTED_AS_FROZEN_V2",
+  "cost_reconciliation_state": "PROVIDER_DASHBOARD_REQUIRED",
+  "error_class": "OPENAI_STRUCTURED_OUTPUT_INVALID_JSON",
+  "incident_type": "LLM_SCHEMA_FAILURE",
+  "notes": "The pre-soak evaluation v1 terminated when a structured response was truncated at the 300-token ceiling. That version did not checkpoint per-call usage, so its provider-side spend cannot be reconstructed locally. Token-preserving failure telemetry and a 600-token ceiling were added before frozen evaluation v2. This incident is outside the 24-hour measurement window and is not silently mixed into soak totals.",
+  "provider": "openai",
+  "resolution": "RESOLVED_BEFORE_SOAK",
+  "severity": "HIGH"
+}
