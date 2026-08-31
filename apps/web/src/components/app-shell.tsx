@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BrainCircuit, Database, FlaskConical, Gauge, GitMerge, History, Newspaper, Search, Settings, Shapes, Sparkles } from "lucide-react";
+import { BarChart3, BrainCircuit, Database, FileSearch2, FlaskConical, Gauge, GitMerge, History, Newspaper, Search, Settings, Shapes, Sparkles } from "lucide-react";
 
 const nav = [
   ["Overview", "/", Gauge], ["Predictions", "/predictions", Sparkles],
@@ -10,6 +10,7 @@ const nav = [
   ["Evidence Fusion", "/fusion", GitMerge],
   ["News & Sentiment", "/intelligence", Newspaper], ["Historical Intelligence", "/historical", History],
   ["Models", "/models", BrainCircuit], ["Research Lab", "/research", FlaskConical],
+  ["Research Desk", "/research-desk", FileSearch2],
   ["Data Health", "/data-health", Database], ["Settings", "/settings", Settings],
 ] as const;
 
