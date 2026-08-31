@@ -1,0 +1,9 @@
+{
+  "evidence_boundary": "PASS",
+  "input_tokens": 354,
+  "model": "gpt-5.6-luna",
+  "output_tokens": 155,
+  "provider": "openai",
+  "schema_validation": "PASS",
+  "status": "PASS"
+}
