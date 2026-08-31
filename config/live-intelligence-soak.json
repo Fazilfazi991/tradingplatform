@@ -1,5 +1,5 @@
 {
-  "version": "live-soak-2",
+  "version": "live-soak-3",
   "timezone": "UTC",
   "target_duration_hours": 24,
   "longer_target_days": 7,

@@ -7,6 +7,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from datetime import UTC, datetime
 from urllib.parse import urlparse
+from zoneinfo import ZoneInfo
 
 import httpx
 
@@ -185,4 +186,7 @@ def _rss_time(value: str | None) -> datetime | None:
         parsed = parsedate_to_datetime(value)
     except ValueError:
         parsed = datetime.strptime(value, "%d %b, %Y %z")
-    return parsed.astimezone(UTC) if parsed.tzinfo else parsed.replace(tzinfo=UTC)
+    if parsed.tzinfo:
+        return parsed.astimezone(UTC)
+    # Indian regulator RSS feeds publish local wall time without a numeric offset.
+    return parsed.replace(tzinfo=ZoneInfo("Asia/Kolkata")).astimezone(UTC)

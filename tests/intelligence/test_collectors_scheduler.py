@@ -96,6 +96,13 @@ def test_sebi_date_only_rss_timestamp_is_supported():
     assert parsed and parsed.astimezone(UTC).hour == 18
 
 
+def test_naive_indian_regulator_rss_time_is_interpreted_as_ist():
+    from intelligence_core.collectors import _rss_time
+
+    parsed = _rss_time("Mon, 31 Aug 2026 19:00:00")
+    assert parsed == datetime(2026, 8, 31, 13, 30, tzinfo=UTC)
+
+
 @pytest.mark.parametrize(
     "url",
     [
