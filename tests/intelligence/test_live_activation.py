@@ -112,6 +112,29 @@ def test_hallucinations_become_quarantined_incidents():
     assert {row["action"] for row in incidents} == {"QUARANTINE"}
 
 
+def test_soak_invented_number_pattern_is_quarantined_before_evidence():
+    """Regression for the live-soak numeric-claim containment boundary."""
+    incidents = hallucination_incidents(
+        {
+            "entities": ["RBI"],
+            "numbers": ["6,00,000", "7", "8.25"],
+            "evidence_references": ["event://fixture/title-summary"],
+        },
+        allowed_entities={"RBI"},
+        allowed_numbers={"6,00,000", "7"},
+        allowed_references={"event://fixture/title-summary"},
+        event_id="soak-invented-number-regression",
+    )
+    assert incidents == [
+        {
+            "incident_type": "INVENTED_NUMBER",
+            "event_id": "soak-invented-number-regression",
+            "value": "8.25",
+            "action": "QUARANTINE",
+        }
+    ]
+
+
 def test_daily_report_counts_cache_unknown_entity_and_provenance():
     report = daily_live_report(
         report_date=date(2026, 8, 30),

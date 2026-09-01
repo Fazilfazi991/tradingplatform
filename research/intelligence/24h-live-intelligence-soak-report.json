@@ -1,0 +1,177 @@
+{
+  "collection": {
+    "canonical_events": 63,
+    "cycles": 261,
+    "duplicates_suppressed": 3747,
+    "records_seen": 3810,
+    "source_failures": 1
+  },
+  "cost": {
+    "by_provider": {
+      "openai": 0.2107464
+    },
+    "by_source": {
+      "rbi-press-releases-rss": 0.106126,
+      "sebi-rss": 0.1046204
+    },
+    "by_task": {
+      "EVENT_CLASSIFICATION": 0.1046204,
+      "RBI_POLICY_INTERPRETATION": 0.106126
+    },
+    "cache_savings_usd": 1.789949,
+    "entries": 3810,
+    "input_cost_usd": 0.0841308,
+    "output_cost_usd": 0.1266156,
+    "total_cost_usd": 0.2107464,
+    "authoritative_total": false,
+    "limitation": "76 rejected provider responses recorded zero tokens and zero cost; the reported total is a lower bound."
+  },
+  "ended_at": "2026-09-01T14:16:15.447472+00:00",
+  "entity_resolution": {
+    "CORRECTLY_NON_COMPANY_SPECIFIC": 19,
+    "EXPLICIT_ENTITY_NOT_RESOLVED": 44,
+    "INSUFFICIENT_METADATA": 0,
+    "RESOLUTION_BUG": 0,
+    "SOURCE_DOES_NOT_SUPPORT_ENTITY": 0
+  },
+  "full_content_state": {
+    "rbi-press-releases-rss": "TITLE_METADATA_ONLY",
+    "sebi-rss": "TITLE_METADATA_ONLY"
+  },
+  "fusion": {
+    "abstentions": 0,
+    "attempts": 0,
+    "mode": "PARTIAL_LIVE",
+    "state": "ABSTAIN"
+  },
+  "incidents": [
+    {
+      "affected_data": [
+        "24h-live-intelligence-soak"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "event": "5cd6a3bb759ef9ac0e1b651ee08f23a32da92de5acf21570afee0cdb1ae61569",
+        "kind": "INVENTED_NUMBER"
+      },
+      "incident_id": "9cf5baf4-5f67-4214-addd-e7ecd9aa2d12",
+      "incident_type": "LLM_HALLUCINATION_QUARANTINE",
+      "opened_at": "2026-08-31T14:16:20.227248Z",
+      "resolution": null,
+      "severity": "HIGH",
+      "source_id": null,
+      "status": "OPEN"
+    },
+    {
+      "affected_data": [
+        "24h-live-intelligence-soak"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "daily_budget_usd": 0.25,
+        "spent_usd": 0.00813
+      },
+      "incident_id": "41e4b326-fe3e-4a7b-b23d-c3cc00577fbd",
+      "incident_type": "LLM_SCHEMA_FAILURE_SPIKE",
+      "opened_at": "2026-08-31T14:16:59.649844Z",
+      "resolution": null,
+      "severity": "WARNING",
+      "source_id": null,
+      "status": "OPEN"
+    },
+    {
+      "affected_data": [
+        "24h-live-intelligence-soak"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "daily_budget_usd": 0.25,
+        "spent_usd": 0.0346958
+      },
+      "incident_id": "ea7a52bd-e37f-4d88-bbe4-ad381306fee8",
+      "incident_type": "LLM_PROVIDER_DOWN",
+      "opened_at": "2026-08-31T14:46:25.788144Z",
+      "resolution": null,
+      "severity": "WARNING",
+      "source_id": null,
+      "status": "OPEN"
+    },
+    {
+      "affected_data": [
+        "sebi-rss"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "error_class": "ConnectTimeout"
+      },
+      "incident_id": "8e6e888a-82ca-4cf0-955b-263503f48753",
+      "incident_type": "SOURCE_COLLECTION_FAILURE",
+      "opened_at": "2026-08-31T15:02:00.631087Z",
+      "resolution": null,
+      "severity": "HIGH",
+      "source_id": "sebi-rss",
+      "status": "OPEN"
+    }
+  ],
+  "label": "24H INTERNAL LIVE INTELLIGENCE SOAK \u2014 NOT A MARKET PREDICTION",
+  "llm": {
+    "average_latency_ms": 4471.648143624451,
+    "cache_hit_rate": 0.8826771653543307,
+    "cache_hits": 3363,
+    "calls": 447,
+    "fallback_attempts": 0,
+    "input_tokens": 420654,
+    "invalid_schema_outputs": 76,
+    "output_tokens": 105513,
+    "p50_latency_ms": 4149.222700041719,
+    "p95_latency_ms": 6994.54370001331,
+    "maximum_latency_ms": 15875.964700011536,
+    "provider_errors": {
+      "ValueError": 76
+    }
+  },
+  "post_window_audit": {
+    "decision": "24H LIVE INTELLIGENCE SOAK NEEDS WORK",
+    "event_outcomes": {
+      "processed_without_recorded_failure": 53,
+      "schema_failed_then_recovered": 8,
+      "schema_failed_permanently": 2,
+      "total": 63
+    },
+    "invalid_output_containment": "QUARANTINED_BEFORE_EVIDENCE",
+    "cache_invalid_payloads": 0,
+    "blocking_findings": [
+      "Rejected response bodies, validation detail, tokens, and cost were not retained.",
+      "The provider-down alert was a cumulative-validation false positive.",
+      "The original source-failure aggregate ignored handler result status."
+    ]
+  },
+  "manifest": {
+    "code_sha": "8398bd99686396f8c8e2c9f6ec277b0bc1a080ed",
+    "config_hash": "c6a7f90d56eea0cb324ac94d5d575c5f7ddc01f7cd35556bbcd14bf647363dce",
+    "model": "gpt-5.6-luna",
+    "prompt_version": "event-intelligence-v1-soak-v1",
+    "research_mode": "ENGINEERING_FIXTURE",
+    "routing_hash": "d021a12ece7f4e288e5d533d1ec701f314345a194e7fa4b848762aac7d1a6003",
+    "runtime_mode": "INTERNAL_LIVE",
+    "schema_hash": "14bcbfd46cd3885e7719fb1497d592b97256f178e94db40e61a098af07bee770",
+    "started_at": "2026-08-31T14:16:13.967378Z",
+    "target_end_at": "2026-09-01T14:16:13.967378Z",
+    "version": "live-soak-3"
+  },
+  "research_mode": "ENGINEERING_FIXTURE",
+  "snapshots": {
+    "failures": 0,
+    "generated": 0
+  },
+  "specialists": {
+    "flow_derivatives": "INSUFFICIENT",
+    "fundamental": "ENGINEERING_ONLY",
+    "historical": "ENGINEERING_ONLY",
+    "macro": "PARTIALLY_LIVE",
+    "news_event": "LIVE",
+    "psychology": "INSUFFICIENT",
+    "technical": "ENGINEERING_ONLY"
+  },
+  "wall_clock_seconds": 86401.480094
+}
