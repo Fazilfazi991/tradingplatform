@@ -137,11 +137,18 @@ class SoakManifest(BaseModel):
     routing_hash: str
     config_hash: str
     code_sha: str
+    source_registry_version: str = "UNSPECIFIED"
+    source_registry_hash: str = "UNSPECIFIED"
+    collector_versions_hash: str = "UNSPECIFIED"
+    budget_policy_hash: str = "UNSPECIFIED"
     research_mode: str = "ENGINEERING_FIXTURE"
     runtime_mode: str = "INTERNAL_LIVE"
 
     def assert_frozen(self, other: SoakManifest) -> None:
-        fields = ("model", "prompt_version", "schema_hash", "routing_hash", "config_hash", "code_sha")
+        fields = (
+            "model", "prompt_version", "schema_hash", "routing_hash", "config_hash", "code_sha",
+            "source_registry_version", "source_registry_hash", "collector_versions_hash", "budget_policy_hash",
+        )
         if any(getattr(self, field) != getattr(other, field) for field in fields):
             raise ValueError("SOAK_PROMPT_MODEL_ROUTING_OR_SCHEMA_CHANGED")
 

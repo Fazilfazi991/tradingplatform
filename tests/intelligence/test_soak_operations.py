@@ -100,6 +100,12 @@ def test_soak_manifest_detects_prompt_model_schema_or_route_change():
         assert "CHANGED" in str(error)
     else:
         raise AssertionError("changed prompt was accepted")
+    try:
+        manifest.assert_frozen(manifest.model_copy(update={"source_registry_hash": "changed"}))
+    except ValueError as error:
+        assert "CHANGED" in str(error)
+    else:
+        raise AssertionError("changed source registry was accepted")
 
 
 def test_entity_resolution_outcome_categories_are_stable():

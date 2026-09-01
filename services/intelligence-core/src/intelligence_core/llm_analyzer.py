@@ -83,6 +83,11 @@ class ProviderResponse(BaseModel):
     output: dict[str, Any]
     input_tokens: int = 0
     output_tokens: int = 0
+    cached_input_tokens: int = 0
+    reasoning_tokens: int = 0
+    response_hash: str = "UNAVAILABLE"
+    response_length: int = Field(default=0, ge=0)
+    provider_request_id: str | None = None
 
 
 class LLMProviderAdapter(Protocol):
@@ -135,10 +140,28 @@ EVENT_TYPE_TAXONOMY = (
 class OpenAIProviderError(RuntimeError):
     """Sanitized provider failure; response bodies and credentials are never exposed."""
 
-    def __init__(self, message: str, *, input_tokens: int = 0, output_tokens: int = 0) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        input_tokens: int = 0,
+        output_tokens: int = 0,
+        cached_input_tokens: int = 0,
+        reasoning_tokens: int = 0,
+        response_hash: str | None = None,
+        response_length: int | None = None,
+        http_status: int | None = None,
+        provider_request_id: str | None = None,
+    ) -> None:
         super().__init__(message)
         self.input_tokens = input_tokens
         self.output_tokens = output_tokens
+        self.cached_input_tokens = cached_input_tokens
+        self.reasoning_tokens = reasoning_tokens
+        self.response_hash = response_hash
+        self.response_length = response_length
+        self.http_status = http_status
+        self.provider_request_id = provider_request_id
 
 
 class OpenAIResponsesAdapter:
@@ -232,7 +255,11 @@ class OpenAIResponsesAdapter:
                 character if character.isalnum() or character in "-_" else "_"
                 for character in f"{detail_code}_{parameter}"
             )[:160]
-            raise OpenAIProviderError(f"OPENAI_{category}_{code}_{safe_detail}") from error
+            raise OpenAIProviderError(
+                f"OPENAI_{category}_{code}_{safe_detail}",
+                http_status=code,
+                provider_request_id=error.response.headers.get("x-request-id"),
+            ) from error
         except (httpx.HTTPError, ValueError, TypeError) as error:
             raise OpenAIProviderError("OPENAI_TRANSPORT_OR_RESPONSE_ERROR") from error
 
@@ -246,27 +273,43 @@ class OpenAIResponsesAdapter:
             ),
             None,
         )
+        usage = body.get("usage", {})
+        input_details = usage.get("input_tokens_details", {}) or {}
+        output_details = usage.get("output_tokens_details", {}) or {}
+        request_id = response.headers.get("x-request-id") or body.get("id")
         if not output_text:
-            usage = body.get("usage", {})
             raise OpenAIProviderError(
                 "OPENAI_STRUCTURED_OUTPUT_MISSING",
                 input_tokens=int(usage.get("input_tokens", 0)),
                 output_tokens=int(usage.get("output_tokens", 0)),
+                cached_input_tokens=int(input_details.get("cached_tokens", 0)),
+                reasoning_tokens=int(output_details.get("reasoning_tokens", 0)),
+                response_hash=stable_hash(body),
+                response_length=len(json.dumps(body, sort_keys=True)),
+                provider_request_id=request_id,
             )
         try:
             output = json.loads(output_text)
         except (json.JSONDecodeError, TypeError) as error:
-            usage = body.get("usage", {})
             raise OpenAIProviderError(
                 "OPENAI_STRUCTURED_OUTPUT_INVALID_JSON",
                 input_tokens=int(usage.get("input_tokens", 0)),
                 output_tokens=int(usage.get("output_tokens", 0)),
+                cached_input_tokens=int(input_details.get("cached_tokens", 0)),
+                reasoning_tokens=int(output_details.get("reasoning_tokens", 0)),
+                response_hash=stable_hash(output_text),
+                response_length=len(output_text),
+                provider_request_id=request_id,
             ) from error
-        usage = body.get("usage", {})
         return ProviderResponse(
             output=output,
             input_tokens=int(usage.get("input_tokens", 0)),
             output_tokens=int(usage.get("output_tokens", 0)),
+            cached_input_tokens=int(input_details.get("cached_tokens", 0)),
+            reasoning_tokens=int(output_details.get("reasoning_tokens", 0)),
+            response_hash=stable_hash(output_text),
+            response_length=len(output_text),
+            provider_request_id=request_id,
         )
 
 

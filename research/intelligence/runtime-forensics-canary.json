@@ -1,0 +1,23 @@
+{
+  "attempts": 53,
+  "cases": 50,
+  "cost_total_usd": 0.0301774,
+  "event_dispositions": {
+    "INSUFFICIENT_EVIDENCE": 1,
+    "QUARANTINED": 2,
+    "SUCCESS": 47
+  },
+  "failed_validation_cost_usd": 0.0039022,
+  "model": "gpt-5.6-luna",
+  "prompt_version": "event-intelligence-v1-forensic-canary-v1",
+  "quarantines": 5,
+  "recoveries": 1,
+  "retries": 3,
+  "retry_waste_usd": 0.002913,
+  "semantic_health": "ELEVATED_FAILURES",
+  "semantic_requests": 50,
+  "transport_health": "HEALTHY",
+  "validation_categories": {
+    "UNSUPPORTED_NUMERIC_CLAIM": 5
+  }
+}
