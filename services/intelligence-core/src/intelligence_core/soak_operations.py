@@ -81,8 +81,12 @@ def make_cost_entry(
     )
 
 
-def aggregate_costs(entries: list[CostLedgerEntry], *, report_date: date | None = None) -> dict[str, Any]:
-    selected = [entry for entry in entries if report_date is None or entry.occurred_at.date() == report_date]
+def aggregate_costs(
+    entries: list[CostLedgerEntry], *, report_date: date | None = None
+) -> dict[str, Any]:
+    selected = [
+        entry for entry in entries if report_date is None or entry.occurred_at.date() == report_date
+    ]
     totals: defaultdict[str, float] = defaultdict(float)
     by_provider: defaultdict[str, float] = defaultdict(float)
     by_task: defaultdict[str, float] = defaultdict(float)
@@ -96,7 +100,9 @@ def aggregate_costs(entries: list[CostLedgerEntry], *, report_date: date | None 
         by_task[entry.task] += entry.total_cost_usd
         by_source[entry.source_id] += entry.total_cost_usd
         if entry.cache_hit:
-            cache_savings += entry.input_tokens * 0.20 / 1_000_000 + entry.output_tokens * 1.20 / 1_000_000
+            cache_savings += (
+                entry.input_tokens * 0.20 / 1_000_000 + entry.output_tokens * 1.20 / 1_000_000
+            )
     return {
         "entries": len(selected),
         "input_cost_usd": round(totals["input"], 10),
@@ -141,13 +147,29 @@ class SoakManifest(BaseModel):
     source_registry_hash: str = "UNSPECIFIED"
     collector_versions_hash: str = "UNSPECIFIED"
     budget_policy_hash: str = "UNSPECIFIED"
+    retry_policy_hash: str = "UNSPECIFIED"
+    semantic_identity_policy_hash: str = "UNSPECIFIED"
+    cache_policy_hash: str = "UNSPECIFIED"
+    soak_manifest_hash: str = "UNSPECIFIED"
     research_mode: str = "ENGINEERING_FIXTURE"
     runtime_mode: str = "INTERNAL_LIVE"
 
     def assert_frozen(self, other: SoakManifest) -> None:
         fields = (
-            "model", "prompt_version", "schema_hash", "routing_hash", "config_hash", "code_sha",
-            "source_registry_version", "source_registry_hash", "collector_versions_hash", "budget_policy_hash",
+            "model",
+            "prompt_version",
+            "schema_hash",
+            "routing_hash",
+            "config_hash",
+            "code_sha",
+            "source_registry_version",
+            "source_registry_hash",
+            "collector_versions_hash",
+            "budget_policy_hash",
+            "retry_policy_hash",
+            "semantic_identity_policy_hash",
+            "cache_policy_hash",
+            "soak_manifest_hash",
         )
         if any(getattr(self, field) != getattr(other, field) for field in fields):
             raise ValueError("SOAK_PROMPT_MODEL_ROUTING_OR_SCHEMA_CHANGED")
@@ -179,11 +201,15 @@ class SoakTelemetryStore:
     def costs(self) -> list[CostLedgerEntry]:
         return [
             CostLedgerEntry.model_validate_json(row[0])
-            for row in self.connection.execute("SELECT payload_json FROM llm_cost_ledger ORDER BY ledger_id")
+            for row in self.connection.execute(
+                "SELECT payload_json FROM llm_cost_ledger ORDER BY ledger_id"
+            )
         ]
 
     def cache_get(self, key: str) -> dict[str, Any] | None:
-        row = self.connection.execute("SELECT payload_json FROM llm_cache WHERE cache_key=?", (key,)).fetchone()
+        row = self.connection.execute(
+            "SELECT payload_json FROM llm_cache WHERE cache_key=?", (key,)
+        ).fetchone()
         return json.loads(row[0]) if row else None
 
     def cache_put(self, key: str, value: dict[str, Any], now: datetime) -> None:
@@ -198,7 +224,9 @@ class SoakTelemetryStore:
         self.connection.commit()
 
     def metadata(self) -> dict[str, str]:
-        return {row[0]: row[1] for row in self.connection.execute("SELECT key,value FROM soak_metadata")}
+        return {
+            row[0]: row[1] for row in self.connection.execute("SELECT key,value FROM soak_metadata")
+        }
 
     def close(self) -> None:
         self.connection.close()
@@ -217,7 +245,9 @@ def runtime_metrics(entries: list[CostLedgerEntry]) -> dict[str, Any]:
     return {
         "calls": sum(not entry.cache_hit for entry in entries),
         "cache_hits": sum(entry.cache_hit for entry in entries),
-        "cache_hit_rate": sum(entry.cache_hit for entry in entries) / len(entries) if entries else 0,
+        "cache_hit_rate": sum(entry.cache_hit for entry in entries) / len(entries)
+        if entries
+        else 0,
         "input_tokens": sum(entry.input_tokens for entry in entries if not entry.cache_hit),
         "output_tokens": sum(entry.output_tokens for entry in entries if not entry.cache_hit),
         "average_latency_ms": mean(latencies) if latencies else 0,
@@ -245,18 +275,25 @@ def incident_types(
     thresholds: AlertThresholds,
 ) -> tuple[str, ...]:
     incidents: list[str] = []
-    if budget_state(
-        spent_usd=spent_usd,
-        ceiling_usd=budget_usd,
-        warning_fraction=thresholds.budget_warning_fraction,
-    ) == "WARNING":
+    if (
+        budget_state(
+            spent_usd=spent_usd,
+            ceiling_usd=budget_usd,
+            warning_fraction=thresholds.budget_warning_fraction,
+        )
+        == "WARNING"
+    ):
         incidents.append("LLM_COST_BUDGET_WARNING")
     if spent_usd >= budget_usd:
         incidents.append("LLM_COST_BUDGET_EXCEEDED")
     failures = [entry for entry in entries if entry.error_class]
     if len(failures) >= thresholds.consecutive_provider_errors:
         incidents.append("LLM_PROVIDER_DOWN")
-    if entries and sum(not entry.schema_valid for entry in entries) / len(entries) > thresholds.schema_failure_rate:
+    if (
+        entries
+        and sum(not entry.schema_valid for entry in entries) / len(entries)
+        > thresholds.schema_failure_rate
+    ):
         incidents.append("LLM_SCHEMA_FAILURE_SPIKE")
     if any(entry.error_class and "RATE_LIMIT" in entry.error_class for entry in entries):
         incidents.append("LLM_RATE_LIMITED")

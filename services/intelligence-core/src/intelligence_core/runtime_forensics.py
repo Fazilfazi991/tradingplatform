@@ -110,6 +110,11 @@ class LLMAttemptRecord(BaseModel):
     validation_error_category: ValidationErrorCategory | None = None
     validation_error_code: str | None = None
     sanitized_validation_message: str | None = Field(default=None, max_length=300)
+    claim_field: str | None = None
+    normalized_claim_value: str | None = None
+    claim_type: str | None = None
+    evidence_span_status: str | None = None
+    source_evidence_contained_value: bool | None = None
     rejected_response_hash: str | None = None
     rejected_response_length: int | None = Field(default=None, ge=0)
     quarantine_status: str = "NONE"
@@ -173,7 +178,9 @@ def canonical_semantic_hash(
 
 
 def semantic_request_id(*, event_id: str, semantic_hash: str, task: str, policy_hash: str) -> str:
-    return stable_hash({"event": event_id, "semantic": semantic_hash, "task": task, "policy": policy_hash})
+    return stable_hash(
+        {"event": event_id, "semantic": semantic_hash, "task": task, "policy": policy_hash}
+    )
 
 
 def validation_category(code: str, *, field_type: str | None = None) -> ValidationErrorCategory:
@@ -201,8 +208,12 @@ def validation_category(code: str, *, field_type: str | None = None) -> Validati
     return ValidationErrorCategory.OTHER_VALIDATION_ERROR
 
 
-def transport_health(attempts: list[LLMAttemptRecord], *, consecutive_limit: int = 3) -> ProviderTransportHealth:
-    called = [row for row in attempts if row.transport_status != TransportStatus.NOT_CALLED_CACHE_HIT]
+def transport_health(
+    attempts: list[LLMAttemptRecord], *, consecutive_limit: int = 3
+) -> ProviderTransportHealth:
+    called = [
+        row for row in attempts if row.transport_status != TransportStatus.NOT_CALLED_CACHE_HIT
+    ]
     if not called:
         return ProviderTransportHealth.UNKNOWN
     errors = [row.provider_error_class or "" for row in called]
@@ -223,11 +234,15 @@ def transport_health(attempts: list[LLMAttemptRecord], *, consecutive_limit: int
     return ProviderTransportHealth.HEALTHY
 
 
-def semantic_health(attempts: list[LLMAttemptRecord], *, elevated: float = 0.05, critical: float = 0.20) -> SemanticValidationHealth:
+def semantic_health(
+    attempts: list[LLMAttemptRecord], *, elevated: float = 0.05, critical: float = 0.20
+) -> SemanticValidationHealth:
     transported = [row for row in attempts if row.transport_status == TransportStatus.SUCCEEDED]
     if not transported:
         return SemanticValidationHealth.UNKNOWN
-    rate = sum(row.structured_validation_status == StructuredValidationStatus.FAIL for row in transported) / len(transported)
+    rate = sum(
+        row.structured_validation_status == StructuredValidationStatus.FAIL for row in transported
+    ) / len(transported)
     if rate >= critical:
         return SemanticValidationHealth.CRITICAL_FAILURE_RATE
     if rate >= elevated:
@@ -256,34 +271,68 @@ class ForensicRuntimeStore:
           canonical_event_id TEXT PRIMARY KEY, semantic_request_id TEXT,
           disposition TEXT NOT NULL, payload_json TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS semantic_success_cache (
+          cache_key TEXT PRIMARY KEY, semantic_request_id TEXT NOT NULL,
+          created_at TEXT NOT NULL, payload_json TEXT NOT NULL
+        );
         """)
         self.connection.commit()
 
     def add_attempt(self, record: LLMAttemptRecord) -> None:
         self.connection.execute(
-            "INSERT INTO llm_attempts VALUES(?,?,?,?,?)",
-            (str(record.attempt_id), record.semantic_request_id, record.canonical_event_id,
-             record.completed_at.isoformat(), record.model_dump_json()),
+            "INSERT OR REPLACE INTO llm_attempts VALUES(?,?,?,?,?)",
+            (
+                str(record.attempt_id),
+                record.semantic_request_id,
+                record.canonical_event_id,
+                record.completed_at.isoformat(),
+                record.model_dump_json(),
+            ),
+        )
+        self.connection.commit()
+
+    def cache_get(self, key: str) -> dict[str, Any] | None:
+        row = self.connection.execute(
+            "SELECT payload_json FROM semantic_success_cache WHERE cache_key=?", (key,)
+        ).fetchone()
+        return json.loads(row[0]) if row else None
+
+    def cache_put(
+        self, key: str, semantic_id: str, value: dict[str, Any], *, now: datetime
+    ) -> None:
+        self.connection.execute(
+            "INSERT OR REPLACE INTO semantic_success_cache VALUES(?,?,?,?)",
+            (key, semantic_id, now.isoformat(), json.dumps(value, sort_keys=True, default=str)),
         )
         self.connection.commit()
 
     def attempts(self, semantic_id: str | None = None) -> list[LLMAttemptRecord]:
         if semantic_id:
             rows = self.connection.execute(
-                "SELECT payload_json FROM llm_attempts WHERE semantic_request_id=? ORDER BY occurred_at", (semantic_id,)
+                "SELECT payload_json FROM llm_attempts WHERE semantic_request_id=? ORDER BY occurred_at",
+                (semantic_id,),
             )
         else:
-            rows = self.connection.execute("SELECT payload_json FROM llm_attempts ORDER BY occurred_at")
+            rows = self.connection.execute(
+                "SELECT payload_json FROM llm_attempts ORDER BY occurred_at"
+            )
         return [LLMAttemptRecord.model_validate_json(row[0]) for row in rows]
 
     def put_tombstone(self, tombstone: InvalidSemanticTombstone) -> None:
         self.connection.execute(
             "INSERT OR REPLACE INTO invalid_semantic_tombstones VALUES(?,?,?,?)",
-            (tombstone.semantic_request_id, tombstone.semantic_hash, tombstone.expires_at.isoformat(), tombstone.model_dump_json()),
+            (
+                tombstone.semantic_request_id,
+                tombstone.semantic_hash,
+                tombstone.expires_at.isoformat(),
+                tombstone.model_dump_json(),
+            ),
         )
         self.connection.commit()
 
-    def active_tombstone(self, semantic_id: str, *, now: datetime) -> InvalidSemanticTombstone | None:
+    def active_tombstone(
+        self, semantic_id: str, *, now: datetime
+    ) -> InvalidSemanticTombstone | None:
         row = self.connection.execute(
             "SELECT payload_json FROM invalid_semantic_tombstones WHERE semantic_request_id=? AND expires_at>?",
             (semantic_id, now.isoformat()),
@@ -293,12 +342,30 @@ class ForensicRuntimeStore:
     def add_collection_attempt(self, record: CollectionAttemptRecord) -> None:
         self.connection.execute(
             "INSERT INTO collection_attempts VALUES(?,?,?,?,?)",
-            (str(record.attempt_id), record.job_id, record.source_id, record.scheduled_for.isoformat(), record.model_dump_json()),
+            (
+                str(record.attempt_id),
+                record.job_id,
+                record.source_id,
+                record.scheduled_for.isoformat(),
+                record.model_dump_json(),
+            ),
         )
         self.connection.commit()
 
-    def set_disposition(self, *, event_id: str, semantic_id: str | None, disposition: TerminalDisposition, detail: dict[str, Any]) -> None:
-        payload = {"event_id": event_id, "semantic_request_id": semantic_id, "disposition": disposition, **detail}
+    def set_disposition(
+        self,
+        *,
+        event_id: str,
+        semantic_id: str | None,
+        disposition: TerminalDisposition,
+        detail: dict[str, Any],
+    ) -> None:
+        payload = {
+            "event_id": event_id,
+            "semantic_request_id": semantic_id,
+            "disposition": disposition,
+            **detail,
+        }
         self.connection.execute(
             "INSERT OR REPLACE INTO event_dispositions VALUES(?,?,?,?)",
             (event_id, semantic_id, disposition, json.dumps(payload, sort_keys=True, default=str)),
@@ -307,7 +374,11 @@ class ForensicRuntimeStore:
 
     def reconciliation(self) -> dict[str, Any]:
         attempts = self.attempts()
-        dispositions = dict(self.connection.execute("SELECT disposition,COUNT(*) FROM event_dispositions GROUP BY disposition"))
+        disposition_rows = self.connection.execute(
+            "SELECT disposition,payload_json FROM event_dispositions"
+        ).fetchall()
+        dispositions = dict(Counter(row[0] for row in disposition_rows))
+        details = [json.loads(row[1]) for row in disposition_rows]
         costs: defaultdict[str, float] = defaultdict(float)
         for row in attempts:
             costs["total"] += row.estimated_total_cost
@@ -318,30 +389,89 @@ class ForensicRuntimeStore:
         return {
             "attempts": len(attempts),
             "semantic_requests": len({row.semantic_request_id for row in attempts}),
-            "validation_categories": dict(Counter(str(row.validation_error_category) for row in attempts if row.validation_error_category)),
+            "validation_categories": dict(
+                Counter(
+                    str(row.validation_error_category)
+                    for row in attempts
+                    if row.validation_error_category
+                )
+            ),
             "transport_health": transport_health(attempts),
             "semantic_health": semantic_health(attempts),
             "cost_total_usd": round(costs["total"], 10),
             "retry_waste_usd": round(costs["retry_waste"], 10),
             "failed_validation_cost_usd": round(costs["failed_validation"], 10),
+            "input_tokens": sum(row.input_tokens for row in attempts),
+            "output_tokens": sum(row.output_tokens for row in attempts),
+            "average_latency_ms": (
+                sum(row.latency_ms for row in attempts) / len(attempts) if attempts else 0.0
+            ),
+            "p50_latency_ms": _percentile([row.latency_ms for row in attempts], 0.50),
+            "p95_latency_ms": _percentile([row.latency_ms for row in attempts], 0.95),
+            "provider_errors": dict(
+                Counter(row.provider_error_class for row in attempts if row.provider_error_class)
+            ),
             "event_dispositions": dispositions,
+            "cache_hits": sum(row.get("cache_state") == "HIT" for row in details),
+            "tombstone_hits": sum(row.get("tombstone_state") == "HIT" for row in details),
+            "collection_attempt_failures": int(
+                self.connection.execute(
+                    "SELECT COUNT(*) FROM collection_attempts WHERE json_extract(payload_json,'$.transport_status')='FAILED'"
+                ).fetchone()[0]
+            ),
+            "recovered_collection_failures": int(
+                self.connection.execute(
+                    "SELECT COUNT(*) FROM collection_attempts WHERE json_extract(payload_json,'$.recovered')=1"
+                ).fetchone()[0]
+            ),
+            "terminal_collection_failures": int(
+                self.connection.execute(
+                    "SELECT COUNT(*) FROM collection_attempts WHERE json_extract(payload_json,'$.terminal_job_status')='FAILED'"
+                ).fetchone()[0]
+            ),
         }
 
     def close(self) -> None:
         self.connection.close()
 
 
+def _percentile(values: list[float], fraction: float) -> float:
+    if not values:
+        return 0.0
+    ordered = sorted(values)
+    return ordered[min(round((len(ordered) - 1) * fraction), len(ordered) - 1)]
+
+
 def tombstone_for(
-    *, semantic_id: str, event_id: str, semantic_hash: str, provider: str, model: str,
-    prompt_version: str, schema_version: str, schema_hash: str,
-    category: ValidationErrorCategory, attempts: int, retry_policy_version: str,
-    now: datetime | None = None, ttl: timedelta = timedelta(hours=24),
+    *,
+    semantic_id: str,
+    event_id: str,
+    semantic_hash: str,
+    provider: str,
+    model: str,
+    prompt_version: str,
+    schema_version: str,
+    schema_hash: str,
+    category: ValidationErrorCategory,
+    attempts: int,
+    retry_policy_version: str,
+    now: datetime | None = None,
+    ttl: timedelta = timedelta(hours=24),
 ) -> InvalidSemanticTombstone:
     created = now or datetime.now(UTC)
     return InvalidSemanticTombstone(
-        semantic_request_id=semantic_id, event_id=event_id, semantic_hash=semantic_hash,
-        provider=provider, model=model, prompt_version=prompt_version,
-        schema_version=schema_version, schema_hash=schema_hash, failure_category=category,
-        attempts_exhausted=attempts, created_at=created, expires_at=created + ttl,
-        retry_policy_version=retry_policy_version, reason="UNCHANGED_SEMANTIC_INPUT_FAILED_VALIDATION",
+        semantic_request_id=semantic_id,
+        event_id=event_id,
+        semantic_hash=semantic_hash,
+        provider=provider,
+        model=model,
+        prompt_version=prompt_version,
+        schema_version=schema_version,
+        schema_hash=schema_hash,
+        failure_category=category,
+        attempts_exhausted=attempts,
+        created_at=created,
+        expires_at=created + ttl,
+        retry_policy_version=retry_policy_version,
+        reason="UNCHANGED_SEMANTIC_INPUT_FAILED_VALIDATION",
     )
