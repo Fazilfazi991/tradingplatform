@@ -77,7 +77,10 @@ def build_manifest(
         "code_sha": current_sha(),
         "source_registry_version": "initial-sources-v1",
         "source_registry_hash": manifest_hash(
-            [source.model_dump(mode="json") for source in sources]
+            [
+                source.model_dump(mode="json", exclude={"created_at", "updated_at"})
+                for source in sources
+            ]
         ),
         "collector_versions_hash": manifest_hash({"official_rss_collector": "1", "parser": "1"}),
         "budget_policy_hash": manifest_hash(config["budget"]),

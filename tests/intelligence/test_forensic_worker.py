@@ -4,6 +4,8 @@ from intelligence_core.forensic_worker import ForensicSemanticProcessor
 from intelligence_core.llm_analyzer import AnalyzerTask, ProviderConfig, ProviderResponse
 from intelligence_core.runtime_forensics import ForensicRuntimeStore, TerminalDisposition
 
+from scripts.run_24h_live_intelligence_soak import build_manifest
+
 NOW = datetime(2026, 9, 2, tzinfo=UTC)
 
 
@@ -104,3 +106,16 @@ def test_validation_retry_can_recover_without_false_provider_failure(tmp_path):
     assert state["transport_health"] == "HEALTHY"
     assert state["retry_waste_usd"] > 0
     store.close()
+
+
+def test_production_manifest_is_stable_across_dynamic_catalog_timestamps(monkeypatch):
+    monkeypatch.setattr("scripts.run_24h_live_intelligence_soak.current_sha", lambda: "abc123")
+    config = {
+        "version": "test",
+        "target_duration_hours": 24,
+        "budget": {"daily_usd": 0.25},
+    }
+    first = build_manifest(config, now=NOW, model="gpt-5.6-luna", soak_id="soak-1")
+    second = build_manifest(config, now=NOW, model="gpt-5.6-luna", soak_id="soak-1")
+    first.assert_frozen(second)
+    assert first.soak_manifest_hash == second.soak_manifest_hash
