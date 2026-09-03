@@ -63,6 +63,11 @@ def load_local_env(path: Path) -> None:
 
 
 def current_sha() -> str:
+    frozen = os.environ.get("QUALIFYING_CODE_SHA")
+    if frozen:
+        if not re.fullmatch(r"[0-9a-f]{40}", frozen):
+            raise RuntimeError("INVALID_FROZEN_CODE_SHA")
+        return frozen
     return subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
 
 

@@ -125,3 +125,17 @@ def test_local_soak_acquires_platform_awake_lease():
     import os
 
     assert acquire_awake_lease() is (os.name == "nt")
+
+
+def test_manifest_accepts_explicit_frozen_sha_without_git(monkeypatch):
+    frozen = "a" * 40
+    monkeypatch.setenv("QUALIFYING_CODE_SHA", frozen)
+    monkeypatch.setattr(
+        "scripts.run_24h_live_intelligence_soak.subprocess.check_output",
+        lambda *_args, **_kwargs: (_ for _ in ()).throw(AssertionError("git must not run")),
+    )
+    config = {"version": "test", "target_duration_hours": 24, "budget": {"daily_usd": 1}}
+    assert (
+        build_manifest(config, now=NOW, model="gpt-5.6-luna", soak_id="scheduled").code_sha
+        == frozen
+    )
