@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+import argparse
+import atexit
+import ctypes
 import json
 import os
 import re
@@ -47,6 +50,8 @@ SOAK_PROMPT_VERSION = f"{SAFE_PROMPT_VERSION}-soak-v1"
 RETRY_POLICY_VERSION = "structured-bounded-v1"
 SEMANTIC_POLICY_VERSION = "normalized-title-content-published-source-event-v1"
 CACHE_POLICY_VERSION = "validated-success-semantic-policy-v1"
+ES_CONTINUOUS = 0x80000000
+ES_SYSTEM_REQUIRED = 0x00000001
 
 
 def load_local_env(path: Path) -> None:
@@ -109,8 +114,26 @@ def daily_spend(store: ForensicRuntimeStore, day: datetime) -> float:
     )
 
 
+def acquire_awake_lease() -> bool:
+    """Prevent Windows system sleep while a qualifying local soak owns the runtime."""
+    if os.name != "nt":
+        return False
+    kernel32 = ctypes.windll.kernel32
+    if not kernel32.SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED):
+        raise RuntimeError("SYSTEM_AWAKE_LEASE_UNAVAILABLE")
+    atexit.register(lambda: kernel32.SetThreadExecutionState(ES_CONTINUOUS))
+    return True
+
+
+def requested_soak_id() -> str | None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--soak-id")
+    return parser.parse_args().soak_id
+
+
 def main() -> None:
     workspace = Path.cwd()
+    awake_lease = acquire_awake_lease()
     load_local_env(workspace / ".env")
     config_path = workspace / "config/live-intelligence-soak.json"
     config = json.loads(config_path.read_text(encoding="utf-8"))
@@ -122,7 +145,7 @@ def main() -> None:
     if not api_key or not model:
         raise SystemExit("OPENAI_CONFIGURATION_MISSING")
 
-    soak_id = os.environ.get("QUALIFYING_SOAK_ID", config["version"])
+    soak_id = requested_soak_id() or os.environ.get("QUALIFYING_SOAK_ID", config["version"])
     local = workspace / "data/local"
     database = local / f"{soak_id}.sqlite3"
     manifest_path, status_path = (
@@ -380,6 +403,20 @@ def main() -> None:
         mode=IntelligenceRuntimeMode.INTERNAL_LIVE,
         job_timeout_seconds=180,
     )
+    write_json(
+        status_path,
+        {
+            "state": "STARTING",
+            "qualifying": qualifying,
+            "process_id": os.getpid(),
+            "started_at": manifest.started_at.isoformat(),
+            "target_end_at": manifest.target_end_at.isoformat(),
+            "last_heartbeat_at": datetime.now(UTC).isoformat(),
+            "awake_lease": awake_lease,
+            "counts": operations.counts(),
+            "forensics": forensics.reconciliation(),
+        },
+    )
     while datetime.now(UTC) < manifest.target_end_at:
         cycle_results = worker.run_once()
         try:
@@ -400,6 +437,7 @@ def main() -> None:
                 "state": "RUNNING",
                 "qualifying": qualifying,
                 "process_id": os.getpid(),
+                "awake_lease": awake_lease,
                 "started_at": manifest.started_at.isoformat(),
                 "target_end_at": manifest.target_end_at.isoformat(),
                 "last_heartbeat_at": datetime.now(UTC).isoformat(),

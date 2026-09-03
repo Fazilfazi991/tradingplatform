@@ -4,7 +4,7 @@ from intelligence_core.forensic_worker import ForensicSemanticProcessor
 from intelligence_core.llm_analyzer import AnalyzerTask, ProviderConfig, ProviderResponse
 from intelligence_core.runtime_forensics import ForensicRuntimeStore, TerminalDisposition
 
-from scripts.run_24h_live_intelligence_soak import build_manifest
+from scripts.run_24h_live_intelligence_soak import acquire_awake_lease, build_manifest
 
 NOW = datetime(2026, 9, 2, tzinfo=UTC)
 
@@ -119,3 +119,9 @@ def test_production_manifest_is_stable_across_dynamic_catalog_timestamps(monkeyp
     second = build_manifest(config, now=NOW, model="gpt-5.6-luna", soak_id="soak-1")
     first.assert_frozen(second)
     assert first.soak_manifest_hash == second.soak_manifest_hash
+
+
+def test_local_soak_acquires_platform_awake_lease():
+    import os
+
+    assert acquire_awake_lease() is (os.name == "nt")
