@@ -166,4 +166,5 @@ button { color:inherit; }
 
 /* Research Desk fixture provenance and mobile min-content containment. */
 .research-desk,.research-command>*,.research-run-state{min-width:0}.research-desk{width:100%}.research-command p,.research-run-state dd{overflow-wrap:anywhere}.research-fixture-label{display:block;margin-top:8px;color:var(--amber);font:8px ui-monospace,SFMono-Regular,monospace;letter-spacing:.08em;text-transform:uppercase}
+.research-live{margin-top:30px}.research-live .candidate-ledger{border-color:#315f50}.research-live .candidate-rail{color:var(--jade)}
 @media(max-width:760px){.topbar>*{min-width:0;max-width:100%}.topbar p{overflow-wrap:anywhere}.research-command{grid-template-columns:minmax(0,1fr);width:100%}}

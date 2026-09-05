@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sqlite3
 from datetime import UTC, datetime, timedelta
@@ -197,7 +198,11 @@ class CodexResearchRun(BaseModel):
         if self.completed_at and self.completed_at < self.started_at:
             raise ValueError("research run completion precedes start")
         if not self.payload_hash:
-            object.__setattr__(self, "payload_hash", stable_hash(self.model_dump(exclude={"payload_hash"}, mode="json")))
+            object.__setattr__(
+                self,
+                "payload_hash",
+                stable_hash(self.model_dump(exclude={"payload_hash"}, mode="json")),
+            )
         return self
 
 
@@ -225,17 +230,30 @@ class SourceDiscoveryCandidate(BaseModel):
 
 
 ALLOWED_TRANSITIONS = {
-    CandidateStatus.DISCOVERED: {CandidateStatus.VERIFYING, CandidateStatus.DUPLICATE, CandidateStatus.REJECTED},
+    CandidateStatus.DISCOVERED: {
+        CandidateStatus.VERIFYING,
+        CandidateStatus.DUPLICATE,
+        CandidateStatus.REJECTED,
+    },
     CandidateStatus.VERIFYING: {
         CandidateStatus.PRIMARY_SOURCE_FOUND,
         CandidateStatus.PRIMARY_SOURCE_NOT_FOUND,
         CandidateStatus.SOURCE_RIGHTS_REVIEW,
         CandidateStatus.ERROR,
     },
-    CandidateStatus.PRIMARY_SOURCE_FOUND: {CandidateStatus.SOURCE_VERIFIED, CandidateStatus.SOURCE_RIGHTS_REVIEW},
+    CandidateStatus.PRIMARY_SOURCE_FOUND: {
+        CandidateStatus.SOURCE_VERIFIED,
+        CandidateStatus.SOURCE_RIGHTS_REVIEW,
+    },
     CandidateStatus.SOURCE_VERIFIED: {CandidateStatus.EVIDENCE_ELIGIBILITY_REVIEW},
-    CandidateStatus.SOURCE_RIGHTS_REVIEW: {CandidateStatus.EVIDENCE_ELIGIBILITY_REVIEW, CandidateStatus.REJECTED},
-    CandidateStatus.EVIDENCE_ELIGIBILITY_REVIEW: {CandidateStatus.REJECTED, CandidateStatus.EVIDENCE_ELIGIBLE},
+    CandidateStatus.SOURCE_RIGHTS_REVIEW: {
+        CandidateStatus.EVIDENCE_ELIGIBILITY_REVIEW,
+        CandidateStatus.REJECTED,
+    },
+    CandidateStatus.EVIDENCE_ELIGIBILITY_REVIEW: {
+        CandidateStatus.REJECTED,
+        CandidateStatus.EVIDENCE_ELIGIBLE,
+    },
 }
 
 
@@ -315,7 +333,11 @@ class ResearchLedger:
         return [candidate for candidate in self.latest() if candidate.status not in terminal]
 
     def contradictions(self) -> list[CodexResearchCandidate]:
-        return [candidate for candidate in self.latest() if candidate.research_type == ResearchType.CONTRADICTION]
+        return [
+            candidate
+            for candidate in self.latest()
+            if candidate.research_type == ResearchType.CONTRADICTION
+        ]
 
     def recent_runs(self, *, limit: int = 20) -> list[CodexResearchRun]:
         rows = self.connection.execute(
@@ -336,6 +358,40 @@ class ResearchLedger:
         )
         self.connection.commit()
 
+    def summary(self) -> dict[str, Any]:
+        runs = self.recent_runs(limit=1000)
+        candidates = self.latest()
+        today = datetime.now(UTC).date()
+        runs_today = [run for run in runs if run.started_at.date() == today]
+        candidates_today = [
+            candidate for candidate in candidates if candidate.discovered_at.date() == today
+        ]
+        duplicates_suppressed = sum(run.duplicates_suppressed for run in runs_today)
+        incidents = sum(run.incidents_found for run in runs_today)
+        return {
+            "operator_enabled": operator_enabled(dict(os.environ)),
+            "last_run": runs[0].model_dump(mode="json") if runs else None,
+            "runs_today": len(runs_today),
+            "candidates_today": len(candidates_today),
+            "new": sum(row.novelty_candidate == NoveltyCandidate.NEW for row in candidates_today),
+            "updates": sum(
+                row.novelty_candidate == NoveltyCandidate.UPDATE for row in candidates_today
+            ),
+            "duplicates": sum(
+                row.novelty_candidate == NoveltyCandidate.DUPLICATE for row in candidates_today
+            ),
+            "duplicates_suppressed": duplicates_suppressed,
+            "pending_review": len(self.unresolved()),
+            "rights_review": sum(
+                row.status == CandidateStatus.SOURCE_RIGHTS_REVIEW for row in candidates
+            ),
+            "contradictions": len(self.contradictions()),
+            "research_incidents": incidents,
+            "primary_sources_verified": sum(
+                row.primary_source_status == "FOUND" for row in candidates_today
+            ),
+        }
+
     def add_source_discovery(self, source: SourceDiscoveryCandidate) -> None:
         self.connection.execute(
             "INSERT INTO source_discoveries(recorded_at,payload_json) VALUES(?,?)",
@@ -346,7 +402,12 @@ class ResearchLedger:
     def _append(self, candidate: CodexResearchCandidate) -> None:
         self.connection.execute(
             "INSERT INTO research_candidate_history(candidate_id,recorded_at,status,payload_json) VALUES(?,?,?,?)",
-            (str(candidate.candidate_id), datetime.now(UTC).isoformat(), candidate.status, candidate.model_dump_json()),
+            (
+                str(candidate.candidate_id),
+                datetime.now(UTC).isoformat(),
+                candidate.status,
+                candidate.model_dump_json(),
+            ),
         )
         self.connection.commit()
 
@@ -371,9 +432,14 @@ def title_similarity(first: str, second: str) -> float:
     return len(left & right) / len(left | right) if left or right else 1.0
 
 
-def novelty(candidate: CodexResearchCandidate, existing: list[CodexResearchCandidate]) -> NoveltyCandidate:
+def novelty(
+    candidate: CodexResearchCandidate, existing: list[CodexResearchCandidate]
+) -> NoveltyCandidate:
     for prior in existing:
-        same_primary = candidate.primary_source_url and candidate.primary_source_url == prior.primary_source_url
+        same_primary = (
+            candidate.primary_source_url
+            and candidate.primary_source_url == prior.primary_source_url
+        )
         same_source = candidate.source_url == prior.source_url
         close_in_time = abs((candidate.observed_at - prior.observed_at).total_seconds()) <= 172800
         same_entity = candidate.entity_id and candidate.entity_id == prior.entity_id
@@ -394,7 +460,9 @@ def plan_queries(
 ) -> tuple[str, ...]:
     planned: list[str] = []
     for event in unknown_events:
-        planned.append(f"{event.get('entity', '')} {event['title']} official filing primary source".strip())
+        planned.append(
+            f"{event.get('entity', '')} {event['title']} official filing primary source".strip()
+        )
     for item in contradictions:
         planned.append(f"{item['topic']} official clarification contradiction")
     for incident in incidents:
@@ -402,7 +470,9 @@ def plan_queries(
     return tuple(dict.fromkeys(planned))[: budget.maximum_queries]
 
 
-def missed_run(*, expected_at: datetime, last_completed_at: datetime | None, grace: timedelta) -> bool:
+def missed_run(
+    *, expected_at: datetime, last_completed_at: datetime | None, grace: timedelta
+) -> bool:
     return last_completed_at is None or last_completed_at + grace < expected_at
 
 
@@ -420,15 +490,51 @@ def _ingest(path: Path, database: Path) -> None:
     print(json.dumps({"candidate_id": str(candidate.candidate_id), "status": candidate.status}))
 
 
+def _ingest_run(path: Path, database: Path) -> None:
+    run = CodexResearchRun.model_validate_json(path.read_text(encoding="utf-8"))
+    ledger = ResearchLedger(database)
+    try:
+        ledger.add_run(run)
+    finally:
+        ledger.close()
+    print(json.dumps({"run_id": str(run.run_id), "status": run.status}))
+
+
+def _export_status(database: Path, output: Path) -> None:
+    ledger = ResearchLedger(database)
+    try:
+        status = ledger.summary()
+    finally:
+        ledger.close()
+    output.parent.mkdir(parents=True, exist_ok=True)
+    output.write_text(
+        json.dumps(status, indent=2, sort_keys=True, default=str) + "\n", encoding="utf-8"
+    )
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(prog="python -m intelligence_core.codex_research")
     commands = parser.add_subparsers(dest="command", required=True)
     ingest = commands.add_parser("ingest")
     ingest.add_argument("file", type=Path)
     ingest.add_argument("--database", type=Path, default=Path("data/local/codex-research.sqlite3"))
+    ingest_run = commands.add_parser("ingest-run")
+    ingest_run.add_argument("file", type=Path)
+    ingest_run.add_argument(
+        "--database", type=Path, default=Path("data/local/codex-research.sqlite3")
+    )
+    status = commands.add_parser("export-status")
+    status.add_argument("--database", type=Path, default=Path("data/local/codex-research.sqlite3"))
+    status.add_argument(
+        "--output", type=Path, default=Path("data/local/codex-research-status.json")
+    )
     args = parser.parse_args()
     if args.command == "ingest":
         _ingest(args.file, args.database)
+    elif args.command == "ingest-run":
+        _ingest_run(args.file, args.database)
+    elif args.command == "export-status":
+        _export_status(args.database, args.output)
 
 
 if __name__ == "__main__":

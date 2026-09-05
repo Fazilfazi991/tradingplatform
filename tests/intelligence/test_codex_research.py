@@ -98,6 +98,38 @@ def test_append_only_history_and_safe_transitions(tmp_path):
     ledger.close()
 
 
+def test_live_status_summary_is_bounded_and_aggregates_latest_state(tmp_path, monkeypatch):
+    monkeypatch.setenv("CODEX_RESEARCH_OPERATOR_ENABLED", "true")
+    ledger = ResearchLedger(tmp_path / "research.sqlite3")
+    now = datetime.now(UTC)
+    value = candidate(discovered_at=now, observed_at=now, available_at=now)
+    ledger.ingest(value)
+    ledger.transition(value.candidate_id, CandidateStatus.VERIFYING)
+    summary = ledger.summary()
+    assert summary["operator_enabled"] is True
+    assert summary["candidates_today"] == 1
+    assert summary["new"] == 1
+    assert summary["pending_review"] == 1
+    assert summary["contradictions"] == 0
+    assert summary["last_run"] is None
+    assert set(summary) == {
+        "operator_enabled",
+        "last_run",
+        "runs_today",
+        "candidates_today",
+        "new",
+        "updates",
+        "duplicates",
+        "duplicates_suppressed",
+        "pending_review",
+        "rights_review",
+        "contradictions",
+        "research_incidents",
+        "primary_sources_verified",
+    }
+    ledger.close()
+
+
 def test_deterministic_approval_still_hands_off_for_standard_pipeline(tmp_path):
     ledger = ResearchLedger(tmp_path / "research.sqlite3")
     value = candidate()

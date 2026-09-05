@@ -4,4 +4,4 @@ import "./globals.css";
 
 export const metadata: Metadata = { title:"Verified Edge · Market Prediction Intelligence", description:"Synthetic public product prototype for transparent probabilistic market intelligence." };
 
-export default function RootLayout({ children }: Readonly<{children:React.ReactNode}>) { return <html lang="en"><body><AppShell>{children}</AppShell></body></html>; }
+export default function RootLayout({ children }: Readonly<{children:React.ReactNode}>) { return <html lang="en" data-scroll-behavior="smooth"><body><AppShell>{children}</AppShell></body></html>; }

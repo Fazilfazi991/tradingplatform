@@ -1,0 +1,25 @@
+{
+  "run_id": "3c70942f-0ddd-4a7e-bbb0-4d2ebb47e4a9",
+  "run_type": "MANUAL_CANARY",
+  "scheduled_for": "2026-09-05T02:36:23.581979Z",
+  "started_at": "2026-09-05T02:36:23.581979Z",
+  "completed_at": "2026-09-05T02:38:23.581979Z",
+  "status": "SUCCEEDED",
+  "queries": [
+    "site:rbi.org.in September 4 2026 RBI press release India",
+    "site:sebi.gov.in September 4 2026 press release order circular",
+    "site:nseindia.com September 4 2026 corporate announcement India material",
+    "site:bseindia.com September 4 2026 corporate announcement"
+  ],
+  "sources_checked": ["rbi.org.in", "sebi.gov.in", "nseindia.com", "bseindia.com"],
+  "pages_examined": 4,
+  "candidates_created": 1,
+  "duplicates_suppressed": 1,
+  "primary_sources_found": 1,
+  "contradictions_found": 0,
+  "incidents_found": 0,
+  "source_candidates_found": 0,
+  "token_usage": {},
+  "errors": [],
+  "payload_hash": "245020300041a66b6e0a7b0283c4c7b031db32a38179d06445d18f8af5e49bc7"
+}
