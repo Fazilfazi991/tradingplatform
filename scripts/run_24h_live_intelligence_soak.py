@@ -31,6 +31,7 @@ from intelligence_core.runtime_forensics import (
     ForensicRuntimeStore,
     TerminalDisposition,
     TransportStatus,
+    derive_collection_report,
 )
 from intelligence_core.soak_operations import (
     AlertThresholds,
@@ -457,18 +458,11 @@ def main() -> None:
     rows = operations.connection.execute(
         "SELECT job_name,status,result_json FROM executions ORDER BY scheduled_for"
     ).fetchall()
-    results = [json.loads(row["result_json"] or "{}") for row in rows]
-    collection = {
-        "cycles": len(rows),
-        "records_seen": sum(int(row.get("records_seen", 0)) for row in results),
-        "canonical_events": operations.counts()["information_events"],
-        "duplicates_suppressed": sum(int(row.get("duplicates", 0)) for row in results),
-        "source_failures": sum(
-            row["status"] != "SUCCEEDED"
-            for row in rows
-            if row["job_name"] in {"rbi-rss", "sebi-rss"}
-        ),
-    }
+    collection = derive_collection_report(
+        forensics,
+        outer_execution_statuses=[row["status"] for row in rows],
+        canonical_event_inventory=operations.counts()["information_events"],
+    )
     entity_counts: Counter[str] = Counter()
     for event in operations.events():
         explicit = bool(re.search(r"\b(LIMITED|LTD|BANK|MATTER OF)\b", event.title.upper()))

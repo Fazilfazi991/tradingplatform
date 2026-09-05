@@ -1,68 +1,170 @@
 {
-  "audit_version": "post-window-forensic-v1",
-  "decision": "24H LIVE INTELLIGENCE SOAK NEEDS WORK",
-  "authoritative_database": "data/local/24h-live-intelligence-soak.sqlite3",
-  "containment": {
-    "invalid_output_cached": false,
-    "invalid_output_in_evidence": false,
-    "invalid_output_in_snapshots": false,
-    "invalid_output_in_fusion": false,
-    "result": "QUARANTINED_BEFORE_EVIDENCE",
-    "limitation": "The rejected provider body and its token usage were not retained, so the exact invented claim and response hash cannot be reconstructed."
+  "collection": {
+    "attempts": 193,
+    "by_source": {
+      "RBI": {
+        "attempts": 97,
+        "canonical_events": 28,
+        "duplicates": 922,
+        "failed_attempts": 2,
+        "handler_failures": 2,
+        "last_successful_execution": "2026-09-04 14:31:02.317057+00:00",
+        "maximum_execution_gap_seconds": 929.450674,
+        "parse_failures": 0,
+        "records_seen": 950,
+        "recovered_failures": 0,
+        "scheduled_executions": 96,
+        "successful_attempts": 95,
+        "successful_terminal_jobs": 95,
+        "terminal_failures": 1,
+        "transport_failures": 2
+      },
+      "SEBI": {
+        "attempts": 96,
+        "canonical_events": 35,
+        "duplicates": 2845,
+        "failed_attempts": 0,
+        "handler_failures": 0,
+        "last_successful_execution": "2026-09-04 14:31:05.494378+00:00",
+        "maximum_execution_gap_seconds": 929.450674,
+        "parse_failures": 0,
+        "records_seen": 2880,
+        "recovered_failures": 0,
+        "scheduled_executions": 96,
+        "successful_attempts": 96,
+        "successful_terminal_jobs": 96,
+        "terminal_failures": 0,
+        "transport_failures": 0
+      }
+    },
+    "canonical_event_inventory": 63,
+    "canonical_events": 63,
+    "duplicates": 3767,
+    "failed_attempts": 2,
+    "handler_failures": 2,
+    "outer_worker_failures": 0,
+    "parse_failures": 0,
+    "records_seen": 3830,
+    "recovered_failures": 0,
+    "scheduled_executions": 192,
+    "scheduler_executions": 261,
+    "source_failures": 1,
+    "successful_attempts": 191,
+    "successful_terminal_jobs": 191,
+    "terminal_failures": 1,
+    "transport_failures": 2
+  },
+  "continuity": {
+    "data_loss_determination": "NO_OBSERVED_DATA_LOSS",
+    "events_recovered_on_next_cycle": [
+      "https://www.rbi.org.in/scripts/BS_PressReleaseDisplay.aspx?prid=63524"
+    ],
+    "failed_job_id": "rbi-rss:2026-09-04T12:44:53.842066+00:00",
+    "later_canonical_events": 4,
+    "next_success_canonical_events": 1,
+    "next_success_completed_at": "2026-09-04 13:01:53.005788+00:00",
+    "next_success_records_seen": 10,
+    "next_success_started_at": "2026-09-04 13:00:51.610172+00:00",
+    "observed_source_sequence_gaps": [],
+    "recovery_state": "RECOVERED_ON_NEXT_CYCLE",
+    "source": "RBI",
+    "terminal_failure_completed_at": "2026-09-04 12:47:46.474434+00:00"
   },
   "incidents": [
     {
-      "incident_id": "9cf5baf4-5f67-4214-addd-e7ecd9aa2d12",
-      "type": "LLM_HALLUCINATION_QUARANTINE",
-      "classification": "RESOLVED_REQUIRES_FIX",
-      "opened_at": "2026-08-31T14:16:20.227248Z",
-      "event_hash": "5cd6a3bb759ef9ac0e1b651ee08f23a32da92de5acf21570afee0cdb1ae61569",
-      "task": "EVENT_CLASSIFICATION",
-      "source": "rbi-press-releases-rss",
-      "prompt_version": "event-intelligence-v1-soak-v1",
-      "validation": "INVENTED_NUMBER_QUARANTINED",
-      "cache_result": "REJECTED_RESPONSE_NOT_PRESENT",
-      "downstream_result": "QUARANTINED_BEFORE_EVIDENCE"
+      "affected_data": [
+        "qualifying-soak-11-3a-20260903t144050Z"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "attempt_id": "3997e07d-d946-4be1-b3fa-c05c4f196515",
+        "event_hash": "be57ad863d5fb765e20a998e9a5462cfe6899c4aabbd63ab55193599ca1c4280"
+      },
+      "incident_id": "dd7b1eaf-ed6a-4192-b27c-f7165444d7ab",
+      "incident_type": "LLM_HALLUCINATION_QUARANTINE",
+      "opened_at": "2026-09-03T14:41:11.954099Z",
+      "resolution": null,
+      "severity": "HIGH",
+      "source_id": null,
+      "status": "OPEN"
     },
     {
-      "incident_id": "41e4b326-fe3e-4a7b-b23d-c3cc00577fbd",
-      "type": "LLM_SCHEMA_FAILURE_SPIKE",
-      "classification": "RESOLVED_REQUIRES_FIX",
-      "attempt_failures": 76,
-      "distinct_events": 10,
-      "events_recovered": 8,
-      "events_permanently_failed": 2,
-      "rbi_attempt_failures": 71,
-      "sebi_attempt_failures": 5,
-      "recorded_error_category": "OTHER_VALUE_ERROR",
-      "limitation": "The ledger retained only ValueError, not validation messages or provider bodies; requested category and retry-number breakdown is unrecoverable."
+      "affected_data": [
+        "qualifying-soak-11-3a-20260903t144050Z"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "semantic_health": "CRITICAL_FAILURE_RATE"
+      },
+      "incident_id": "4a65e821-504b-45be-8b78-cf75c401a4ff",
+      "incident_type": "LLM_SCHEMA_FAILURE_SPIKE",
+      "opened_at": "2026-09-03T14:42:03.651840Z",
+      "resolution": null,
+      "severity": "HIGH",
+      "source_id": null,
+      "status": "OPEN"
     },
     {
-      "incident_id": "ea7a52bd-e37f-4d88-bbe4-ad381306fee8",
-      "type": "LLM_PROVIDER_DOWN",
-      "classification": "RESOLVED_REQUIRES_FIX",
-      "finding": "FALSE_POSITIVE_ALERT",
-      "provider_transport_errors": 0,
-      "cause": "The alert evaluated cumulative ValueError rows instead of consecutive provider transport failures.",
-      "impact": "No sustained outage was evidenced; ingestion continued."
-    },
-    {
-      "incident_id": "8e6e888a-82ca-4cf0-955b-263503f48753",
-      "type": "SOURCE_COLLECTION_FAILURE",
-      "classification": "RESOLVED_CONTAINED",
-      "source": "sebi-rss",
-      "error": "ConnectTimeout",
-      "failed_attempt_scheduled_at": "2026-08-31T15:01:20.146318+00:00",
-      "next_success_scheduled_at": "2026-08-31T15:16:21.640815+00:00",
-      "next_success_records_seen": 30,
-      "event_loss_observed": false,
-      "reporting_defect": "The final source_failures aggregate inspected execution status rather than handler result status and therefore reported zero."
+      "affected_data": [
+        "qualifying-soak-11-3a-20260903t144050Z"
+      ],
+      "closed_at": null,
+      "evidence": {
+        "error_class": "ReadError",
+        "source_id": "rbi-press-releases-rss"
+      },
+      "incident_id": "0472a14f-f01f-482f-8737-0ee2ca4eaa43",
+      "incident_type": "SOURCE_COLLECTION_FAILURE",
+      "opened_at": "2026-09-04T12:47:51.392440Z",
+      "resolution": null,
+      "severity": "HIGH",
+      "source_id": null,
+      "status": "OPEN"
     }
   ],
-  "blocking_findings": [
-    "Rejected calls recorded zero tokens and zero cost, so the $0.2107464 ledger total excludes 76 provider responses and is not an authoritative total.",
-    "The exact rejected hallucination output and response hash were not retained.",
-    "Schema failures cannot be categorized beyond ValueError and two canonical events permanently lacked semantic interpretation.",
-    "The provider-down and aggregate source-failure alert calculations are defective."
-  ]
+  "rbi_failure_forensics": [
+    {
+      "attempt_id": "defae378-7148-460f-b597-30ae66c24d88",
+      "attempt_ordinal": 1,
+      "canonical_events": 0,
+      "completed_at": "2026-09-04T12:46:36.134923Z",
+      "duplicate_count": 0,
+      "error_class": "RemoteProtocolError",
+      "handler_status": "FAILED",
+      "http_status": null,
+      "job_id": "rbi-rss:2026-09-04T12:44:53.842066+00:00",
+      "latency_ms": 74651.15319995675,
+      "parse_status": "NOT_RUN",
+      "provenance_hash": "25e25f3ee10c2947c99098f734a861cb76747b5e600a6773c4dc4baee6bfcf7c",
+      "records_seen": 0,
+      "recovered": false,
+      "scheduled_for": "2026-09-04T12:44:53.842066Z",
+      "source_id": "rbi-press-releases-rss",
+      "started_at": "2026-09-04T12:45:21.483662Z",
+      "terminal_job_status": "PENDING",
+      "transport_status": "FAILED"
+    },
+    {
+      "attempt_id": "df788546-14fc-404b-9062-899250bad018",
+      "attempt_ordinal": 2,
+      "canonical_events": 0,
+      "completed_at": "2026-09-04T12:47:46.474434Z",
+      "duplicate_count": 0,
+      "error_class": "ReadError",
+      "handler_status": "FAILED",
+      "http_status": null,
+      "job_id": "rbi-rss:2026-09-04T12:44:53.842066+00:00",
+      "latency_ms": 67915.91530002188,
+      "parse_status": "NOT_RUN",
+      "provenance_hash": "dd59fc0756533e0cd1081825dd62c200a79e57652693f01b33b39c449e3033d5",
+      "records_seen": 0,
+      "recovered": false,
+      "scheduled_for": "2026-09-04T12:44:53.842066Z",
+      "source_id": "rbi-press-releases-rss",
+      "started_at": "2026-09-04T12:46:38.558573Z",
+      "terminal_job_status": "FAILED",
+      "transport_status": "FAILED"
+    }
+  ],
+  "soak_id": "qualifying-soak-11-3a-20260903t144050Z"
 }

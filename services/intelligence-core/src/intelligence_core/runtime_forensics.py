@@ -5,6 +5,7 @@ import sqlite3
 from collections import Counter, defaultdict
 from datetime import UTC, datetime, timedelta
 from enum import StrEnum
+from itertools import pairwise
 from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
@@ -352,6 +353,106 @@ class ForensicRuntimeStore:
         )
         self.connection.commit()
 
+    def collection_attempts(self) -> list[CollectionAttemptRecord]:
+        return [
+            CollectionAttemptRecord.model_validate_json(row[0])
+            for row in self.connection.execute(
+                "SELECT payload_json FROM collection_attempts ORDER BY scheduled_for,attempt_id"
+            )
+        ]
+
+    def collection_reconciliation(self) -> dict[str, Any]:
+        rows = self.collection_attempts()
+        by_source: dict[str, dict[str, Any]] = {}
+        for source_id in sorted({row.source_id for row in rows}):
+            selected = [row for row in rows if row.source_id == source_id]
+            jobs: defaultdict[str, list[CollectionAttemptRecord]] = defaultdict(list)
+            for row in selected:
+                jobs[row.job_id].append(row)
+            terminal_rows = [
+                row
+                for attempts in jobs.values()
+                for row in attempts
+                if row.terminal_job_status in {"SUCCEEDED", "FAILED"}
+            ]
+            successful_jobs = [
+                row for row in terminal_rows if row.terminal_job_status == "SUCCEEDED"
+            ]
+            scheduled = sorted({row.scheduled_for for row in selected})
+            gaps = [
+                (current - previous).total_seconds() for previous, current in pairwise(scheduled)
+            ]
+            failed_attempts = [
+                row
+                for row in selected
+                if row.transport_status == TransportStatus.FAILED
+                or row.handler_status == "FAILED"
+                or row.parse_status == "FAILED"
+            ]
+            recovered_jobs = [
+                attempts
+                for attempts in jobs.values()
+                if any(
+                    row.transport_status == TransportStatus.FAILED
+                    or row.handler_status == "FAILED"
+                    or row.parse_status == "FAILED"
+                    for row in attempts
+                )
+                and any(row.terminal_job_status == "SUCCEEDED" for row in attempts)
+            ]
+            by_source[source_id] = {
+                "scheduled_executions": len(jobs),
+                "attempts": len(selected),
+                "successful_attempts": len(selected) - len(failed_attempts),
+                "failed_attempts": len(failed_attempts),
+                "recovered_failures": sum(
+                    sum(
+                        row.transport_status == TransportStatus.FAILED
+                        or row.handler_status == "FAILED"
+                        or row.parse_status == "FAILED"
+                        for row in attempts
+                    )
+                    for attempts in recovered_jobs
+                ),
+                "terminal_failures": sum(
+                    row.terminal_job_status == "FAILED" for row in terminal_rows
+                ),
+                "transport_failures": sum(
+                    row.transport_status == TransportStatus.FAILED for row in selected
+                ),
+                "handler_failures": sum(row.handler_status == "FAILED" for row in selected),
+                "parse_failures": sum(row.parse_status == "FAILED" for row in selected),
+                "successful_terminal_jobs": len(successful_jobs),
+                "records_seen": sum(row.records_seen for row in terminal_rows),
+                "canonical_events": sum(row.canonical_events for row in terminal_rows),
+                "duplicates": sum(row.duplicate_count for row in terminal_rows),
+                "maximum_execution_gap_seconds": max(gaps, default=0.0),
+                "last_successful_execution": max(
+                    (row.completed_at for row in successful_jobs), default=None
+                ),
+            }
+        additive = (
+            "scheduled_executions",
+            "attempts",
+            "successful_attempts",
+            "failed_attempts",
+            "recovered_failures",
+            "terminal_failures",
+            "transport_failures",
+            "handler_failures",
+            "parse_failures",
+            "successful_terminal_jobs",
+            "records_seen",
+            "canonical_events",
+            "duplicates",
+        )
+        aggregate: dict[str, Any] = {
+            key: sum(int(source[key]) for source in by_source.values()) for key in additive
+        }
+        aggregate["source_failures"] = aggregate["terminal_failures"]
+        aggregate["by_source"] = by_source
+        return aggregate
+
     def set_disposition(
         self,
         *,
@@ -374,6 +475,7 @@ class ForensicRuntimeStore:
 
     def reconciliation(self) -> dict[str, Any]:
         attempts = self.attempts()
+        collection = self.collection_reconciliation()
         disposition_rows = self.connection.execute(
             "SELECT disposition,payload_json FROM event_dispositions"
         ).fetchall()
@@ -414,21 +516,9 @@ class ForensicRuntimeStore:
             "event_dispositions": dispositions,
             "cache_hits": sum(row.get("cache_state") == "HIT" for row in details),
             "tombstone_hits": sum(row.get("tombstone_state") == "HIT" for row in details),
-            "collection_attempt_failures": int(
-                self.connection.execute(
-                    "SELECT COUNT(*) FROM collection_attempts WHERE json_extract(payload_json,'$.transport_status')='FAILED'"
-                ).fetchone()[0]
-            ),
-            "recovered_collection_failures": int(
-                self.connection.execute(
-                    "SELECT COUNT(*) FROM collection_attempts WHERE json_extract(payload_json,'$.recovered')=1"
-                ).fetchone()[0]
-            ),
-            "terminal_collection_failures": int(
-                self.connection.execute(
-                    "SELECT COUNT(*) FROM collection_attempts WHERE json_extract(payload_json,'$.terminal_job_status')='FAILED'"
-                ).fetchone()[0]
-            ),
+            "collection_attempt_failures": collection["failed_attempts"],
+            "recovered_collection_failures": collection["recovered_failures"],
+            "terminal_collection_failures": collection["terminal_failures"],
         }
 
     def close(self) -> None:
@@ -440,6 +530,22 @@ def _percentile(values: list[float], fraction: float) -> float:
         return 0.0
     ordered = sorted(values)
     return ordered[min(round((len(ordered) - 1) * fraction), len(ordered) - 1)]
+
+
+def derive_collection_report(
+    store: ForensicRuntimeStore,
+    *,
+    outer_execution_statuses: list[str],
+    canonical_event_inventory: int,
+) -> dict[str, Any]:
+    """Keep scheduler/worker state separate from authoritative collector outcomes."""
+    report = store.collection_reconciliation()
+    report["scheduler_executions"] = len(outer_execution_statuses)
+    report["outer_worker_failures"] = sum(
+        status != "SUCCEEDED" for status in outer_execution_statuses
+    )
+    report["canonical_event_inventory"] = canonical_event_inventory
+    return report
 
 
 def tombstone_for(
