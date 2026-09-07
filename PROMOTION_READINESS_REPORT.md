@@ -20,6 +20,12 @@ Decision: **BLOCKED**
 - Keyboard-first skip navigation and automated structural accessibility checks now pass across
   all 14 public routes; local optimized-build response and bundle baselines are recorded in
   `PUBLIC_PRODUCT_QA.md`.
+- Reproducible GitHub CI now runs pinned backend, frontend, repository-safety, dependency-audit,
+  environment-contract, production-build, and smoke gates. Hosted runs through the backup-tooling
+  commit passed; the current worker-heartbeat commit is awaiting its hosted result.
+- Local SQLite backup/restore integrity checks and a real intelligence-worker
+  start/heartbeat/graceful-stop rehearsal pass. These do not substitute for managed production
+  storage, retention, host supervision, or deployed recovery evidence.
 
 ## Still required
 
@@ -32,6 +38,8 @@ Decision: **BLOCKED**
   profile reported extension message-channel errors that are not attributable to an application
   source, so the console gate remains open pending a clean profile run.
 - Canonical domain, canonical metadata, real sitemap, Search Console decision, staging/production smoke evidence, and rollback proof.
+- Production host supervision, notification destinations, managed backup/retention policy, and a
+  production-shaped worker soak/restart record.
 - Approved claims ledger and promotion package: launch screenshots, short/long descriptions, founder notes, launch copy, and walkthrough script.
 - Owner approval of demo forecast discoverability and analytics/privacy choices.
 

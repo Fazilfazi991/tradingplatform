@@ -2,6 +2,7 @@
 
 Status date: 2026-09-08  
 Audit baseline: `main` at `1a067f0937abb73cf432a39eda05548f3ec1c3b5`  
+Last reconciled implementation: `main` at `0398554c9dabace63417aec991978a0885b6f70b`  
 Scope: public Track A platform, promotion readiness, and separately gated Track B predictive research  
 Current overall decision: **PRODUCTION / PROMOTION BLOCKED**  
 Track B: **HOLDOUT VALIDATED — FORWARD REQUIRED**
@@ -281,8 +282,18 @@ The following are release artifacts, not aspirational prose:
 
 | Track | Current state | Reason |
 |---|---|---|
-| Track A — public informational platform | **BLOCKED** | Internal exposure, missing public-safe serializer, inactive production operations, missing legal/public IA, and no CI/deployment proof |
-| Promotion | **BLOCKED** | Track A blocked; no approved claims/legal package or promotion assets |
-| Track B — predictive feature | **HOLDOUT VALIDATED — FORWARD REQUIRED** | Sealed holdout passed, but immutable prospective issuance and elapsed forward evidence have not started |
+| Track A — public informational platform | **BLOCKED** | Code-level public/internal separation, public serializer, CI, local QA, environment validation, recovery tooling, and worker heartbeat are implemented; hosting/domain, production-shaped service supervision, legal/data-rights approval, and deployed smoke evidence remain open |
+| Promotion | **BLOCKED** | Track A remains blocked; legal/claims approval, canonical production evidence, final launch captures, and publication approval are absent |
+| Track B — predictive feature | **HOLDOUT VALIDATED — FORWARD REQUIRED** | Sealed holdout passed and an append-only forward ledger exists, but no frozen deployable model issuer/outcome resolver or sufficient elapsed prospective evidence exists |
 
-The correct next action is P0 release-control and security-boundary implementation. Prediction research gates, research mode, brokerage connectivity, BUY/SELL outputs, target prices, and public predictive activation remain unchanged.
+## 11. Reconciled implementation evidence
+
+- Public/internal route classification, fail-closed Basic authentication, safe serialization, anonymous denial, no-store/noindex, and negative payload tests are implemented.
+- Public information architecture, draft policy pages, honest demo state, unknown-stock 404, responsive repair, keyboard skip navigation, and restricted sitemap/robots are implemented and locally verified.
+- GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
+- Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
+- The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
+- SQLite online backup, integrity/hash manifest verification, traversal-safe restore verification, and non-overwriting restore tests are implemented. Managed production retention, off-host encryption, RPO/RTO, and restore evidence remain external to the local SQLite tool.
+- The forward-validation ledger is append-only and causal, but automatic issuance and delayed outcome resolution are intentionally not activated.
+
+The next resolvable work is operational/deployment evidence and final release documentation. Prediction research gates, research mode, brokerage connectivity, BUY/SELL outputs, target prices, and public predictive activation remain unchanged.
