@@ -7,7 +7,10 @@ from datetime import UTC, date, datetime, timedelta
 from enum import StrEnum
 from typing import Any
 
+import numpy as np
 import pandas as pd
+from research_core.analogues import find_analogues
+from research_core.features import build_feature_matrix
 
 from verified_edge.domain import DailyBar, Instrument
 from verified_edge.pipeline import canonicalize, make_raw_observations, stable_hash
@@ -168,3 +171,50 @@ def observed_exchange_sessions(
     threshold = max(1, int(instrument_count * minimum_instrument_fraction))
     coverage = frame.groupby("session_date")["instrument_id"].nunique()
     return set(coverage[coverage >= threshold].index)
+
+
+def build_technical_snapshot(
+    entity: str, cutoff: datetime, bars: pd.DataFrame, *, dataset_id: str, dataset_hash: str
+) -> dict[str, Any]:
+    matrix = build_feature_matrix(bars, information_cutoff=cutoff, dataset_version=dataset_id)
+    values = matrix.values.replace([np.inf, -np.inf], np.nan).dropna()
+    selected = values.loc[values.index.get_level_values("instrument_id") == entity]
+    selected = selected.loc[selected.index.get_level_values("session_date") <= cutoff]
+    if selected.empty:
+        return {"entity": entity, "cutoff": cutoff, "state": "INSUFFICIENT",
+                "dataset_id": dataset_id, "dataset_hash": dataset_hash,
+                "warnings": ["NO_COMPLETE_REAL_FEATURE_ROW"]}
+    index = selected.index[-1]
+    return {"entity": entity, "cutoff": cutoff, "feature_date": index[1],
+            "state": "REAL_MARKET_DATA_INTERNAL", "validation": "NOT_PREDICTIVELY_VALIDATED",
+            "features": selected.iloc[-1].to_dict(), "feature_set_hash": matrix.feature_set_hash,
+            "dataset_id": dataset_id, "dataset_hash": dataset_hash,
+            "warnings": ["SINGLE_PROVIDER_INTERNAL_RESEARCH"]}
+
+
+def build_historical_analogue_snapshot(
+    entity: str, cutoff: datetime, horizon: str, bars: pd.DataFrame, *, dataset_id: str,
+    dataset_hash: str, k: int = 10,
+) -> dict[str, Any]:
+    technical = build_technical_snapshot(entity, cutoff, bars, dataset_id=dataset_id,
+                                         dataset_hash=dataset_hash)
+    if technical["state"] == "INSUFFICIENT":
+        return {**technical, "horizon": horizon, "analogues": []}
+    matrix = build_feature_matrix(bars, information_cutoff=cutoff, dataset_version=dataset_id)
+    states = matrix.values.replace([np.inf, -np.inf], np.nan).dropna().reset_index()
+    columns = [x for x in states.columns if x not in {"instrument_id", "session_date"}]
+    query_time = pd.Timestamp(technical["feature_date"])
+    result = find_analogues(states, query_instrument=entity, query_time=query_time,
+                            feature_columns=columns, k=k, exclusion_sessions=10)
+    if result.matches.empty:
+        return {"entity": entity, "cutoff": cutoff, "horizon": horizon, "state": "INSUFFICIENT",
+                "analogues": [], "dataset_id": dataset_id, "dataset_hash": dataset_hash,
+                "warnings": ["INSUFFICIENT_PAST_ANALOGUES"]}
+    if not (result.matches["session_date"] < query_time).all():
+        raise ValueError("historical analogue must strictly precede cutoff")
+    return {"entity": entity, "cutoff": cutoff, "horizon": horizon,
+            "state": "REAL_MARKET_DATA_INTERNAL", "validation": "NOT_PREDICTIVELY_VALIDATED",
+            "analogues": result.matches[["session_date", "distance", "similarity"]].to_dict("records"),
+            "sample_adequacy": len(result.matches), "method": result.method,
+            "dataset_id": dataset_id, "dataset_hash": dataset_hash,
+            "warnings": ["SAME_SECURITY_HISTORY", "NO_PREDICTIVE_PROBABILITY"]}

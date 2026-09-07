@@ -1,4 +1,4 @@
-from datetime import UTC, date, datetime
+from datetime import UTC, date, datetime, timedelta
 from itertools import pairwise
 from uuid import uuid4
 
@@ -7,6 +7,8 @@ from verified_edge.real_market import (
     CollectionMode,
     DatasetState,
     MappingStatus,
+    build_historical_analogue_snapshot,
+    build_technical_snapshot,
     daily_history_chunks,
     detect_revisions,
     map_current_universe,
@@ -79,3 +81,24 @@ def test_observed_calendar_includes_special_session_and_excludes_holiday():
     sessions = observed_exchange_sessions(frame)
     assert date(2026, 1, 3) in sessions  # observed Saturday special session
     assert date(2026, 1, 1) not in sessions  # no invented weekday session
+
+
+def test_real_snapshot_builders_are_past_only_and_provenance_bound():
+    import numpy as np
+    import pandas as pd
+
+    dates = pd.bdate_range("2024-01-01", periods=320, tz="UTC")
+    close = np.linspace(100, 160, len(dates))
+    frame = pd.DataFrame({"instrument_id": "A", "session_date": dates,
+                          "available_at": dates + pd.to_timedelta(16, unit="h"),
+                          "open": close, "high": close + 1, "low": close - 1,
+                          "close": close, "volume": np.arange(len(dates)) + 1000})
+    cutoff = dates[-1].to_pydatetime() + timedelta(hours=16)
+    technical = build_technical_snapshot("A", cutoff, frame, dataset_id="real-1",
+                                         dataset_hash="a" * 64)
+    historical = build_historical_analogue_snapshot("A", cutoff, "5D", frame,
+                                                    dataset_id="real-1", dataset_hash="a" * 64)
+    assert technical["state"] == "REAL_MARKET_DATA_INTERNAL"
+    assert historical["state"] == "REAL_MARKET_DATA_INTERNAL"
+    assert all(pd.Timestamp(x["session_date"]) < pd.Timestamp(historical["cutoff"])
+               for x in historical["analogues"])
