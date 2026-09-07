@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import signal
 import threading
 import time
@@ -128,8 +129,14 @@ class IntelligenceWorker:
 
     def run_forever(self, *, poll_seconds: float = 5) -> None:
         self.install_signal_handlers()
-        while not self.shutdown.wait(poll_seconds):
-            self.run_once()
+        self.store.start_service(self.owner, os.getpid(), now=datetime.now(UTC))
+        try:
+            self.store.heartbeat_service(self.owner, now=datetime.now(UTC))
+            while not self.shutdown.wait(poll_seconds):
+                self.store.heartbeat_service(self.owner, now=datetime.now(UTC))
+                self.run_once()
+        finally:
+            self.store.stop_service(self.owner, now=datetime.now(UTC))
 
 
 def default_store(workspace: str | Path) -> SQLiteOperationsStore:

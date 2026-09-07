@@ -63,6 +63,10 @@ class SQLiteOperationsStore:
           event_key TEXT PRIMARY KEY, source_id TEXT NOT NULL, payload_json TEXT NOT NULL,
           observed_at TEXT NOT NULL
         );
+        CREATE TABLE IF NOT EXISTS service_runtime (
+          instance_id TEXT PRIMARY KEY, pid INTEGER NOT NULL, started_at TEXT NOT NULL,
+          heartbeat_at TEXT NOT NULL, status TEXT NOT NULL, stopped_at TEXT
+        );
         """)
         self.connection.commit()
 
@@ -283,7 +287,55 @@ class SQLiteOperationsStore:
                 "checkpoints",
                 "raw_artifacts",
                 "information_events",
+                "service_runtime",
             )
+        }
+
+    def start_service(self, instance_id: str, pid: int, *, now: datetime) -> None:
+        timestamp = now.astimezone(UTC).isoformat()
+        self.connection.execute(
+            "INSERT INTO service_runtime VALUES(?,?,?,?,?,NULL)",
+            (instance_id, pid, timestamp, timestamp, "RUNNING"),
+        )
+        self.connection.commit()
+
+    def heartbeat_service(self, instance_id: str, *, now: datetime) -> None:
+        cursor = self.connection.execute(
+            "UPDATE service_runtime SET heartbeat_at=? WHERE instance_id=? AND status='RUNNING'",
+            (now.astimezone(UTC).isoformat(), instance_id),
+        )
+        if cursor.rowcount != 1:
+            self.connection.rollback()
+            raise RuntimeError("service runtime is not registered as running")
+        self.connection.commit()
+
+    def stop_service(self, instance_id: str, *, now: datetime) -> None:
+        timestamp = now.astimezone(UTC).isoformat()
+        self.connection.execute(
+            "UPDATE service_runtime SET heartbeat_at=?,status='STOPPED',stopped_at=? "
+            "WHERE instance_id=? AND status='RUNNING'",
+            (timestamp, timestamp, instance_id),
+        )
+        self.connection.commit()
+
+    def service_status(self, *, now: datetime, stale_after: timedelta) -> dict:
+        row = self.connection.execute(
+            "SELECT instance_id,pid,started_at,heartbeat_at,status,stopped_at "
+            "FROM service_runtime ORDER BY started_at DESC LIMIT 1"
+        ).fetchone()
+        if row is None:
+            return {"status": "NOT_STARTED"}
+        heartbeat = datetime.fromisoformat(row["heartbeat_at"])
+        status = row["status"]
+        if status == "RUNNING" and now.astimezone(UTC) - heartbeat > stale_after:
+            status = "STALE"
+        return {
+            "status": status,
+            "instance_id": row["instance_id"],
+            "pid": row["pid"],
+            "started_at": row["started_at"],
+            "heartbeat_at": row["heartbeat_at"],
+            "stopped_at": row["stopped_at"],
         }
 
     def close(self) -> None:

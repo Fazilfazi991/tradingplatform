@@ -8,6 +8,19 @@ Run one scheduler pass with `python scripts/run_intelligence_worker.py --once`. 
 omitting `--once`; stop with Ctrl+C. Local state is `data/local/intelligence-operations.sqlite3` and is
 not committed. Validate approved feeds with `python scripts/validate_live_intelligence_sources.py`.
 
+Check the platform-owned worker heartbeat without exposing job payloads or credentials:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\run_intelligence_worker.py --status
+```
+
+`RUNNING` means the latest heartbeat is no more than 30 seconds old. `STALE` means the process did
+not shut down cleanly or is no longer making progress; inspect the service manager and incidents,
+then restart under the approved host supervisor. `STOPPED` is a graceful exit and `NOT_STARTED`
+means this state database has never hosted a continuous worker. The heartbeat is a health signal,
+not a process manager: production must use the hosting platform's restart policy and least-privilege
+service identity.
+
 Backfills require source, bounded start/end, reason, operator identity, and `BACKFILL`; they may never
 be relabelled as prospectively observed. Daily archives are immutable. Reprocessing the same raw
 artifacts must reproduce the same semantic hash or open a replay incident.

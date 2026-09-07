@@ -242,3 +242,33 @@ def test_semantic_runtime_is_safely_disabled_without_explicit_activation(
         "reason": "LLM_RUNTIME_ENABLED_FALSE",
         "prediction_state": "UNCHANGED",
     }
+
+
+def test_service_runtime_heartbeat_reports_stale_and_stopped(tmp_path):
+    now = datetime(2026, 8, 30, tzinfo=UTC)
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    assert store.service_status(now=now, stale_after=timedelta(seconds=30)) == {
+        "status": "NOT_STARTED"
+    }
+    store.start_service("worker-1", 1234, now=now)
+    assert store.service_status(now=now, stale_after=timedelta(seconds=30))["status"] == "RUNNING"
+    assert (
+        store.service_status(
+            now=now + timedelta(seconds=31), stale_after=timedelta(seconds=30)
+        )["status"]
+        == "STALE"
+    )
+    store.heartbeat_service("worker-1", now=now + timedelta(seconds=31))
+    assert (
+        store.service_status(
+            now=now + timedelta(seconds=31), stale_after=timedelta(seconds=30)
+        )["status"]
+        == "RUNNING"
+    )
+    store.stop_service("worker-1", now=now + timedelta(seconds=32))
+    assert (
+        store.service_status(
+            now=now + timedelta(seconds=32), stale_after=timedelta(seconds=30)
+        )["status"]
+        == "STOPPED"
+    )
