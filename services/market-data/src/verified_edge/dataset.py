@@ -33,6 +33,11 @@ def export_parquet(bars: Iterable[DailyBar], target: str | Path) -> tuple[Path, 
             "canonical_version": b.canonical_version,
             "quality_status": b.quality_status.value,
             "transformation_hash": b.transformation_hash,
+            "source_observed_time": b.source_observed_time.isoformat()
+            if b.source_observed_time else None,
+            "available_at": b.available_at.isoformat() if b.available_at else None,
+            "corporate_action_status": b.corporate_action_status,
+            "payload_lineage": list(b.payload_lineage),
         }
         for b in sorted(bars, key=lambda x: (x.symbol, x.session_date))
     ]

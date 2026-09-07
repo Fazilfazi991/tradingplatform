@@ -50,6 +50,8 @@ def test_normal_observation_canonicalizes():
     bars, events, quarantine = canonicalize([raw(inst, date(2026, 1, 2))], {inst.id: inst})
     assert len(bars) == 1 and not quarantine
     assert bars[0].close == Decimal(105)
+    assert bars[0].available_at == bars[0].source_observed_time
+    assert len(bars[0].payload_lineage) == 1 and len(bars[0].payload_lineage[0]) == 64
     assert not [event for event in events if event.severity.value == "CRITICAL"]
 
 
@@ -60,6 +62,16 @@ def test_invalid_ohlc_quarantines():
     )
     assert not bars and len(quarantine) == 1
     assert any(e.check_code == "INVALID_OHLC" for e in events)
+
+
+def test_zero_price_and_negative_volume_are_quarantined():
+    inst = instrument()
+    rows = [raw(inst, date(2026, 1, 2), o=0), raw(inst, date(2026, 1, 5), v=-1)]
+    bars, events, quarantine = canonicalize(rows, {inst.id: inst})
+    assert not bars and len(quarantine) == 2
+    assert {e.check_code for e in events if e.severity.value == "CRITICAL"} >= {
+        "NON_POSITIVE_PRICE", "NEGATIVE_VALUE"
+    }
 
 
 def test_identical_duplicate_is_quarantined_not_duplicated():

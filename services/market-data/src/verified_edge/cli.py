@@ -27,8 +27,8 @@ def main() -> int:
             print(provider.health_check())
             return 0
         if args.command == "upstox-spike":
-            if not os.getenv("UPSTOX_ACCESS_TOKEN"):
-                raise AuthenticationError("UPSTOX_ACCESS_TOKEN is absent; live spike not run")
+            if not os.getenv("UPSTOX_ANALYTICS_TOKEN"):
+                raise AuthenticationError("UPSTOX_ANALYTICS_TOKEN is absent; live spike not run")
             for symbol in args.symbols.split(","):
                 instrument = provider.resolve_instrument(symbol.strip().upper())
                 rows = provider.get_historical_daily(instrument, args.start, args.end)

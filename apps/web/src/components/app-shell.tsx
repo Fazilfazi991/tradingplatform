@@ -20,7 +20,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     <aside className="sidebar">
       <Link href="/" className="brand">VERIFIED EDGE<small>Market Prediction Intelligence</small></Link>
       <nav className="nav" aria-label="Primary navigation">{nav.map(([label,href,Icon]) => <Link key={label} href={href} className={path===href?"active":""}><Icon size={15}/>{label}</Link>)}</nav>
-      <div className="research-mode"><b>DEMO / RESEARCH MODE</b><br/>Synthetic fixtures only<br/>No live prediction</div>
+      <div className="research-mode"><b>DEMO / RESEARCH MODE</b><br/>Real internal market history<br/>Demo predictions only</div>
     </aside>
     <main className="main">
       <div className="demo-banner"><b>RESEARCH PROTOTYPE</b><span>Market and prediction values shown here are synthetic demo data unless explicitly marked otherwise.</span></div>

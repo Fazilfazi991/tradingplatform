@@ -54,7 +54,18 @@ def validate_observations(
                 )
             )
             continue
-        if min(o, h, l, c, volume, oi) < 0:
+        if min(o, h, l, c) <= 0:
+            events.append(
+                _event(
+                    Severity.CRITICAL,
+                    "NON_POSITIVE_PRICE",
+                    row,
+                    payload,
+                    "> 0",
+                    "daily prices must be strictly positive",
+                )
+            )
+        if volume < 0 or oi < 0:
             events.append(
                 _event(
                     Severity.CRITICAL,
@@ -62,7 +73,7 @@ def validate_observations(
                     row,
                     payload,
                     ">= 0",
-                    "negative price, volume or OI",
+                    "negative volume or OI",
                 )
             )
         if not (h >= o and h >= c and l <= o and l <= c and h >= l):

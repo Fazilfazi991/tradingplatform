@@ -109,6 +109,10 @@ def canonicalize(
                 quality_status=QualityStatus.WARNING
                 if key in warning_keys
                 else QualityStatus.ACCEPTED,
+                source_observed_time=row.observed_at,
+                available_at=row.observed_at,
+                corporate_action_status="UNVERIFIED",
+                payload_lineage=(row.payload_hash,),
             )
         )
     return sorted(bars, key=lambda bar: (bar.symbol, bar.session_date)), events, quarantined

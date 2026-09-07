@@ -82,6 +82,19 @@ def test_upstox_corporate_action_contract():
     assert result[0].numerator == 2 and result[0].denominator == 1
 
 
+def test_upstox_rights_issue_alias_is_explicitly_normalized():
+    payload = {"status": "success", "data": [{"name": "Rights Issue",
+               "expiry_date": "02 Jan 2026", "amount": None, "ratio": None,
+               "event_details": []}]}
+    client = httpx.Client(
+        transport=httpx.MockTransport(lambda _request: httpx.Response(200, json=payload))
+    )
+    result = UpstoxMarketDataProvider(token="redacted", client=client).get_corporate_actions(
+        "INE000000001"
+    )
+    assert result[0].action_type == CorporateActionType.RIGHTS
+
+
 def test_reconciliation_reports_both_missing_sides_and_deltas():
     primary = [bar(1), bar(2, "100")]
     secondary = [bar(1, "100.02", 11, "B"), bar(3, provider="B")]

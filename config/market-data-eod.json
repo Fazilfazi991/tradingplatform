@@ -1,0 +1,12 @@
+{
+  "version": "1",
+  "timezone": "Asia/Kolkata",
+  "provider": "UPSTOX",
+  "credential": "UPSTOX_ANALYTICS_TOKEN",
+  "schedule": {"kind": "DAILY", "weekdays_only": true, "local_time": "16:15"},
+  "session_gate": {"exchange": "NSE", "required_status": ["NORMAL_CLOSE", "CLOSING_END"]},
+  "pipeline": ["instrument_metadata", "daily_bars", "quality", "technical", "historical_analogues", "data_health", "internal_fusion"],
+  "collection_mode": "FORWARD_COLLECTED_MARKET_DATA",
+  "public_output": false,
+  "execution_operations": false
+}

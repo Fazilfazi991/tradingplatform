@@ -28,6 +28,9 @@ class MarketDataProvider(ABC):
     def get_quote(self, instrument: Instrument) -> dict[str, Any]: ...
 
     @abstractmethod
+    def get_market_status(self, exchange: str = "NSE") -> dict[str, Any]: ...
+
+    @abstractmethod
     def get_index_data(self, code: str, start: date, end: date) -> list[dict[str, Any]]: ...
 
     @abstractmethod

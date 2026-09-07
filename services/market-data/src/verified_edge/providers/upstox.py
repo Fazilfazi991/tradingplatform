@@ -43,7 +43,9 @@ class UpstoxMarketDataProvider(MarketDataProvider):
         client: httpx.Client | None = None,
         sleeper: Callable[[float], None] = time.sleep,
     ) -> None:
-        self._token = token or os.getenv("UPSTOX_ACCESS_TOKEN")
+        # Analytics credentials are deliberately preferred. A trading-capable
+        # OAuth token is never selected implicitly by this read-only adapter.
+        self._token = token or os.getenv("UPSTOX_ANALYTICS_TOKEN")
         self._base_url = (
             base_url or os.getenv("UPSTOX_BASE_URL") or "https://api.upstox.com"
         ).rstrip("/")
@@ -53,7 +55,9 @@ class UpstoxMarketDataProvider(MarketDataProvider):
 
     def _headers(self) -> dict[str, str]:
         if not self._token:
-            raise AuthenticationError("UPSTOX_ACCESS_TOKEN is required for read-only API requests")
+            raise AuthenticationError(
+                "UPSTOX_ANALYTICS_TOKEN is required for read-only API requests"
+            )
         return {"Accept": "application/json", "Authorization": f"Bearer {self._token}"}
 
     def _request(self, url: str, *, retries: int = 3) -> httpx.Response:
@@ -65,7 +69,7 @@ class UpstoxMarketDataProvider(MarketDataProvider):
                     raise ProviderError("Upstox network failure after bounded retries") from exc
                 self._sleep(min(2 ** (attempt - 1) + random.random() / 10, 8))
                 continue
-            if response.status_code == 401:
+            if response.status_code in {401, 403}:
                 raise AuthenticationError("Upstox rejected the read-only access token")
             if response.status_code == 429 or response.status_code >= 500:
                 if attempt == retries:
@@ -148,7 +152,12 @@ class UpstoxMarketDataProvider(MarketDataProvider):
         response = self._request(url)
         try:
             candles = response.json()["data"]["candles"]
-            return [self._parse_candle(row) for row in candles]
+            parsed = [self._parse_candle(row) for row in candles]
+            if instrument.segment in {"NSE_EQ", "BSE_EQ"}:
+                # Open interest is not applicable to cash equities. Providers
+                # may emit a numeric sentinel; retain it in provider_row only.
+                parsed = [{**row, "oi": None} for row in parsed]
+            return parsed
         except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
             raise ProviderSchemaError("malformed Upstox candle payload") from exc
 
@@ -176,6 +185,21 @@ class UpstoxMarketDataProvider(MarketDataProvider):
         )
         return response.json()
 
+    def get_market_status(self, exchange: str = "NSE") -> dict[str, Any]:
+        response = self._request(
+            f"{self._base_url}/v2/market/status/{quote(exchange, safe='')}"
+        )
+        try:
+            payload = response.json()
+            data = payload["data"]
+            if payload.get("status") != "success" or not isinstance(data, dict):
+                raise TypeError
+            if data.get("exchange") != exchange or not data.get("status"):
+                raise TypeError
+            return data
+        except (KeyError, TypeError, ValueError, json.JSONDecodeError) as exc:
+            raise ProviderSchemaError("malformed Upstox market-status payload") from exc
+
     def get_corporate_actions(self, isin: str) -> list[CorporateAction]:
         if not isin:
             raise ProviderError("ISIN is required for corporate actions")
@@ -187,12 +211,14 @@ class UpstoxMarketDataProvider(MarketDataProvider):
                 raise TypeError
             actions = []
             for record in records:
+                action_name = str(record["name"]).upper()
+                action_aliases = {"RIGHTS ISSUE": "RIGHTS", "BONUS ISSUE": "BONUS"}
                 ratio = str(record.get("ratio") or "").split(":")
                 numerator, denominator = (ratio + [None, None])[:2]
                 effective = time.strptime(record["expiry_date"], "%d %b %Y")
                 actions.append(
                     CorporateAction(
-                        action_type=CorporateActionType(str(record["name"]).upper()),
+                        action_type=CorporateActionType(action_aliases.get(action_name, action_name)),
                         effective_date=date(effective.tm_year, effective.tm_mon, effective.tm_mday),
                         source="UPSTOX_FUNDAMENTALS_API",
                         source_version="v2",
@@ -218,9 +244,11 @@ class UpstoxMarketDataProvider(MarketDataProvider):
 
     def health_check(self) -> dict[str, Any]:
         started = time.perf_counter()
-        response = self._request(f"{self._base_url}/v2/user/profile")
+        status = self.get_market_status("NSE")
         return {
-            "ok": response.status_code == 200,
+            "ok": True,
+            "exchange": status["exchange"],
+            "market_status": status["status"],
             "latency_ms": round((time.perf_counter() - started) * 1000, 2),
         }
 

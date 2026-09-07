@@ -59,6 +59,20 @@ def test_historical_fixture_parsing():
     assert rows[0]["close"] == 105
 
 
+def test_cash_equity_oi_sentinel_is_not_canonicalized_as_open_interest():
+    body = {"data": {"candles": [["2026-01-02T00:00:00+05:30", 100, 110, 90, 105, 1000, -1]]}}
+    provider = UpstoxMarketDataProvider(
+        token="redacted", base_url="https://example.test",
+        client=client(lambda r: httpx.Response(200, json=body)),
+    )
+    inst = __import__("verified_edge.domain", fromlist=["Instrument"]).Instrument(
+        exchange="NSE", segment="NSE_EQ", symbol="ALPHA", provider_instrument_key="NSE_EQ|INE1"
+    )
+    row = provider.get_historical_daily(inst, date(2026, 1, 1), date(2026, 1, 2))[0]
+    assert row["oi"] is None
+    assert row["provider_row"][6] == -1
+
+
 def test_authentication_failure_without_secret():
     provider = UpstoxMarketDataProvider(token=None, client=client(lambda r: httpx.Response(200)))
     provider._token = None

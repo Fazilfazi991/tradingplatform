@@ -89,6 +89,17 @@ class DailyBar(BaseModel):
     canonical_version: int = 1
     transformation_hash: str
     quality_status: QualityStatus = QualityStatus.ACCEPTED
+    source_observed_time: datetime | None = None
+    available_at: datetime | None = None
+    corporate_action_status: str = "UNVERIFIED"
+    payload_lineage: tuple[str, ...] = ()
+
+    @field_validator("source_observed_time", "available_at")
+    @classmethod
+    def optional_timezone_required(cls, value: datetime | None) -> datetime | None:
+        if value is not None and (value.tzinfo is None or value.utcoffset() is None):
+            raise ValueError("timestamp must be timezone-aware")
+        return value
 
 
 class QualityEvent(BaseModel):
