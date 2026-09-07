@@ -10,6 +10,7 @@ from research_core.api import (
     generate_report,
     run_experiment,
 )
+from research_core.prediction_v1 import public_prediction_guard, verify_frozen_dataset
 
 __all__ = [
     "build_feature_matrix",
@@ -20,4 +21,6 @@ __all__ = [
     "find_analogues",
     "generate_report",
     "run_experiment",
+    "public_prediction_guard",
+    "verify_frozen_dataset",
 ]

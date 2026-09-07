@@ -198,6 +198,95 @@ class PredictionRecord(FrozenModel):
         return self
 
 
+class PredictionTargetVersion(FrozenModel):
+    version: str
+    horizon: int
+    neutral_band_methodology: str
+    barrier_definitions: dict[str, Any]
+    volatility_target_methodology: str
+    mfe_mae_methodology: str
+    definition_hash: str = ""
+
+    @model_validator(mode="after")
+    def hash_definition(self) -> PredictionTargetVersion:
+        if not self.definition_hash:
+            object.__setattr__(
+                self,
+                "definition_hash",
+                stable_hash(self.model_dump(exclude={"definition_hash"}, mode="json")),
+            )
+        return self
+
+
+class PredictionResearchOutput(FrozenModel):
+    prediction_id: UUID = Field(default_factory=uuid4)
+    entity: str
+    cutoff: datetime
+    horizon: int
+    dataset_id: str
+    feature_version: str
+    model_version: str
+    target_version: str
+    research_status: Literal[
+        "NO_EDGE",
+        "INCONCLUSIVE",
+        "CANDIDATE_EDGE",
+        "HOLDOUT_FAIL",
+        "HOLDOUT_PASS",
+        "FORWARD_VALIDATION_REQUIRED",
+    ]
+    prob_up: float | None = None
+    prob_neutral: float | None = None
+    prob_down: float | None = None
+    expected_return: float | None = None
+    expected_volatility: float | None = None
+    expected_range: dict[str, float] | None = None
+    barrier_outputs: dict[str, float] | None = None
+    calibration_status: str
+    ood_state: Literal["IN_DISTRIBUTION", "WEAK_OOD", "STRONG_OOD", "UNKNOWN"]
+    model_disagreement: float | None = None
+    abstention: bool
+    abstention_reasons: tuple[str, ...] = ()
+    data_quality: str
+    technical_snapshot_id: str | None = None
+    historical_snapshot_id: str | None = None
+    market_regime: str | None = None
+    sector_context: str | None = None
+    provenance: dict[str, Any]
+    payload_hash: str = ""
+
+    @model_validator(mode="after")
+    def validate_research_output(self) -> PredictionResearchOutput:
+        probabilities = [self.prob_down, self.prob_neutral, self.prob_up]
+        if all(value is not None for value in probabilities):
+            total = sum(float(value) for value in probabilities if value is not None)
+            if abs(total - 1.0) > 1e-6:
+                raise ValueError("class probabilities must sum to one")
+        if not self.payload_hash:
+            object.__setattr__(
+                self,
+                "payload_hash",
+                stable_hash(self.model_dump(exclude={"payload_hash"}, mode="json")),
+            )
+        return self
+
+
+class ForwardPaperPrediction(FrozenModel):
+    issued_at: datetime
+    cutoff: datetime
+    symbol: str
+    horizon: int
+    probabilities: dict[str, float] | None
+    expected_return: float | None
+    abstention: bool
+    model_hash: str
+    dataset_hash: str
+    feature_hash: str
+    market_data_cutoff: datetime
+    outcome_available_at: datetime
+    later_realized_outcome: dict[str, Any] | None = None
+
+
 class EvidenceEngineOutput(FrozenModel):
     engine_id: str
     engine_version: str
