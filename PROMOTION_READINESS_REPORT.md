@@ -17,14 +17,17 @@ Decision: **BLOCKED**
   and framework-overlay checks.
 - Synthetic demo routes now emit `noindex, nofollow`; the sitemap is limited to approved
   informational routes and supports validated explicit or Vercel production origins.
+- Keyboard-first skip navigation and automated structural accessibility checks now pass across
+  all 14 public routes; local optimized-build response and bundle baselines are recorded in
+  `PUBLIC_PRODUCT_QA.md`.
 
 ## Still required
 
 - Legal/compliance approval of all perimeter and policy language.
 - Public data-rights approval or proof that the launched payload contains only independently safe data.
 - Authenticated-route review in staging with production-shaped secrets and logs.
-- Keyboard, screen-reader, contrast, high-contrast, zoom, and reduced-motion checks across the
-  full public route inventory.
+- Manual screen-reader, contrast, Windows forced-colors, and 200%/400% zoom checks across the
+  full interactive public route inventory.
 - Clean-browser console/network audit and production performance measurements. The Chrome QA
   profile reported extension message-channel errors that are not attributable to an application
   source, so the console gate remains open pending a clean profile run.

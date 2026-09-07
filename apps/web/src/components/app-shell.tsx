@@ -15,6 +15,7 @@ const nav = [
 export function AppShell({ children }: { children: React.ReactNode }) {
   const path = usePathname();
   return <div className="app">
+    <a className="skip-link" href="#main-content">Skip to content</a>
     <aside className="sidebar">
       <Link href="/" className="brand">VERIFIED EDGE<small>Market Prediction Intelligence</small></Link>
       <nav className="nav" aria-label="Primary navigation">{nav.map(([label,href,Icon]) => <Link key={label} href={href} aria-current={path===href?"page":undefined} className={path===href?"active":""}><Icon aria-hidden="true" size={15}/>{label}</Link>)}</nav>
@@ -24,8 +25,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <div className="demo-banner"><b>RESEARCH PROTOTYPE</b><span>Market and prediction values shown here are synthetic demo data unless explicitly marked otherwise.</span></div>
       <div className="mobile-nav"><Link href="/" className="brand">VERIFIED EDGE</Link><BrainCircuit aria-hidden="true" size={18}/></div>
       <nav className="mobile-links" aria-label="Mobile navigation">{nav.map(([label,href])=><Link key={label} href={href} aria-current={path===href?"page":undefined}>{label}</Link>)}</nav>
-      <a className="skip-link" href="#main-content">Skip to content</a>
-      <div id="main-content">{children}</div>
+      <div id="main-content" tabIndex={-1}>{children}</div>
       <footer className="site-footer"><div><b>VERIFIED EDGE</b><span>Evidence-led market research with uncertainty intact.</span></div><nav aria-label="Legal and company"><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/risk">Risk</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav></footer>
     </main>
   </div>;
