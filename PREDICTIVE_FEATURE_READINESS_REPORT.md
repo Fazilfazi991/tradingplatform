@@ -11,11 +11,14 @@ Decision: **HOLDOUT VALIDATED — FORWARD REQUIRED**
 - Simple baselines, probability calibration, abstention, out-of-distribution checks, and corrected null controls.
 - Sealed holdout completed with the limitations preserved in the authoritative research artifact.
 - Internal-only destination enforcement for predictive outputs.
+- Append-only forward issuance and outcome ledgers with uniqueness, causal availability,
+  integrity hashes, and database-enforced update/delete rejection.
 
 ## Material limitations
 
 - `forward_predictions_started` is false in the authoritative holdout report.
-- No append-only prospective issuance registry, scheduled issuer, delayed outcome resolver, or live forward monitoring service is operating.
+- No eligible frozen deployable model artifact, scheduled issuer, delayed market-data outcome
+  resolver, or live forward monitoring service is operating.
 - Coverage is very low at the 1D, 3D, and 5D horizons.
 - Current-universe survivorship bias remains; point-in-time membership is unavailable.
 - Corporate-action adjustment semantics and independent market-data reconciliation remain unresolved.
