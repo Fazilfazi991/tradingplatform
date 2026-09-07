@@ -10,7 +10,7 @@ requires-python = ">=3.12"
 dependencies = [
   "httpx>=0.28,<0.29",
   "pandas>=2.2,<3",
-  "pyarrow>=18,<19",
+  "pyarrow>=23.0.1,<24",
   "pydantic>=2.10,<3",
   "scipy>=1.15,<2",
   "scikit-learn>=1.6,<2",
@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.3,<9", "pytest-cov>=6,<7", "ruff>=0.9,<1", "mypy>=1.15,<2"]
+dev = ["pytest>=9.0.3,<10", "pytest-cov>=6,<7", "ruff>=0.9,<1", "mypy>=1.15,<2"]
 
 [project.scripts]
 ve-data = "verified_edge.cli:main"
