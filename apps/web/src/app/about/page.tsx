@@ -1,0 +1,4 @@
+import type { Metadata } from "next";
+import { PublicDoc } from "@/components/public-doc";
+export const metadata: Metadata = { title: "About", description: "Why Verified Edge makes market evidence and uncertainty inspectable." };
+export default function About(){return <PublicDoc title="About Verified Edge" summary="A research product built around a simple belief: backtested is not the same as verified."><h2>Why it exists</h2><p>Market tools often compress complex, conflicting evidence into one confident number. Verified Edge is being built to show the evidence stack, disagreement, provenance, and conditions that would change a view.</p><h2>What it is not</h2><p>It is not a broker, execution system, portfolio manager, registered adviser, or promise of returns. Public predictive activation remains gated by prospective validation, data rights, operations, and legal review.</p></PublicDoc>}

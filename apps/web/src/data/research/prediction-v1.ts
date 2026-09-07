@@ -1,3 +1,5 @@
+import { releaseStatus } from "@/lib/release-status";
+
 export const predictionV1 = {
   datasetHash: "7ce7f964ca6aa8b551c68749e5f2d8a5a95e5e6c7b08005350807431fd866e6b",
   registrationHash: "ec4f05506d933cbcf6e0ebb8b2c7950167983e5c20397c02d52f8c3f03bf0e45",
@@ -6,7 +8,7 @@ export const predictionV1 = {
   symbols: 200,
   experimentCount: 36,
   holdout: "01 Jan 2025 — 04 Sep 2026",
-  holdoutState: "HOLDOUT PASS · FORWARD VALIDATION REQUIRED",
+  holdoutState: releaseStatus.holdoutForwardRequired,
   researchStatus: "CANDIDATE STRUCTURE, NOT VERIFIED EDGE",
   horizons: [
     { horizon: "1D", model: "Logistic", brier: 0.6472, baseline: 0.6518, ece: 0.0073, folds: "3 / 3", coverage: "0.32%" },

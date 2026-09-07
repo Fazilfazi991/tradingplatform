@@ -14,6 +14,12 @@ from verified_edge.providers.upstox import (
 )
 
 
+def test_environment_base_url_must_be_official_https_origin(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("UPSTOX_BASE_URL", "https://example.invalid")
+    with pytest.raises(ProviderError, match="official HTTPS API origin"):
+        UpstoxMarketDataProvider(token="redacted")
+
+
 def client(handler):
     return httpx.Client(transport=httpx.MockTransport(handler))
 

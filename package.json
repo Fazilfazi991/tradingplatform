@@ -6,7 +6,8 @@
     "dev": "pnpm --dir apps/web dev",
     "build": "pnpm --dir apps/web build",
     "lint": "pnpm --dir apps/web lint",
-    "typecheck": "pnpm --dir apps/web typecheck"
+    "typecheck": "pnpm --dir apps/web typecheck",
+    "test:web": "pnpm --dir apps/web test"
   },
   "dependencies": {
     "lucide-react": "^1.37.0",

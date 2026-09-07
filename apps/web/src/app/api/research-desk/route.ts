@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { NextResponse } from "next/server";
 
@@ -14,6 +14,47 @@ type SafeCandidate = {
 };
 
 export const dynamic = "force-dynamic";
+const MAX_ARTIFACT_BYTES = 256 * 1024;
+const MAX_ENTRIES_SCANNED = 500;
+const MAX_CANDIDATES = 100;
+
+function readJson(path: string): Record<string, unknown> | null {
+  try {
+    if (statSync(path).size > MAX_ARTIFACT_BYTES) return null;
+    const value: unknown = JSON.parse(readFileSync(path, "utf8"));
+    return value !== null && typeof value === "object" && !Array.isArray(value)
+      ? value as Record<string, unknown>
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+function candidateFiles(root: string): string[] {
+  const pending = [root];
+  const result: string[] = [];
+  let scanned = 0;
+  while (pending.length && scanned < MAX_ENTRIES_SCANNED && result.length < MAX_CANDIDATES) {
+    const directory = pending.pop();
+    if (!directory) break;
+    let entries;
+    try {
+      entries = readdirSync(directory, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      scanned += 1;
+      if (scanned > MAX_ENTRIES_SCANNED) break;
+      if (entry.isSymbolicLink()) continue;
+      const path = resolve(directory, entry.name);
+      if (entry.isDirectory()) pending.push(path);
+      else if (entry.isFile() && entry.name === "candidate.json") result.push(path);
+      if (result.length >= MAX_CANDIDATES) break;
+    }
+  }
+  return result;
+}
 
 export function GET() {
   const enabled = process.env.CODEX_RESEARCH_OPERATOR_ENABLED === "true";
@@ -25,25 +66,23 @@ export function GET() {
   const researchRoot = resolve(workspace, "research/codex");
   let status: Record<string, unknown> = {};
   const candidates: SafeCandidate[] = [];
-  try {
-    status = JSON.parse(readFileSync(statusPath, "utf8"));
-  } catch { /* The live ledger may not have exported a first status yet. */ }
-  try {
-    for (const relative of readdirSync(researchRoot, { recursive: true, encoding: "utf8" })) {
-      if (!relative.endsWith("candidate.json")) continue;
-      const row = JSON.parse(readFileSync(resolve(researchRoot, relative), "utf8"));
+  status = readJson(statusPath) ?? {};
+  if (existsSync(researchRoot)) {
+    for (const path of candidateFiles(researchRoot)) {
+      const row = readJson(path);
+      if (!row) continue;
       candidates.push({
-        id: row.candidate_id,
-        entity: row.entity_name ?? row.scope,
-        title: row.title,
-        status: row.status,
-        novelty: row.novelty_candidate,
-        primary: row.primary_source_status,
-        source: row.source_domain,
-        observedAt: row.observed_at,
+        id: String(row.candidate_id ?? "UNKNOWN"),
+        entity: String(row.entity_name ?? row.scope ?? "Unknown entity"),
+        title: String(row.title ?? "Untitled candidate"),
+        status: String(row.status ?? "UNKNOWN"),
+        novelty: String(row.novelty_candidate ?? "UNKNOWN"),
+        primary: String(row.primary_source_status ?? "UNKNOWN"),
+        source: String(row.source_domain ?? "UNKNOWN"),
+        observedAt: String(row.observed_at ?? ""),
       });
     }
-  } catch { /* An empty live candidate set is valid. */ }
+  }
   return NextResponse.json({
     enabled: true,
     status: {
@@ -60,6 +99,6 @@ export function GET() {
       contradictions: status.contradictions ?? 0,
       researchIncidents: status.research_incidents ?? 0,
     },
-    candidates,
-  });
+    candidates: candidates.sort((left, right) => right.observedAt.localeCompare(left.observedAt)),
+  }, { headers: { "Cache-Control": "private, no-store" } });
 }

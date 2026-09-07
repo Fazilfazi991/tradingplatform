@@ -8,7 +8,7 @@ web
 
 ## Stack
 
-Next.js, TypeScript, React, and Tailwind CSS, explicitly selected for the public product prototype.
+Next.js, TypeScript, React, and Tailwind CSS for the public product; Python research and intelligence services for internal operation.
 
 ## Users
 
@@ -17,7 +17,7 @@ intelligence without using an execution terminal or receiving simplistic buy/sel
 
 ## Product Purpose
 
-VERIFIED EDGE makes a future market-prediction system understandable and inspectable. It gathers
+VERIFIED EDGE makes market-prediction research understandable and inspectable. It gathers
 different classes of market evidence, lets specialist engines interpret them, combines their views,
 and exposes disagreement, uncertainty, provenance, and conditions that would change an outlook.
 
@@ -33,11 +33,12 @@ evidence stack, inspect historical analogues and non-price intelligence, and ver
 
 ## Capabilities and Constraints
 
-- This prototype uses synthetic fixture data and has no validated live prediction model.
+- The public experience uses synthetic fixture data. Prediction V1 passed its sealed historical holdout but remains `HOLDOUT VALIDATED — FORWARD REQUIRED`.
 - It is not a broker, execution system, portfolio manager, or advice product.
-- No orders, broker connection, login, payments, alerts, or performance claims are permitted.
-- Upstox live validation, PostgreSQL runtime verification, historical index membership, corporate
-  actions, and independent-source reconciliation remain blocked or deferred.
+- No orders, broker connection, payments, customer prediction activation, or performance claims are permitted.
+- Upstox and RBI/SEBI have bounded internal-live evidence. Public redistribution rights, historical
+  index membership, corporate-action semantics, and independent-source reconciliation remain open.
+- Internal research and admin routes require server-side operator authentication and are absent from public navigation.
 - Demo, prototype, unavailable, and validated states must be unambiguous.
 
 ## Brand Commitments
@@ -52,10 +53,11 @@ evidence stack, inspect historical analogues and non-price intelligence, and ver
 
 ## Evidence on Hand
 
-- Batch 1.1 verified current NIFTY 200 exact mapping at 200/200.
-- The repository test suite passed 38 tests with 90.11% statement coverage at Batch 1.1.
-- No live market feed, validated probabilities, licensed corporate-action feed, independent second
-  source, testimonials, performance evidence, or real-time news is available and none may be implied.
+- Current NIFTY 200 exact mapping was verified at 200/200 for the contemporary universe; it is not point-in-time membership evidence.
+- Prediction V1 has fixed dataset/registration hashes, chronological walk-forward evaluation, a sealed holdout, calibration, abstention, OOD and null controls.
+- A genuine 24-hour internal-intelligence soak was historically qualified; continuous production-shaped scheduling is not currently active.
+- No public-live market feed, prospectively validated probability, licensed corporate-action feed,
+  independent second source, testimonial, or verified performance evidence is available or implied.
 
 ## Product Principles
 

@@ -9,7 +9,7 @@ from collections.abc import Callable
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Any
-from urllib.parse import quote
+from urllib.parse import quote, urlparse
 
 import httpx
 from verified_edge.corporate_actions import CorporateAction, CorporateActionType
@@ -46,10 +46,18 @@ class UpstoxMarketDataProvider(MarketDataProvider):
         # Analytics credentials are deliberately preferred. A trading-capable
         # OAuth token is never selected implicitly by this read-only adapter.
         self._token = token or os.getenv("UPSTOX_ANALYTICS_TOKEN")
-        self._base_url = (
-            base_url or os.getenv("UPSTOX_BASE_URL") or "https://api.upstox.com"
-        ).rstrip("/")
-        self._client = client or httpx.Client(timeout=30, follow_redirects=True)
+        configured_base_url = base_url or os.getenv("UPSTOX_BASE_URL") or "https://api.upstox.com"
+        self._base_url = configured_base_url.rstrip("/")
+        parsed_base_url = urlparse(self._base_url)
+        if base_url is None and (
+            parsed_base_url.scheme != "https"
+            or parsed_base_url.hostname != "api.upstox.com"
+            or parsed_base_url.port not in {None, 443}
+            or parsed_base_url.username is not None
+            or parsed_base_url.password is not None
+        ):
+            raise ProviderError("UPSTOX_BASE_URL must be the official HTTPS API origin")
+        self._client = client or httpx.Client(timeout=30, follow_redirects=False)
         self._sleep = sleeper
         self._instrument_cache: list[Instrument] | None = None
 

@@ -2,17 +2,14 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BarChart3, BrainCircuit, Database, FileSearch2, FlaskConical, Gauge, GitMerge, History, Newspaper, Search, Settings, Shapes, Sparkles } from "lucide-react";
+import { BookOpen, BrainCircuit, CircleHelp, Database, Gauge, GitMerge, Search, ShieldCheck, Sparkles } from "lucide-react";
 
 const nav = [
-  ["Overview", "/", Gauge], ["Predictions", "/predictions", Sparkles],
-  ["Stocks", "/stocks/RELIANCE", Search], ["Sectors", "/sectors", Shapes],
-  ["Evidence Fusion", "/fusion", GitMerge],
-  ["News & Sentiment", "/intelligence", Newspaper], ["Historical Intelligence", "/historical", History],
-  ["Models", "/models", BrainCircuit], ["Research Lab", "/research", FlaskConical],
-  ["Prediction V1", "/research/prediction-v1", BarChart3],
-  ["Research Desk", "/research-desk", FileSearch2],
-  ["Data Health", "/data-health", Database], ["Settings", "/settings", Settings],
+  ["Overview", "/", Gauge], ["Research demo", "/predictions", Sparkles],
+  ["Stock explorer", "/stocks/RELIANCE", Search], ["Evidence Fusion", "/fusion", GitMerge],
+  ["Methodology", "/methodology", BookOpen], ["Evidence engines", "/models", BrainCircuit],
+  ["Data sources", "/data-sources", Database], ["Validation", "/validation", ShieldCheck],
+  ["FAQ", "/faq", CircleHelp],
 ] as const;
 
 export function AppShell({ children }: { children: React.ReactNode }) {
@@ -20,14 +17,16 @@ export function AppShell({ children }: { children: React.ReactNode }) {
   return <div className="app">
     <aside className="sidebar">
       <Link href="/" className="brand">VERIFIED EDGE<small>Market Prediction Intelligence</small></Link>
-      <nav className="nav" aria-label="Primary navigation">{nav.map(([label,href,Icon]) => <Link key={label} href={href} className={path===href?"active":""}><Icon size={15}/>{label}</Link>)}</nav>
-      <div className="research-mode"><b>DEMO / RESEARCH MODE</b><br/>Real internal market history<br/>Demo predictions only</div>
+      <nav className="nav" aria-label="Primary navigation">{nav.map(([label,href,Icon]) => <Link key={label} href={href} aria-current={path===href?"page":undefined} className={path===href?"active":""}><Icon aria-hidden="true" size={15}/>{label}</Link>)}</nav>
+      <div className="research-mode"><b>DEMO — SYNTHETIC DATA</b><br/>Research interface only<br/>No public predictions</div>
     </aside>
     <main className="main">
       <div className="demo-banner"><b>RESEARCH PROTOTYPE</b><span>Market and prediction values shown here are synthetic demo data unless explicitly marked otherwise.</span></div>
-      <div className="mobile-nav"><Link href="/" className="brand">VERIFIED EDGE</Link><BarChart3 size={18}/></div>
-      <nav className="mobile-links" aria-label="Mobile navigation">{nav.map(([label,href])=><Link key={label} href={href}>{label}</Link>)}</nav>
-      {children}
+      <div className="mobile-nav"><Link href="/" className="brand">VERIFIED EDGE</Link><BrainCircuit aria-hidden="true" size={18}/></div>
+      <nav className="mobile-links" aria-label="Mobile navigation">{nav.map(([label,href])=><Link key={label} href={href} aria-current={path===href?"page":undefined}>{label}</Link>)}</nav>
+      <a className="skip-link" href="#main-content">Skip to content</a>
+      <div id="main-content">{children}</div>
+      <footer className="site-footer"><div><b>VERIFIED EDGE</b><span>Evidence-led market research with uncertainty intact.</span></div><nav aria-label="Legal and company"><Link href="/about">About</Link><Link href="/contact">Contact</Link><Link href="/risk">Risk</Link><Link href="/privacy">Privacy</Link><Link href="/terms">Terms</Link></nav></footer>
     </main>
   </div>;
 }

@@ -1,6 +1,6 @@
 import { Info, TriangleAlert } from "lucide-react";
 
-export function PageHeader({ title, children, stamp="30 Aug 2026 · 14:30 GST", label="DEMO SNAPSHOT" }: { title:string; children:string; stamp?:string; label?:string }) {
+export function PageHeader({ title, children, stamp="STATIC FIXTURE", label="DEMO — SYNTHETIC DATA" }: { title:string; children:string; stamp?:string; label?:string }) {
   return <header className="topbar"><div><h1>{title}</h1><p>{children}</p></div><div className="stamp">{label} · {stamp}</div></header>;
 }
 export function SectionHeader({ title, note }: { title:string; note?:string }) { return <div className="section-title"><h2>{title}</h2>{note&&<p>{note}</p>}</div>; }
