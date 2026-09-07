@@ -15,6 +15,8 @@ Never prefix provider, database, or internal-access credentials with `NEXT_PUBLI
 1. Confirm the intended commit and a clean working tree.
 2. Require green repository CI.
 3. Validate all required environment variable names without printing values.
+   Run `python scripts/verify_release_environment.py --profile public-web --stage staging`
+   (or `production`). Validate worker profiles separately; the command reports presence only.
 4. Confirm `CODEX_RESEARCH_OPERATOR_ENABLED=false` unless the authenticated internal runtime is deliberately configured.
 5. Confirm public serializers reject internal, stale, mixed, and rights-unapproved records.
 6. Record the previous production deployment identifier for rollback.
