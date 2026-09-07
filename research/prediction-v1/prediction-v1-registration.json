@@ -1,0 +1,88 @@
+{
+  "experiment_family_id": "PREDICTION_ENGINE_V1_REAL_MARKET",
+  "dataset_hash": "7ce7f964ca6aa8b551c68749e5f2d8a5a95e5e6c7b08005350807431fd866e6b",
+  "universe_hash": "76b8b127931953ce7e5e5511c99c3b73775140eeb83b6b293085b4a9483dce1a",
+  "universe_state": "SURVIVORSHIP_BIASED_CURRENT_UNIVERSE",
+  "feature_version": "prediction-v1-causal-technical-1",
+  "target_version": "prediction-v1-volatility-neutral-1",
+  "split_policy": {
+    "discovery": [
+      "2016-09-07",
+      "2021-12-31"
+    ],
+    "walk_forward_validation": [
+      "2022-01-01",
+      "2024-12-31"
+    ],
+    "sealed_holdout": [
+      "2025-01-01",
+      "2026-09-04"
+    ],
+    "fold": "expanding annual validation blocks",
+    "purge_sessions": 10,
+    "embargo_sessions": 10,
+    "shuffle": false
+  },
+  "candidate_models": {
+    "logistic": {
+      "C": 1.0,
+      "max_iter": 500
+    },
+    "regularized_logistic": {
+      "C": 0.1,
+      "max_iter": 500
+    },
+    "gradient_boosting": {
+      "n_estimators": 75,
+      "max_depth": 2
+    }
+  },
+  "primary_metrics": [
+    "multiclass_brier",
+    "log_loss",
+    "ece"
+  ],
+  "secondary_metrics": [
+    "balanced_accuracy",
+    "cross_sectional_spearman_ic"
+  ],
+  "calibration_method_candidates": [
+    "sigmoid",
+    "isotonic"
+  ],
+  "selected_calibration_method": "sigmoid",
+  "abstention_policy": {
+    "minimum_top_probability": 0.45,
+    "minimum_probability_separation": 0.08,
+    "strong_ood": true,
+    "maximum_model_disagreement": 0.18,
+    "chosen_without_holdout": true
+  },
+  "ood_policy": {
+    "weak_extreme_features": 2,
+    "strong_extreme_features": 4,
+    "z_threshold": 4.0
+  },
+  "multiple_testing_policy": [
+    "BENJAMINI_HOCHBERG",
+    "HOLM"
+  ],
+  "holdout_pass_criteria": {
+    "brier_improvement_vs_unconditional": 0.002,
+    "log_loss_improvement_vs_unconditional": 0.002,
+    "ece_max": 0.08,
+    "positive_validation_folds_fraction_min": 0.6,
+    "catastrophic_fold_brier_degradation_max": 0.02
+  },
+  "corporate_action_policy": "EXCLUDE_STRUCTURAL_ACTION_WINDOWS_PLUS_MINUS_20_SESSIONS",
+  "minimum_history_sessions": 252,
+  "random_seeds": [
+    17
+  ],
+  "software_commit": "f077856ff68f7abfcf96d19cce016ff92f8c67b7",
+  "prompt_or_llm_prediction": "PROHIBITED",
+  "intelligence_feature_state": "INTELLIGENCE_FEATURE_HISTORY_INSUFFICIENT",
+  "created_at": "2026-09-07T20:15:38.962553+00:00",
+  "sealed": true,
+  "registration_hash": "ec4f05506d933cbcf6e0ebb8b2c7950167983e5c20397c02d52f8c3f03bf0e45"
+}
