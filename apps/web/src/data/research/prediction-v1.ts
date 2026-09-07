@@ -1,0 +1,25 @@
+export const predictionV1 = {
+  datasetHash: "7ce7f964ca6aa8b551c68749e5f2d8a5a95e5e6c7b08005350807431fd866e6b",
+  registrationHash: "ec4f05506d933cbcf6e0ebb8b2c7950167983e5c20397c02d52f8c3f03bf0e45",
+  range: "07 Sep 2016 — 04 Sep 2026",
+  rows: 442_837,
+  symbols: 200,
+  experimentCount: 36,
+  holdout: "01 Jan 2025 — 04 Sep 2026",
+  holdoutState: "HOLDOUT PASS · FORWARD VALIDATION REQUIRED",
+  researchStatus: "CANDIDATE STRUCTURE, NOT VERIFIED EDGE",
+  horizons: [
+    { horizon: "1D", model: "Logistic", brier: 0.6472, baseline: 0.6518, ece: 0.0073, folds: "3 / 3", coverage: "0.32%" },
+    { horizon: "3D", model: "Regularized logistic", brier: 0.6428, baseline: 0.6482, ece: 0.0074, folds: "3 / 3", coverage: "0.37%" },
+    { horizon: "5D", model: "Logistic", brier: 0.6433, baseline: 0.6484, ece: 0.0067, folds: "2 / 3", coverage: "0.21%" },
+    { horizon: "10D", model: "Logistic", brier: 0.6433, baseline: 0.6463, ece: 0.0257, folds: "2 / 3", coverage: "22.91%" },
+  ],
+  nullControls: { significant: "4 / 4", method: "Date-block permutation", correction: "BH + Holm", adjustedP: "0.0396" },
+  warnings: [
+    { label: "Current-universe survivorship bias", code: "SURVIVORSHIP_BIASED_CURRENT_UNIVERSE" },
+    { label: "Price adjustments remain unverified", code: "PRICE_ADJUSTMENT_STATUS_UNVERIFIED" },
+    { label: "Single internal market-data provider", code: "SINGLE_PROVIDER_INTERNAL_RESEARCH" },
+    { label: "Historical intelligence features unavailable", code: "INTELLIGENCE_FEATURE_HISTORY_INSUFFICIENT" },
+    { label: "Very low usable coverage at 1D, 3D, and 5D", code: "VERY_LOW_COVERAGE_1D_3D_5D" },
+  ],
+} as const;

@@ -10,6 +10,7 @@ const nav = [
   ["Evidence Fusion", "/fusion", GitMerge],
   ["News & Sentiment", "/intelligence", Newspaper], ["Historical Intelligence", "/historical", History],
   ["Models", "/models", BrainCircuit], ["Research Lab", "/research", FlaskConical],
+  ["Prediction V1", "/research/prediction-v1", BarChart3],
   ["Research Desk", "/research-desk", FileSearch2],
   ["Data Health", "/data-health", Database], ["Settings", "/settings", Settings],
 ] as const;
