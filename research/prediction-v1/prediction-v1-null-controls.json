@@ -1,0 +1,143 @@
+{
+  "controls": [
+    {
+      "horizon": 1,
+      "model": "logistic",
+      "folds": [
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.004064406792459785,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.00654260722318567,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.006481881651703381,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        }
+      ],
+      "mean_p_value": 0.009900990099009901,
+      "bh_adjusted": 0.009900990099009901,
+      "holm_adjusted": 0.039603960396039604
+    },
+    {
+      "horizon": 3,
+      "model": "regularized_logistic",
+      "folds": [
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.0021221376957458737,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.008998773688609352,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.0007695248177156389,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        }
+      ],
+      "mean_p_value": 0.009900990099009901,
+      "bh_adjusted": 0.009900990099009901,
+      "holm_adjusted": 0.039603960396039604
+    },
+    {
+      "horizon": 5,
+      "model": "logistic",
+      "folds": [
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.00173641749904907,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.01034000757040554,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": -0.003744692885812251,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        }
+      ],
+      "mean_p_value": 0.009900990099009901,
+      "bh_adjusted": 0.009900990099009901,
+      "holm_adjusted": 0.039603960396039604
+    },
+    {
+      "horizon": 10,
+      "model": "logistic",
+      "folds": [
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.0014073876796806273,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": 0.010698250464654335,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        },
+        {
+          "method": "date-block circular label permutation",
+          "permutations": 100,
+          "observed_brier_improvement": -0.017293731412159175,
+          "p_value": 0.009900990099009901,
+          "random_feature_control": "EXCLUDED_BY_FROZEN_FEATURE_ALLOWLIST",
+          "lagged_irrelevant_control": "covered by block-null test"
+        }
+      ],
+      "mean_p_value": 0.009900990099009901,
+      "bh_adjusted": 0.009900990099009901,
+      "holm_adjusted": 0.039603960396039604
+    }
+  ],
+  "multiple_testing": {
+    "experiment_count": 36,
+    "methods": [
+      "BH",
+      "HOLM"
+    ]
+  }
+}

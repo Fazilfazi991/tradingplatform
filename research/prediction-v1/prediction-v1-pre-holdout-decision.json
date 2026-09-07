@@ -1,0 +1,120 @@
+{
+  "sealed": true,
+  "registration_hash": "ec4f05506d933cbcf6e0ebb8b2c7950167983e5c20397c02d52f8c3f03bf0e45",
+  "selected_candidates": [
+    {
+      "horizon": 1,
+      "model": "logistic",
+      "hyperparameters": {
+        "C": 1.0,
+        "max_iter": 500
+      },
+      "calibration": "sigmoid",
+      "abstention": {
+        "minimum_top_probability": 0.45,
+        "minimum_probability_separation": 0.08,
+        "strong_ood": true,
+        "maximum_model_disagreement": 0.18,
+        "chosen_without_holdout": true
+      },
+      "validation_metrics": {
+        "multiclass_brier": 0.6495234151732922,
+        "log_loss": 1.0709101944288204,
+        "balanced_accuracy": 0.3470559954516009,
+        "ece": 0.014420905359992325,
+        "cross_sectional_spearman_ic": 0.011610204044479112
+      }
+    },
+    {
+      "horizon": 3,
+      "model": "regularized_logistic",
+      "hyperparameters": {
+        "C": 0.1,
+        "max_iter": 500
+      },
+      "calibration": "sigmoid",
+      "abstention": {
+        "minimum_top_probability": 0.45,
+        "minimum_probability_separation": 0.08,
+        "strong_ood": true,
+        "maximum_model_disagreement": 0.18,
+        "chosen_without_holdout": true
+      },
+      "validation_metrics": {
+        "multiclass_brier": 0.6446179551582237,
+        "log_loss": 1.0627518235043423,
+        "balanced_accuracy": 0.34259236955685934,
+        "ece": 0.024128405589273733,
+        "cross_sectional_spearman_ic": 0.00699116007765804
+      }
+    },
+    {
+      "horizon": 5,
+      "model": "logistic",
+      "hyperparameters": {
+        "C": 1.0,
+        "max_iter": 500
+      },
+      "calibration": "sigmoid",
+      "abstention": {
+        "minimum_top_probability": 0.45,
+        "minimum_probability_separation": 0.08,
+        "strong_ood": true,
+        "maximum_model_disagreement": 0.18,
+        "chosen_without_holdout": true
+      },
+      "validation_metrics": {
+        "multiclass_brier": 0.6419740358817139,
+        "log_loss": 1.0584494146954448,
+        "balanced_accuracy": 0.34127033568532333,
+        "ece": 0.03084607732209078,
+        "cross_sectional_spearman_ic": 0.01038900505435796
+      }
+    },
+    {
+      "horizon": 10,
+      "model": "logistic",
+      "hyperparameters": {
+        "C": 1.0,
+        "max_iter": 500
+      },
+      "calibration": "sigmoid",
+      "abstention": {
+        "minimum_top_probability": 0.45,
+        "minimum_probability_separation": 0.08,
+        "strong_ood": true,
+        "maximum_model_disagreement": 0.18,
+        "chosen_without_holdout": true
+      },
+      "validation_metrics": {
+        "multiclass_brier": 0.6399590341245495,
+        "log_loss": 1.0538991030255043,
+        "balanced_accuracy": 0.34602178047620386,
+        "ece": 0.0478386583928621,
+        "cross_sectional_spearman_ic": 0.0071529456553425024
+      }
+    }
+  ],
+  "feature_version": "prediction-v1-causal-technical-1",
+  "target_version": "prediction-v1-volatility-neutral-1",
+  "primary_metrics": [
+    "multiclass_brier",
+    "log_loss",
+    "ece"
+  ],
+  "expected_criteria": {
+    "brier_improvement_vs_unconditional": 0.002,
+    "log_loss_improvement_vs_unconditional": 0.002,
+    "ece_max": 0.08,
+    "positive_validation_folds_fraction_min": 0.6,
+    "catastrophic_fold_brier_degradation_max": 0.02
+  },
+  "experiment_count": 36,
+  "holdout": [
+    "2025-01-01",
+    "2026-09-04"
+  ],
+  "holdout_slice_hash": "ded857e94076cbae260fabd8dd457cb8190b6bf79dcfa6275661c25450a6bb48",
+  "created_at": "2026-09-07T21:38:24.415950+00:00",
+  "decision_hash": "a43a076eda7150f1ba4d33346dce59bcbd82a691f0ff22fd2716b7924176a7c7"
+}

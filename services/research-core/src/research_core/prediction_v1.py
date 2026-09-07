@@ -339,6 +339,16 @@ def evaluate_candidate(
         train[target].value_counts(normalize=True).reindex([0, 1, 2], fill_value=0).to_numpy()
     )
     baseline = np.tile(base_rates, (len(test), 1))
+    train_values = train[list(FEATURES)].replace([np.inf, -np.inf], np.nan)
+    medians = train_values.median()
+    scales = train_values.std().replace(0, np.nan)
+    test_values = test[list(FEATURES)].replace([np.inf, -np.inf], np.nan).fillna(medians)
+    extreme_count = ((test_values - medians).abs().div(scales) > 4.0).sum(axis=1).to_numpy()
+    ood_state = np.where(
+        extreme_count >= 4,
+        "STRONG_OOD",
+        np.where(extreme_count >= 2, "WEAK_OOD", "IN_DISTRIBUTION"),
+    )
     return {
         "horizon": horizon,
         "model": model_name,
@@ -365,6 +375,7 @@ def evaluate_candidate(
         "target": test[target].astype(int).to_numpy(),
         "returns": test[outcome].to_numpy(),
         "dates": test.session_date,
+        "ood_state": ood_state,
     }
 
 
@@ -372,7 +383,7 @@ def serializable_result(result: dict[str, Any]) -> dict[str, Any]:
     return {
         key: value
         for key, value in result.items()
-        if key not in {"probability", "target", "returns", "dates"}
+        if key not in {"probability", "target", "returns", "dates", "ood_state"}
     }
 
 
