@@ -53,12 +53,24 @@ const demoRoutes = [
 
 try {
   await waitUntilReady();
+  const linkedPaths = new Set();
   for (const path of publicRoutes) {
     const response = await request(path);
     const body = await response.text();
     assert(response.status === 200, `${path} returned ${response.status}`);
     assert(/<h1[ >]/i.test(body), `${path} has no rendered H1`);
     assert(!body.includes("Application error"), `${path} rendered an application error`);
+    for (const match of body.matchAll(/<a\b[^>]*\bhref=["']([^"']+)["']/gi)) {
+      const href = match[1].replaceAll("&amp;", "&");
+      if (href.startsWith("/") && !href.startsWith("//")) {
+        linkedPaths.add(new URL(href, origin).pathname);
+      }
+    }
+  }
+  for (const path of linkedPaths) {
+    assert(!protectedRoutes.includes(path), `public page links to protected route ${path}`);
+    const response = await request(path);
+    assert(response.status === 200, `rendered link ${path} returned ${response.status}`);
   }
   for (const path of protectedRoutes) {
     const response = await request(path);
@@ -78,7 +90,7 @@ try {
   const robots = await (await request("/robots.txt")).text();
   assert(robots.includes("Disallow: /research"), "robots omitted internal route policy");
   assert(robots.includes("Disallow: /predictions"), "robots omitted demo route policy");
-  console.log("Public release smoke checks passed.");
+  console.log(`Public release smoke checks passed; ${linkedPaths.size} internal links verified.`);
 } finally {
   server.kill("SIGTERM");
 }

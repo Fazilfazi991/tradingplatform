@@ -32,6 +32,9 @@ Decision: **BLOCKED**
 - A project-managed Chrome/Playwright verifier now reproduces the 14-route × 7-viewport matrix.
   Against a fresh optimized build it recorded 98/98 passes and zero console, page, structural, or
   actionable network failures. The earlier extension/stale-build console uncertainty is closed.
+- The production smoke gate now crawls rendered internal links. It caught and closed unsupported
+  stock links and inert forecast filters; the public demo exposes only its complete RELIANCE
+  walkthrough and an explicit no-result state.
 
 ## Still required
 

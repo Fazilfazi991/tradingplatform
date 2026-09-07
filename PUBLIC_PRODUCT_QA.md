@@ -32,6 +32,12 @@ failures, console errors, page errors, or non-cancellation network failures. Chr
 `ERR_ABORTED` cancellation of Next prefetch requests during immediate scripted navigation is the
 only explicitly ignored transport condition.
 
+The production smoke gate also crawls every internal anchor rendered by the public route inventory.
+It initially found seven forecast rows pointing to intentionally unsupported stock routes. The demo
+was constrained to its one complete RELIANCE walkthrough, inert horizon/universe filters were
+removed, and an honest no-result search state was added. The rebuilt smoke gate verified all 14
+discovered internal links; the post-fix Chrome matrix again passed 98/98 with zero errors.
+
 ## Mobile interaction
 
 At 390 × 844, every visible link and button measured at least 44px high after remediation.
