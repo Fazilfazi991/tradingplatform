@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { AppShell } from "@/components/app-shell";
+import { canonicalSiteOrigin } from "@/lib/site-url";
 import "./globals.css";
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
+const siteUrl = canonicalSiteOrigin();
 export const metadata: Metadata = {
   ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
   title: { default: "Verified Edge · Evidence-led market intelligence", template: "%s · Verified Edge" },

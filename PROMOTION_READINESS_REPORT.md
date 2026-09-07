@@ -11,14 +11,23 @@ Decision: **BLOCKED**
 - Unknown stock symbols return a real `404` rather than a plausible RELIANCE fixture.
 - The production Next build, frontend typecheck, lint, and release-policy tests pass.
 - Chrome desktop review confirms the homepage and methodology render without a framework error surface. The homepage preserves the established Evidence Lens visual system.
+- Chrome screenshot review now covers the homepage at all seven required desktop, tablet, and
+  mobile viewports. A detected 1280px overflow and undersized mobile navigation/link targets
+  were repaired; the 98-combination public route/viewport matrix passes overflow, content, H1,
+  and framework-overlay checks.
+- Synthetic demo routes now emit `noindex, nofollow`; the sitemap is limited to approved
+  informational routes and supports validated explicit or Vercel production origins.
 
 ## Still required
 
 - Legal/compliance approval of all perimeter and policy language.
 - Public data-rights approval or proof that the launched payload contains only independently safe data.
 - Authenticated-route review in staging with production-shaped secrets and logs.
-- Screenshot QA at 1920, 1440, 1366, 1024, 430, 390, and 375 px; keyboard, screen-reader, contrast, high-contrast, zoom, and reduced-motion checks.
-- Broken-link crawl, console/network audit across the full public route inventory, and production performance measurements.
+- Keyboard, screen-reader, contrast, high-contrast, zoom, and reduced-motion checks across the
+  full public route inventory.
+- Clean-browser console/network audit and production performance measurements. The Chrome QA
+  profile reported extension message-channel errors that are not attributable to an application
+  source, so the console gate remains open pending a clean profile run.
 - Canonical domain, canonical metadata, real sitemap, Search Console decision, staging/production smoke evidence, and rollback proof.
 - Approved claims ledger and promotion package: launch screenshots, short/long descriptions, founder notes, launch copy, and walkthrough script.
 - Owner approval of demo forecast discoverability and analytics/privacy choices.
