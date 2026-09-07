@@ -1,0 +1,10 @@
+{
+  "version": "1",
+  "enabled": false,
+  "public_delivery": "BLOCKED",
+  "package_path": null,
+  "ledger_path": "data/local/forward-validation.sqlite3",
+  "issuance": "EXPLICIT_APPROVED_BATCH_ONLY",
+  "outcome_resolution": "SEPARATE_COMPLETED_SESSION_JOB",
+  "research_state": "HOLDOUT VALIDATED — FORWARD REQUIRED"
+}

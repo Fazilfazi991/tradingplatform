@@ -1,7 +1,15 @@
+import math
 import sqlite3
+import uuid
 from datetime import UTC, date, datetime, timedelta
 
 import pytest
+from research_core.forward_runtime import (
+    ForwardMarketObservation,
+    ForwardPaperRuntime,
+    ForwardRuntimeError,
+    FrozenForwardPackage,
+)
 from research_core.forward_validation import (
     ForwardDecision,
     ForwardLedgerError,
@@ -49,8 +57,14 @@ def test_forward_ledger_is_causal_unique_and_append_only(tmp_path):
         ledger.resolve(outcome, now=NOW)
     ledger.resolve(outcome, now=NOW + timedelta(days=1))
     with pytest.raises(ForwardLedgerError, match="already resolved"):
-        ledger.resolve(outcome.model_copy(update={"outcome_id": __import__("uuid").uuid4()}), now=NOW + timedelta(days=1))
-    assert ledger.report()["outcome_coverage"] == 1.0
+        ledger.resolve(
+            outcome.model_copy(update={"outcome_id": uuid.uuid4()}),
+            now=NOW + timedelta(days=1),
+        )
+    report = ledger.report()
+    assert report["outcome_coverage"] == 1.0
+    assert report["multiclass_brier"] == pytest.approx(0.78)
+    assert report["log_loss"] == pytest.approx(-math.log(0.3))
     with pytest.raises(sqlite3.IntegrityError, match="append-only"):
         ledger.connection.execute("UPDATE forward_predictions SET issued_at='x'")
     ledger.close()
@@ -75,6 +89,91 @@ def test_empty_ledger_truthfully_remains_forward_required(tmp_path):
         "abstained": 0,
         "outcomes_resolved": 0,
         "outcome_coverage": 0.0,
+        "abstention_rate": 0.0,
+        "multiclass_brier": None,
+        "log_loss": None,
+        "metrics_state": "INSUFFICIENT_FORWARD_OUTCOMES",
         "ledger_hash": ledger.report()["ledger_hash"],
     }
     ledger.close()
+
+
+def package(**updates) -> FrozenForwardPackage:
+    values = {
+        "approved": True,
+        "dataset_hash": HASH,
+        "model_hash": "b" * 64,
+        "feature_config_hash": "c" * 64,
+        "registration_hash": "d" * 64,
+        "holdout_report_hash": "e" * 64,
+        "horizons": (1, 3, 5, 10),
+        "created_at": NOW,
+        "code_sha": "315d043",
+    }
+    values.update(updates)
+    return FrozenForwardPackage(**values)
+
+
+def test_forward_runtime_requires_approved_frozen_package(tmp_path):
+    ledger = ForwardValidationLedger(tmp_path / "forward.sqlite3")
+    with pytest.raises(ForwardRuntimeError, match="not approved"):
+        ForwardPaperRuntime(ledger, package(approved=False))
+
+
+def test_forward_runtime_rejects_package_drift_before_any_issue(tmp_path):
+    ledger = ForwardValidationLedger(tmp_path / "forward.sqlite3")
+    runtime = ForwardPaperRuntime(ledger, package())
+    with pytest.raises(ForwardRuntimeError, match="model hash"):
+        runtime.issue_batch([prediction(model_hash="f" * 64)], now=NOW)
+    assert ledger.report()["predictions_total"] == 0
+
+
+def test_forward_issuance_batch_is_atomic_on_duplicate(tmp_path):
+    ledger = ForwardValidationLedger(tmp_path / "forward.sqlite3")
+    runtime = ForwardPaperRuntime(ledger, package())
+    first = prediction(symbol="RELIANCE")
+    duplicate = prediction(symbol="RELIANCE")
+    with pytest.raises(ForwardLedgerError, match="duplicate"):
+        runtime.issue_batch([first, duplicate], now=NOW)
+    assert ledger.report()["predictions_total"] == 0
+
+
+def test_forward_runtime_derives_outcome_from_exact_session_window(tmp_path):
+    ledger = ForwardValidationLedger(tmp_path / "forward.sqlite3")
+    runtime = ForwardPaperRuntime(ledger, package())
+    item = prediction()
+    assert runtime.issue_batch([item], now=NOW) == 1
+    observation = ForwardMarketObservation(
+        prediction_id=str(item.prediction_id),
+        symbol="RELIANCE",
+        session_dates=(date(2026, 9, 8), date(2026, 9, 9)),
+        closes=(100.0, 101.0),
+        neutral_threshold=0.005,
+        observed_at=NOW + timedelta(days=1),
+        source="UPSTOX_INTERNAL",
+        source_payload_hash="f" * 64,
+    )
+    runtime.resolve_observation(observation, now=NOW + timedelta(days=1))
+    outcome = ledger.outcomes()[0]
+    assert outcome.realized_class == 2
+    assert outcome.realized_return == pytest.approx(0.01)
+    assert ledger.unresolved_issued() == []
+
+
+def test_abstention_cannot_receive_an_outcome(tmp_path):
+    ledger = ForwardValidationLedger(tmp_path / "forward.sqlite3")
+    item = prediction(
+        decision=ForwardDecision.ABSTAINED,
+        probabilities=None,
+        abstention_reasons=("STRONG_OOD",),
+    )
+    ledger.issue(item, now=NOW)
+    outcome = ForwardOutcome(
+        prediction_id=item.prediction_id,
+        resolved_at=NOW + timedelta(days=1),
+        realized_class=1,
+        realized_return=0.0,
+        market_data_hash="f" * 64,
+    )
+    with pytest.raises(ForwardLedgerError, match="abstained"):
+        ledger.resolve(outcome, now=NOW + timedelta(days=1))
