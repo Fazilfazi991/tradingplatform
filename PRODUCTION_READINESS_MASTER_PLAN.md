@@ -2,7 +2,7 @@
 
 Status date: 2026-09-08  
 Audit baseline: `main` at `1a067f0937abb73cf432a39eda05548f3ec1c3b5`  
-Last reconciled implementation: `main` at `0398554c9dabace63417aec991978a0885b6f70b`  
+Last reconciled implementation: `main` at `0398554c9dabace63417aec991978a0885b6f70b`
 Scope: public Track A platform, promotion readiness, and separately gated Track B predictive research  
 Current overall decision: **PRODUCTION / PROMOTION BLOCKED**  
 Track B: **HOLDOUT VALIDATED — FORWARD REQUIRED**
