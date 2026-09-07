@@ -26,6 +26,9 @@ Decision: **BLOCKED**
 - Local SQLite backup/restore integrity checks and a real intelligence-worker
   start/heartbeat/graceful-stop rehearsal pass. These do not substitute for managed production
   storage, retention, host supervision, or deployed recovery evidence.
+- `CLAIMS_LEDGER.md` and `PROMOTION_PACKAGE_DRAFT.md` now provide evidence-linked safe claims,
+  prohibited claims, short/long descriptions, founder notes, launch copy, walkthrough, and a final
+  capture list. Both remain explicitly unapproved and unpublished.
 
 ## Still required
 
@@ -40,7 +43,8 @@ Decision: **BLOCKED**
 - Canonical domain, canonical metadata, real sitemap, Search Console decision, staging/production smoke evidence, and rollback proof.
 - Production host supervision, notification destinations, managed backup/retention policy, and a
   production-shaped worker soak/restart record.
-- Approved claims ledger and promotion package: launch screenshots, short/long descriptions, founder notes, launch copy, and walkthrough script.
+- Owner/legal approval of the draft claims ledger and promotion package, plus final canonical-build
+  launch screenshots.
 - Owner approval of demo forecast discoverability and analytics/privacy choices.
 
 ## Claims boundary
