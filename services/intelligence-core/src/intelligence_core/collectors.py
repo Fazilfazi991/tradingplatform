@@ -170,6 +170,9 @@ class OfficialRssCollector(IntelligenceCollector):
     def checkpoint(self) -> str | None:
         return self._checkpoint
 
+    def advance_checkpoint(self, value: str) -> None:
+        self._checkpoint = value
+
     def replay(self, artifact: RawArtifact) -> list[InformationEvent]:
         return self.normalize(self.parse(artifact), artifact)
 

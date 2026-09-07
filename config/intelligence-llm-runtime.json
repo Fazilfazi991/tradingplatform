@@ -1,0 +1,16 @@
+{
+  "version": "internal-semantic-runtime-v1",
+  "provider": "openai",
+  "prompt_version": "event-grounding-v1",
+  "schema_version": "llm-analysis-result-v1",
+  "routing_version": "openai-primary-v1",
+  "retry_policy_version": "structured-bounded-v1",
+  "max_attempts": 2,
+  "max_events_per_cycle": 10,
+  "daily_budget_usd": 0.25,
+  "budget_warning_fraction": 0.8,
+  "schema_failure_rate_threshold": 0.05,
+  "schema_failure_minimum_attempts": 5,
+  "input_cost_per_million": 0.20,
+  "output_cost_per_million": 1.20
+}

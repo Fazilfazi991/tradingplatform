@@ -178,6 +178,45 @@ class SQLiteOperationsStore:
             for row in self.connection.execute("SELECT payload_json FROM incidents")
         ]
 
+    def has_open_incident(self, incident_type: str, *, source_id: str | None = None) -> bool:
+        return any(
+            incident.get("incident_type") == incident_type
+            and incident.get("source_id") == source_id
+            and incident.get("status") in {"OPEN", "ACKNOWLEDGED"}
+            for incident in self.incidents()
+        )
+
+    def resolve_open_incidents(
+        self,
+        incident_type: str,
+        *,
+        source_id: str | None,
+        now: datetime,
+        resolution: str,
+    ) -> int:
+        rows = self.connection.execute("SELECT incident_id,payload_json FROM incidents").fetchall()
+        resolved = 0
+        for incident_id, payload_json in rows:
+            payload = json.loads(payload_json)
+            if (
+                payload.get("incident_type") != incident_type
+                or payload.get("source_id") != source_id
+                or payload.get("status") not in {"OPEN", "ACKNOWLEDGED"}
+            ):
+                continue
+            payload.update(
+                status="RESOLVED",
+                resolution=resolution,
+                closed_at=now.astimezone(UTC).isoformat(),
+            )
+            self.connection.execute(
+                "UPDATE incidents SET payload_json=? WHERE incident_id=?",
+                (json.dumps(payload, sort_keys=True), incident_id),
+            )
+            resolved += 1
+        self.connection.commit()
+        return resolved
+
     def events(self) -> list[InformationEvent]:
         return [
             InformationEvent.model_validate_json(row[0])
@@ -193,6 +232,20 @@ class SQLiteOperationsStore:
                 "SELECT execution_key FROM executions ORDER BY scheduled_for,execution_key"
             )
         ]
+
+    def checkpoint(self, source_id: str) -> str | None:
+        row = self.connection.execute(
+            "SELECT value FROM checkpoints WHERE source_id=?", (source_id,)
+        ).fetchone()
+        return str(row[0]) if row else None
+
+    def set_checkpoint(self, source_id: str, value: str, *, now: datetime) -> None:
+        self.connection.execute(
+            "INSERT INTO checkpoints(source_id,value,updated_at) VALUES(?,?,?) "
+            "ON CONFLICT(source_id) DO UPDATE SET value=excluded.value,updated_at=excluded.updated_at",
+            (source_id, value, now.astimezone(UTC).isoformat()),
+        )
+        self.connection.commit()
 
     def persist_collection(
         self, artifact: RawArtifact, events: list[InformationEvent]

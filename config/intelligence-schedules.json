@@ -6,6 +6,7 @@
     {"name": "macro-release-processing", "kind": "INTERVAL", "cadence_seconds": 3600},
     {"name": "rbi-rss", "kind": "INTERVAL", "source_id": "rbi-press-releases-rss", "cadence_seconds": 900},
     {"name": "sebi-rss", "kind": "INTERVAL", "source_id": "sebi-rss", "cadence_seconds": 900},
+    {"name": "llm-event-analysis", "kind": "INTERVAL", "cadence_seconds": 3600},
     {"name": "universe-check", "kind": "DAILY", "local_time": "08:00"},
     {"name": "pre-market-macro-build", "kind": "DAILY", "local_time": "08:45"},
     {"name": "pre-market-psychology-build", "kind": "DAILY", "local_time": "08:50"},

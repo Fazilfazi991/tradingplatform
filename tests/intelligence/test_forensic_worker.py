@@ -1,8 +1,13 @@
 from datetime import UTC, datetime
+from uuid import UUID
 
+from intelligence_core.collectors import RawArtifact
+from intelligence_core.durable import DurableJob, SQLiteOperationsStore
 from intelligence_core.forensic_worker import ForensicSemanticProcessor
 from intelligence_core.llm_analyzer import AnalyzerTask, ProviderConfig, ProviderResponse
+from intelligence_core.models import EventType, InformationEvent
 from intelligence_core.runtime_forensics import ForensicRuntimeStore, TerminalDisposition
+from intelligence_core.semantic_runtime import build_semantic_handler
 
 from scripts.run_24h_live_intelligence_soak import acquire_awake_lease, build_manifest
 
@@ -139,3 +144,53 @@ def test_manifest_accepts_explicit_frozen_sha_without_git(monkeypatch):
         build_manifest(config, now=NOW, model="gpt-5.6-luna", soak_id="scheduled").code_sha
         == frozen
     )
+
+
+def test_scheduled_semantic_runtime_alerts_on_budget_and_schema_failures(tmp_path):
+    runtime_now = datetime.now(UTC)
+    operations = SQLiteOperationsStore(tmp_path / "operations.sqlite3")
+    source_event = InformationEvent(
+        event_id=UUID(int=7),
+        entity_id=None,
+        entity_type="REGULATOR",
+        source_id="rbi-rss",
+        source_event_id="policy-7",
+        event_type=EventType.CENTRAL_BANK,
+        title="RBI policy update",
+        summary="Policy remains unchanged.",
+        raw_artifact_uri="artifact://policy-7",
+        raw_payload_hash="artifact-7",
+        event_time=NOW,
+        published_at=NOW,
+        observed_at=NOW,
+        available_at=NOW,
+        ingested_at=NOW,
+    )
+    operations.persist_collection(
+        RawArtifact("rbi-rss", "artifact://policy-7", "text/plain", b"policy", NOW),
+        [source_event],
+    )
+    forensic_store, adapter, semantic_processor = processor(
+        tmp_path, [result("Rates moved to 99%.")]
+    )
+    handler = build_semantic_handler(
+        operations,
+        forensic_store,
+        semantic_processor,
+        daily_budget_usd=0.0001,
+        max_events_per_cycle=1,
+        budget_warning_fraction=0.5,
+        schema_failure_rate_threshold=0.1,
+        schema_failure_minimum_attempts=1,
+    )
+    job = DurableJob("llm-event-analysis", "INTERVAL", None, 900, None, None, NOW, "1")
+    outcome = handler(job, runtime_now)
+    incident_types = {row["incident_type"] for row in operations.incidents()}
+    assert outcome["quarantined"] == 1
+    assert outcome["schema_failure_rate"] == 1.0
+    assert adapter.calls == 2
+    assert "LLM_HALLUCINATION_QUARANTINE" in incident_types
+    assert "LLM_COST_BUDGET_WARNING" in incident_types
+    assert "LLM_SCHEMA_FAILURE_SPIKE" in incident_types
+    operations.close()
+    forensic_store.close()

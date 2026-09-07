@@ -28,6 +28,7 @@ class IntelligenceWorker:
         owner: str | None = None,
         lock_ttl: timedelta = timedelta(minutes=10),
         job_timeout_seconds: float = 120,
+        validate_handlers: bool = True,
     ) -> None:
         IntelligenceRuntimePolicy.authorize(mode)
         self.store = store
@@ -37,6 +38,19 @@ class IntelligenceWorker:
         self.lock_ttl = lock_ttl
         self.job_timeout_seconds = job_timeout_seconds
         self.shutdown = threading.Event()
+        if validate_handlers:
+            missing = sorted(job.name for job in store.all_jobs() if job.name not in handlers)
+            if missing:
+                for name in missing:
+                    self.store.record_incident(
+                        IntelligenceIncident(
+                            incident_type="SCHEDULER_HANDLER_MISSING",
+                            severity="CRITICAL",
+                            evidence={"job": name},
+                            affected_data=(name,),
+                        )
+                    )
+                raise ValueError(f"missing required job handlers: {', '.join(missing)}")
 
     def request_shutdown(self, *_args) -> None:
         self.shutdown.set()
@@ -70,17 +84,45 @@ class IntelligenceWorker:
             started = time.perf_counter()
             status = "SUCCEEDED"
             try:
-                handler = self.handlers.get(
-                    job.name, lambda scheduled, _now: {"status": "NOOP", "job": scheduled.name}
-                )
+                handler = self.handlers[job.name]
                 result = handler(job, now)
-                if time.perf_counter() - started > self.job_timeout_seconds:
+                elapsed = time.perf_counter() - started
+                if elapsed > self.job_timeout_seconds:
                     status = "TIMED_OUT"
+                    self.store.record_incident(
+                        IntelligenceIncident(
+                            incident_type="SCHEDULER_JOB_TIMEOUT",
+                            severity="HIGH",
+                            source_id=job.source_id,
+                            evidence={
+                                "job": job.name,
+                                "elapsed_seconds": elapsed,
+                                "timeout_seconds": self.job_timeout_seconds,
+                                "note": "cooperative timeout detected after handler return",
+                            },
+                            affected_data=(job.name,),
+                        )
+                    )
             except Exception as error:  # noqa: BLE001 - worker boundary sanitizes and records failures
                 status = "FAILED"
                 result = {"error": type(error).__name__}
-            self.store.finish_execution(key, job, now=now, status=status, result=result)
-            self.store.release(job.name, self.owner)
+                self.store.record_incident(
+                    IntelligenceIncident(
+                        incident_type=(
+                            "SOURCE_COLLECTION_FAILURE"
+                            if job.source_id
+                            else "SCHEDULER_JOB_FAILURE"
+                        ),
+                        severity="HIGH",
+                        source_id=job.source_id,
+                        evidence={"job": job.name, "error_class": type(error).__name__},
+                        affected_data=(job.name,),
+                    )
+                )
+            try:
+                self.store.finish_execution(key, job, now=now, status=status, result=result)
+            finally:
+                self.store.release(job.name, self.owner)
             results.append({"job": job.name, "status": status, **result})
         return results
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import time
 from datetime import UTC, datetime
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from intelligence_core.event_intelligence import (
     daily_event_summary,
 )
 from intelligence_core.macro import build_macro_snapshot, default_unknown_state
-from intelligence_core.models import CollectionPolicy, HealthStatus
+from intelligence_core.models import CollectionPolicy, HealthStatus, IntelligenceIncident
 from intelligence_core.operations import build_daily_archive, daily_summary
 from intelligence_core.reports import daily_audit_report, maintenance_report
 from intelligence_core.worker import JobHandler
@@ -24,16 +25,32 @@ FEEDS = {
 
 
 def collect_and_persist(
-    store: SQLiteOperationsStore, collector: OfficialRssCollector
+    store: SQLiteOperationsStore,
+    collector: OfficialRssCollector,
+    *,
+    sleeper=time.sleep,
 ) -> dict[str, int | str]:
-    artifacts = [collector.fetch(uri) for uri in collector.discover()]
+    artifacts = []
+    retries = 0
+    for uri in collector.discover()[: collector.policy.maximum_requests]:
+        for attempt in range(collector.policy.retries + 1):
+            try:
+                artifacts.append(collector.fetch(uri))
+                break
+            except Exception:
+                if attempt >= collector.policy.retries:
+                    raise
+                retries += 1
+                sleeper(min(collector.policy.backoff_seconds * (2**attempt), 30))
     totals = {"records_seen": 0, "records_new": 0}
     for artifact in artifacts:
         result = store.persist_collection(
             artifact, collector.normalize(collector.parse(artifact), artifact)
         )
         totals = {key: totals[key] + result[key] for key in totals}
-    return {"status": "COLLECTED", **totals}
+        store.set_checkpoint(artifact.source_id, artifact.sha256, now=artifact.observed_at)
+        collector.advance_checkpoint(artifact.sha256)
+    return {"status": "COLLECTED", "retries": retries, **totals}
 
 
 def live_source_handlers(store: SQLiteOperationsStore) -> dict[str, JobHandler]:
@@ -68,21 +85,47 @@ def operational_handlers(
     def health(_job: DurableJob, now: datetime) -> dict:
         events = store.events()
         states = {}
-        for source in initial_sources():
+        for source in (item for item in initial_sources() if item.active):
             latest = max(
                 (event.observed_at for event in events if event.source_id == source.source_id),
                 default=None,
             )
-            states[source.source_id] = (
+            state = (
                 HealthStatus.HEALTHY
                 if latest and (now - latest).total_seconds() <= 7200
                 else HealthStatus.STALE
             )
+            states[source.source_id] = state
+            if state is HealthStatus.STALE and not store.has_open_incident(
+                "SOURCE_STALE", source_id=source.source_id
+            ):
+                store.record_incident(
+                    IntelligenceIncident(
+                        incident_type="SOURCE_STALE",
+                        severity="WARNING",
+                        source_id=source.source_id,
+                        evidence={
+                            "last_observed_at": latest.isoformat() if latest else None,
+                            "stale_after_seconds": 7200,
+                        },
+                        affected_data=(source.source_id,),
+                    )
+                )
+            elif state is HealthStatus.HEALTHY:
+                store.resolve_open_incidents(
+                    "SOURCE_STALE",
+                    source_id=source.source_id,
+                    now=now,
+                    resolution="source produced a fresh event",
+                )
         return {"source_health": {key: value.value for key, value in states.items()}}
 
     def build(_job: DurableJob, now: datetime) -> dict:
         events = store.events()
-        states = {source.source_id: HealthStatus.UNKNOWN for source in initial_sources()}
+        states = {
+            source_id: HealthStatus(value)
+            for source_id, value in health(_job, now)["source_health"].items()
+        }
         archive = build_daily_archive(
             now.astimezone(UTC).date(),
             events=events,
@@ -122,7 +165,10 @@ def operational_handlers(
 
     def summary(_job: DurableJob, now: datetime) -> dict:
         events = store.events()
-        states = {source.source_id: HealthStatus.UNKNOWN for source in initial_sources()}
+        states = {
+            source_id: HealthStatus(value)
+            for source_id, value in health(_job, now)["source_health"].items()
+        }
         payload = daily_summary(now.date(), events, states, store.incidents())
         root.mkdir(parents=True, exist_ok=True)
         (root / "daily-summary.json").write_text(

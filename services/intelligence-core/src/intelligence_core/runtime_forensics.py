@@ -473,6 +473,14 @@ class ForensicRuntimeStore:
         )
         self.connection.commit()
 
+    def has_disposition(self, event_id: str) -> bool:
+        return (
+            self.connection.execute(
+                "SELECT 1 FROM event_dispositions WHERE canonical_event_id=?", (event_id,)
+            ).fetchone()
+            is not None
+        )
+
     def reconciliation(self) -> dict[str, Any]:
         attempts = self.attempts()
         collection = self.collection_reconciliation()
