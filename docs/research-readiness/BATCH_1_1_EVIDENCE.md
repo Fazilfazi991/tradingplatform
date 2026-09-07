@@ -5,7 +5,7 @@ Starting commit: `2f605662cd315479a84036b577a49be78796846b`
 
 ## Environment and stop conditions
 
-- Repository: `C:\Users\User\Desktop\Projects\Trading Platform`; branch `main`; clean at start.
+- Repository: `<repository-root>`; branch `main`; clean at start.
 - Starting commit is the required baseline. No remotes are configured.
 - Python 3.12.13; project dependencies installed in `.venv`.
 - `UPSTOX_ACCESS_TOKEN`, `SUPABASE_URL`, `SUPABASE_DB_URL`, `DATABASE_URL`, and PostgreSQL credential

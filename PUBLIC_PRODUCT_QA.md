@@ -25,6 +25,13 @@ document overflow, and no framework error overlay. Screenshot review covered the
 all seven required viewports. The 1280px diagnostic viewport initially exposed a 24px layout
 overflow; the desktop/two-column breakpoint was corrected and reverified.
 
+The matrix is now reproducible with `pnpm --filter @verified-edge/web visual:qa`. It uses the
+project-managed Playwright package and the installed Chrome channel rather than a machine-specific
+cache path. A fresh optimized build completed all 98 checks with zero route failures, structural
+failures, console errors, page errors, or non-cancellation network failures. Chrome's expected
+`ERR_ABORTED` cancellation of Next prefetch requests during immediate scripted navigation is the
+only explicitly ignored transport condition.
+
 ## Mobile interaction
 
 At 390 × 844, every visible link and button measured at least 44px high after remediation.
@@ -53,7 +60,6 @@ is the safe fallback. Unsafe non-local HTTP origins are rejected.
 
 - Complete manual screen-reader behavior, 200%/400% zoom, and Windows forced-colors checks
   across every interactive public route.
-- Collect a clean-browser console trace without unrelated extension message-channel errors.
 - Preserve launch screenshots only after the canonical staging domain and final legal copy are
   approved.
 - Measure production Web Vitals and server/API latency against staging and the final domain.

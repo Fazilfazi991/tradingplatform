@@ -294,6 +294,8 @@ The following are release artifacts, not aspirational prose:
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
 - SQLite online backup, integrity/hash manifest verification, traversal-safe restore verification, and non-overwriting restore tests are implemented. Managed production retention, off-host encryption, RPO/RTO, and restore evidence remain external to the local SQLite tool.
-- The forward-validation ledger is append-only and causal, but automatic issuance and delayed outcome resolution are intentionally not activated.
+- The forward-validation ledger is append-only and causal. A disabled, fail-closed runtime now gates
+  atomic issuance on an approved hash-sealed package and resolves exact completed-session evidence
+  separately; no package, schedule, or forward prediction has been activated.
 
 The next resolvable work is operational/deployment evidence and final release documentation. Prediction research gates, research mode, brokerage connectivity, BUY/SELL outputs, target prices, and public predictive activation remain unchanged.

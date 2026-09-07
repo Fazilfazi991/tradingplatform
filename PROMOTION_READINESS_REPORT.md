@@ -29,6 +29,9 @@ Decision: **BLOCKED**
 - `CLAIMS_LEDGER.md` and `PROMOTION_PACKAGE_DRAFT.md` now provide evidence-linked safe claims,
   prohibited claims, short/long descriptions, founder notes, launch copy, walkthrough, and a final
   capture list. Both remain explicitly unapproved and unpublished.
+- A project-managed Chrome/Playwright verifier now reproduces the 14-route × 7-viewport matrix.
+  Against a fresh optimized build it recorded 98/98 passes and zero console, page, structural, or
+  actionable network failures. The earlier extension/stale-build console uncertainty is closed.
 
 ## Still required
 
@@ -37,9 +40,7 @@ Decision: **BLOCKED**
 - Authenticated-route review in staging with production-shaped secrets and logs.
 - Manual screen-reader, contrast, Windows forced-colors, and 200%/400% zoom checks across the
   full interactive public route inventory.
-- Clean-browser console/network audit and production performance measurements. The Chrome QA
-  profile reported extension message-channel errors that are not attributable to an application
-  source, so the console gate remains open pending a clean profile run.
+- Production performance and real-user Web Vitals measurements on staging/canonical hosting.
 - Canonical domain, canonical metadata, real sitemap, Search Console decision, staging/production smoke evidence, and rollback proof.
 - Production host supervision, notification destinations, managed backup/retention policy, and a
   production-shaped worker soak/restart record.

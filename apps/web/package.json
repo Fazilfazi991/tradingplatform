@@ -10,7 +10,8 @@
     "smoke": "node scripts/smoke.mjs",
     "test": "node --test src/lib/*.test.ts",
     "lint": "eslint .",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "visual:qa": "node scripts/visual-qa.mjs"
   },
   "dependencies": {
     "@fontsource-variable/manrope": "^5.2.8",
@@ -28,6 +29,7 @@
     "@tailwindcss/postcss": "^4.0.0",
     "eslint": "^9.17.0",
     "eslint-config-next": "^16.1.0",
+    "playwright": "^1.55.0",
     "tailwindcss": "^4.0.0",
     "typescript": "^5.7.2"
   }
