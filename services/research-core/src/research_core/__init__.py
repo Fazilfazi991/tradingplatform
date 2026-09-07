@@ -20,7 +20,7 @@ __all__ = [
     "evaluate_predictions",
     "find_analogues",
     "generate_report",
-    "run_experiment",
     "public_prediction_guard",
+    "run_experiment",
     "verify_frozen_dataset",
 ]

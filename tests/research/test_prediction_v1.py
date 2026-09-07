@@ -23,6 +23,8 @@ from research_core.prediction_v1 import (
     write_registration,
 )
 
+from scripts.finalize_prediction_v1_report import audit_decision
+
 
 def manifest() -> dict:
     return {
@@ -151,3 +153,30 @@ def test_prediction_contract_and_target_version() -> None:
         provenance={"mode": "INTERNAL"},
     )
     assert output.payload_hash
+
+
+def test_holdout_audit_uses_all_preregistered_dimensions() -> None:
+    registration = {
+        "holdout_pass_criteria": {
+            "brier_improvement_vs_unconditional": 0.002,
+            "log_loss_improvement_vs_unconditional": 0.002,
+            "ece_max": 0.08,
+            "positive_validation_folds_fraction_min": 0.6,
+        }
+    }
+    walk = {"aggregates": [{"horizon": 5, "model": "logistic", "positive_brier_folds": 2}]}
+    holdout = {
+        "results": [
+            {
+                "horizon": 5,
+                "model": "logistic",
+                "brier_improvement": 0.003,
+                "baseline": {"log_loss": 1.01},
+                "metrics": {"log_loss": 1.0, "ece": 0.03},
+                "abstention": {"coverage": 0.2},
+            }
+        ]
+    }
+    assert audit_decision(registration, walk, holdout)["all_preregistered_criteria_pass"]
+    holdout["results"][0]["metrics"]["ece"] = 0.2
+    assert not audit_decision(registration, walk, holdout)["all_preregistered_criteria_pass"]
