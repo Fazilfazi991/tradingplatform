@@ -8,7 +8,8 @@
     "lint": "pnpm --dir apps/web lint",
     "typecheck": "pnpm --dir apps/web typecheck",
     "test:web": "pnpm --dir apps/web test",
-    "smoke:web": "pnpm --dir apps/web smoke"
+    "smoke:web": "pnpm --dir apps/web smoke",
+    "performance:web": "pnpm --dir apps/web performance:qa"
   },
   "dependencies": {
     "lucide-react": "^1.37.0",

@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "profile": "LOCAL_PRODUCTION_BUILD",
+  "viewport": { "width": 1366, "height": 768 },
+  "routes": [
+    "/",
+    "/methodology",
+    "/models",
+    "/fusion",
+    "/predictions",
+    "/stocks/RELIANCE"
+  ],
+  "budgets": {
+    "navigation_response_ms": 1000,
+    "largest_contentful_paint_ms": 2000,
+    "cumulative_layout_shift": 0.08,
+    "document_encoded_bytes": 75000,
+    "javascript_encoded_bytes": 450000,
+    "css_encoded_bytes": 100000,
+    "font_encoded_bytes": 200000,
+    "total_encoded_bytes": 750000
+  },
+  "notes": [
+    "This is a repeatable local lab gate over a production build, not deployed field telemetry.",
+    "INP requires representative real-user interactions and remains a deployed acceptance item."
+  ]
+}

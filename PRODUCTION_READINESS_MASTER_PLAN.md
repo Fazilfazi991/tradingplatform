@@ -302,6 +302,7 @@ The following are release artifacts, not aspirational prose:
 
 - Public/internal route classification, fail-closed Basic authentication, safe serialization, anonymous denial, no-store/noindex, and negative payload tests are implemented.
 - Public information architecture, draft policy pages, honest demo state, unknown-stock 404, responsive repair, keyboard skip navigation, restricted sitemap/robots, a public web manifest, and claim-bounded `WebSite` structured data are implemented and locally verified.
+- A versioned production-build browser budget now gates representative public routes on navigation response, LCP, CLS, document, JavaScript, CSS, font, and total encoded payload; deployed field Web Vitals and INP remain external acceptance evidence.
 - GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
 - A hardened systemd service template now provides environment preflight, persistent state outside

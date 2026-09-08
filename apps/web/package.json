@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "smoke": "node scripts/smoke.mjs",
+    "performance:qa": "node scripts/performance-qa.mjs",
     "test": "node --test src/lib/*.test.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
