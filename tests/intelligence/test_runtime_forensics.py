@@ -87,6 +87,7 @@ def test_semantic_identity_ignores_feed_wrapper_hash():
 def test_validation_taxonomy_is_explicit():
     assert validation_category("INVENTED_NUMBER_QUARANTINED") == ValidationErrorCategory.UNSUPPORTED_NUMERIC_CLAIM
     assert validation_category("WRONG_EVIDENCE_REFERENCE") == ValidationErrorCategory.UNSUPPORTED_SOURCE_REFERENCE
+    assert validation_category("UNSUPPORTED_INFERENCE") == ValidationErrorCategory.EVIDENCE_GROUNDING_FAILURE
     assert validation_category("missing", field_type="missing") == ValidationErrorCategory.MISSING_REQUIRED_FIELD
 
 

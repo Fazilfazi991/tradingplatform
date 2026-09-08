@@ -192,6 +192,7 @@ def validation_category(code: str, *, field_type: str | None = None) -> Validati
         "INVENTED_NUMBER": ValidationErrorCategory.UNSUPPORTED_NUMERIC_CLAIM,
         "UNSUPPORTED_NUMERIC": ValidationErrorCategory.UNSUPPORTED_NUMERIC_CLAIM,
         "WRONG_EVIDENCE_REFERENCE": ValidationErrorCategory.UNSUPPORTED_SOURCE_REFERENCE,
+        "UNSUPPORTED_INFERENCE": ValidationErrorCategory.EVIDENCE_GROUNDING_FAILURE,
         "MISSING": ValidationErrorCategory.MISSING_REQUIRED_FIELD,
         "EXTRA": ValidationErrorCategory.EXTRA_FIELD,
         "ENUM": ValidationErrorCategory.ENUM_VIOLATION,

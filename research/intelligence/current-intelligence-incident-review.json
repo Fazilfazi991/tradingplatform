@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T08:58:03Z",
+  "generated_at": "2026-09-08T09:49:09Z",
   "authority": "post-soak supervised operational recovery",
   "historical_soak_report_mutated": false,
   "historical_high_incidents": [
@@ -12,7 +12,7 @@
       "current_status": "OPEN_ACTIVE_RECURRENCE",
       "affected_subsystem": "Luna semantic validation",
       "containment_status": "PASS",
-      "remediation": "Containment remains intact. Sign- and unit-preserving visible-text grounding is frozen as visible-text-signed-decimal-v2. The event taxonomy is now closed by schema llm-analysis-result-v2-taxonomy; historical attempts and tombstones remain immutable and prior-policy results are boundedly re-evaluated.",
+      "remediation": "Containment remains intact. Numeric grounding and the closed event taxonomy remain enforced. Mandatory review of the first v3 high-materiality result found an unsupported logical strengthening, so v3 was terminated and replaced by event-grounding-v4-logical-modality plus visible-text-signed-decimal-inference-v3. Historical attempts remain immutable and prior-policy results are boundedly re-evaluated.",
       "closure_criteria": "A frozen bounded live semantic window completes below the configured failure threshold with no terminal quarantine recurrence."
     },
     {
@@ -24,7 +24,7 @@
       "current_status": "OPEN_ACTIVE_RECURRENCE",
       "affected_subsystem": "Semantic structured-output validation",
       "containment_status": "PASS",
-      "remediation": "Strict validation was retained; transport and semantic health remain separate. Prompt event-grounding-v3-taxonomy, schema llm-analysis-result-v2-taxonomy, and the versioned numeric grounding policy are configured for the supervised worker.",
+      "remediation": "Strict validation was retained; transport and semantic health remain separate. Prompt event-grounding-v4-logical-modality, schema llm-analysis-result-v2-taxonomy, and visible-text-signed-decimal-inference-v3 are configured for the next supervised window.",
       "closure_criteria": "A representative frozen live canary window remains below the 5% threshold without weakening validation."
     },
     {
@@ -63,9 +63,9 @@
   "current_evidence": {
     "provider_transport_health": "HEALTHY",
     "semantic_validation_health": "INSUFFICIENT_SAMPLE",
-    "semantic_attempts": 42,
+    "semantic_attempts": 52,
     "validation_failures": 8,
-    "cumulative_failure_rate": 0.19047619,
+    "cumulative_failure_rate": 0.15384615,
     "terminal_quarantines": 2,
     "active_tombstones": 2,
     "transport_failures": 0,
@@ -76,23 +76,34 @@
     "forward_paper": "DISABLED"
   },
   "remediation_validation": {
-    "prompt_version": "event-grounding-v3-taxonomy",
+    "prompt_version": "event-grounding-v4-logical-modality",
     "schema_version": "llm-analysis-result-v2-taxonomy",
     "schema_hash": "1c538eee0e0502ce38385c3574ac9c4de51a25b8935094dc5fe89461ccb7b09d",
-    "grounding_policy_version": "visible-text-signed-decimal-v2",
-    "offline_backend_tests_passed": 389,
-    "live_canary_attempts": 1,
-    "live_canary_transport_successes": 1,
-    "live_canary_validation_successes": 1,
-    "live_canary_cost_usd": 0.0004614,
+    "grounding_policy_version": "visible-text-signed-decimal-inference-v3",
+    "offline_backend_tests_passed": 390,
+    "live_canary_attempts": 0,
+    "live_canary_transport_successes": 0,
+    "live_canary_validation_successes": 0,
+    "live_canary_cost_usd": 0.0,
     "operational_attempts_required": 40,
     "operational_attempts_observed": 0,
-    "historical_window_attempts": 42,
+    "historical_window_attempts": 52,
     "historical_window_validation_failures": 8,
     "grounding_v2_operational_attempts": 10,
     "grounding_v2_validation_failures": 0,
     "grounding_v2_taxonomy_qualifying": false,
     "taxonomy_finding": "The grounding-v2 schema accepted unrestricted event_type strings. Its 10 successful operational attempts are preserved but excluded from the v3 taxonomy qualification window.",
+    "taxonomy_v3_operational_attempts": 10,
+    "taxonomy_v3_automated_validation_failures": 0,
+    "taxonomy_v3_manual_audit_failures": 1,
+    "taxonomy_v3_qualifying": false,
+    "logical_modality_finding": {
+      "canonical_event_id": "10777668-e70a-4e01-9f89-2981991bfc8b",
+      "result_fingerprint": "f79c9e19afc7e16f5635a01ec6bd858ba9211eef778e782a7be6561244736f4e",
+      "finding": "The source said the extension should not be construed to imply RBI satisfaction with the bank's financial position. The accepted summary strengthened that disclaimer into an unsupported negative finding.",
+      "downstream_state": "NOT_HANDED_OFF",
+      "remediation": "Frozen v3 measurement terminated. Added deterministic non-implication guard, grounding-failure taxonomy mapping, prompt constraint, and regression coverage; v4 requires a new window."
+    },
     "representative_frozen_window_complete": false,
     "incident_resolution_authorized": false
   },

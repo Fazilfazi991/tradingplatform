@@ -1,6 +1,6 @@
 # Current Intelligence Incident Review
 
-Updated at 2026-09-08T08:58:03Z from the supervised post-soak runtime. The historical
+Updated at 2026-09-08T09:49:09Z from the supervised post-soak runtime. The historical
 24-hour soak report remains unchanged.
 
 | Historical incident | Type | Historical status | Current status | Evidence |
@@ -25,18 +25,25 @@ window under `event-grounding-v2` had no validation failures, but inspection exp
 schema defect: `event_type` was an unrestricted string and accepted values outside the declared
 taxonomy. Those attempts remain immutable evidence but do not qualify the final semantic window.
 
-The frozen replacement is `event-grounding-v3-taxonomy` with schema
-`llm-analysis-result-v2-taxonomy` and grounding policy `visible-text-signed-decimal-v2`. Policy
-identity now includes the closed event taxonomy; prior terminal results are boundedly re-evaluated
-when that identity changes, while an unchanged successful policy is not repeatedly billed. Events
-deferred by the daily budget return to the pending queue on a later eligible cycle. One bounded v3
-canary passed transport and structured/grounding validation at an estimated cost of `$0.0004614`.
-The historical ledger contains 42 attempts and 8 validation failures. Current health requires 40
-non-canary operational attempts under the exact v3 identity before it can report semantic health as
-healthy or resolve the incidents. The v3 operational sample is 0/40.
+`event-grounding-v3-taxonomy` closed the schema taxonomy. Its first scheduled production batch
+completed 10/10 automated validations with zero transport failures at `$0.0053848` (12,794 input and
+2,355 output tokens). Mandatory review of its only HIGH-materiality result found an unsupported
+logical strengthening: the Nasik cooperative-bank source said an extension should not be construed
+to imply RBI satisfaction with the bank's financial position, while the accepted summary asserted
+that the position had not been deemed satisfactory. The result fingerprint is
+`f79c9e19afc7e16f5635a01ec6bd858ba9211eef778e782a7be6561244736f4e`; its disposition recorded
+`NOT_HANDED_OFF`, and no specialist or Fusion consumer used it. The v3 window is therefore
+non-qualifying despite a 0% automated failure rate.
 
-The incidents remain open. One canary is not the representative frozen window required by their
-closure criteria; the platform-owned hourly semantic job will provide the next bounded production
-path evidence.
+Per the frozen-window rule, v3 was terminated. The replacement is
+`event-grounding-v4-logical-modality` with schema `llm-analysis-result-v2-taxonomy` and grounding
+policy `visible-text-signed-decimal-inference-v3`. It preserves the closed taxonomy, adds an explicit
+logical-modality instruction, deterministically rejects this confirmed non-implication failure as
+`EVIDENCE_GROUNDING_FAILURE`, and includes a regression fixture. Current health requires a new 40
+non-canary operational-attempt window under the exact v4 identity. The v4 sample is 0/40.
+
+The incidents remain open. Three genuine post-restart scheduled RBI and SEBI cycles have completed
+without collection failure, satisfying the collection-observation gate, but semantic closure now
+requires the new v4 canary and representative platform-owned window.
 
 Decision: **INTELLIGENCE OPERATIONS RECOVERY NEEDS WORK**.

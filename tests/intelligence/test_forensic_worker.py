@@ -6,6 +6,7 @@ from intelligence_core.collectors import RawArtifact
 from intelligence_core.durable import DurableJob, SQLiteOperationsStore
 from intelligence_core.forensic_worker import (
     ForensicSemanticProcessor,
+    validate_non_implication_claims,
     validate_summary_numbers,
     visible_source_text,
 )
@@ -153,6 +154,20 @@ def test_numeric_grounding_preserves_sign_percent_and_magnitude():
     ):
         with pytest.raises(ValueError, match="INVENTED_NUMBER"):
             validate_summary_numbers(unsupported, source)
+
+
+def test_non_implication_disclaimer_cannot_be_strengthened_into_negative_finding():
+    source = (
+        "The extension should not per se be construed to imply that the Reserve Bank "
+        "is satisfied with the financial position of the bank."
+    )
+    validate_non_implication_claims(
+        "The directions were extended and remain subject to review.", source
+    )
+    with pytest.raises(ValueError, match="UNSUPPORTED_INFERENCE"):
+        validate_non_implication_claims(
+            "The bank's financial position has not been deemed satisfactory.", source
+        )
 
 
 def test_html_attributes_scripts_and_styles_are_not_numeric_evidence():
