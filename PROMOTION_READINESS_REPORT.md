@@ -31,8 +31,9 @@ Decision: **BLOCKED**
   prohibited claims, short/long descriptions, founder notes, launch copy, walkthrough, and a final
   capture list. Both remain explicitly unapproved and unpublished.
 - A project-managed Chrome/Playwright verifier now reproduces the 14-route × 7-viewport matrix.
-  Against a fresh optimized build it recorded 98/98 passes and zero console, page, structural, or
-  actionable network failures. The earlier extension/stale-build console uncertainty is closed.
+  It owns its local optimized-build server lifecycle and runs as a required hosted CI gate. Against
+  a fresh build it recorded 98/98 passes and zero console, page, structural, or actionable network
+  failures. The earlier extension/stale-build console uncertainty is closed.
 - The production smoke gate now crawls rendered internal links. It caught and closed unsupported
   stock links and inert forecast filters; the public demo exposes only its complete RELIANCE
   walkthrough and an explicit no-result state. It also verifies the effective CSP, frame, referrer,

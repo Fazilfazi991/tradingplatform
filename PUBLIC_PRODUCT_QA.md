@@ -25,9 +25,10 @@ document overflow, and no framework error overlay. Screenshot review covered the
 all seven required viewports. The 1280px diagnostic viewport initially exposed a 24px layout
 overflow; the desktop/two-column breakpoint was corrected and reverified.
 
-The matrix is now reproducible with `pnpm --filter @verified-edge/web visual:qa`. It uses the
-project-managed Playwright package and the installed Chrome channel rather than a machine-specific
-cache path. A fresh optimized build completed all 98 checks with zero route failures, structural
+The matrix is now reproducible with `pnpm visual:web`. The command starts and stops its own
+optimized-build server unless an explicit `VISUAL_QA_BASE_URL` is supplied, and it runs in hosted
+CI. It uses the project-managed Playwright package and the installed Chrome channel rather than a
+machine-specific cache path. A fresh optimized build completed all 98 checks with zero route failures, structural
 failures, console errors, page errors, or non-cancellation network failures. Chrome's expected
 `ERR_ABORTED` cancellation of Next prefetch requests during immediate scripted navigation is the
 only explicitly ignored transport condition.

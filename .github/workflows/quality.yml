@@ -60,6 +60,7 @@ jobs:
           NEXT_PUBLIC_SITE_URL: http://127.0.0.1:3210
       - run: pnpm smoke:web
       - run: pnpm accessibility:web
+      - run: pnpm visual:web
       - run: pnpm public-boundary:web
       - run: pnpm performance:web
       - run: pnpm audit --prod --audit-level high
