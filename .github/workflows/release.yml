@@ -2,6 +2,16 @@ name: staged release
 
 on:
   workflow_dispatch:
+    inputs:
+      rollback_deployment_id:
+        description: Previous healthy production deployment ID or URL
+        required: true
+        type: string
+      rollback_rehearsed:
+        description: Confirm rollback to the supplied deployment was rehearsed successfully
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -18,6 +28,8 @@ jobs:
     timeout-minutes: 5
     env:
       GH_TOKEN: ${{ github.token }}
+      ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
+      ROLLBACK_REHEARSED: ${{ inputs.rollback_rehearsed }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -27,6 +39,14 @@ jobs:
         shell: bash
         run: |
           test "${GITHUB_REF}" = "refs/heads/main"
+          test "${ROLLBACK_REHEARSED}" = "true" || {
+            echo "A successful rollback rehearsal must be attested before staging." >&2
+            exit 1
+          }
+          test -n "${ROLLBACK_DEPLOYMENT_ID}" || {
+            echo "A previous healthy rollback deployment ID is required." >&2
+            exit 1
+          }
           for check in backend web repository-safety; do
             conclusions="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs" \
               --jq "[.check_runs[] | select(.name == \"${check}\")] | sort_by(.started_at) | last | .conclusion")"
@@ -131,6 +151,7 @@ jobs:
       VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}
       VERIFIED_EDGE_CANONICAL_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}
       STAGED_DEPLOYMENT_URL: ${{ needs.stage-production-build.outputs.deployment_url }}
+      ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -140,6 +161,9 @@ jobs:
         with:
           node-version: "24"
           cache: pnpm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
       - run: pnpm install --frozen-lockfile
       - name: Require production configuration
         shell: bash
@@ -158,16 +182,48 @@ jobs:
         id: production_smoke
         continue-on-error: true
         run: pnpm --dir apps/web deployment:smoke -- "${VERIFIED_EDGE_CANONICAL_URL}" "${VERIFIED_EDGE_CANONICAL_URL}"
-      - name: Roll back failed production promotion
-        if: steps.production_smoke.outcome == 'failure'
+      - name: Verify production browser console and network
+        id: production_browser_smoke
+        continue-on-error: true
+        env:
+          VISUAL_QA_BASE_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}
+        run: pnpm visual:web
+      - name: Seal and validate production deployment evidence
+        id: deployment_evidence
+        if: steps.production_smoke.outcome == 'success' && steps.production_browser_smoke.outcome == 'success'
+        continue-on-error: true
+        shell: bash
+        run: |
+          evidence_file="${RUNNER_TEMP}/deployment-evidence.json"
+          python -m scripts.create_deployment_evidence \
+            --environment production \
+            --deployment-id "${STAGED_DEPLOYMENT_URL}" \
+            --rollback-deployment-id "${ROLLBACK_DEPLOYMENT_ID}" \
+            --commit-sha "${GITHUB_SHA}" \
+            --url "${VERIFIED_EDGE_CANONICAL_URL}" \
+            --operator "${GITHUB_ACTOR}" \
+            --output "${evidence_file}"
+          python scripts/validate_deployment_evidence.py --file "${evidence_file}"
+      - name: Upload sealed deployment evidence
+        id: upload_evidence
+        if: steps.deployment_evidence.outcome == 'success'
+        continue-on-error: true
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: deployment-evidence-${{ github.sha }}
+          path: ${{ runner.temp }}/deployment-evidence.json
+          if-no-files-found: error
+          retention-days: 90
+      - name: Roll back failed production release
+        if: always() && (steps.production_smoke.outcome == 'failure' || steps.production_browser_smoke.outcome == 'failure' || steps.deployment_evidence.outcome == 'failure' || steps.upload_evidence.outcome == 'failure')
         shell: bash
         run: |
           pnpm exec vercel rollback --yes --timeout=3m --token="${VERCEL_TOKEN}"
           pnpm exec vercel rollback status --timeout=3m --token="${VERCEL_TOKEN}"
       - name: Fail release after rollback attempt
-        if: always() && steps.production_smoke.outcome == 'failure'
+        if: always() && (steps.production_smoke.outcome == 'failure' || steps.production_browser_smoke.outcome == 'failure' || steps.deployment_evidence.outcome == 'failure' || steps.upload_evidence.outcome == 'failure')
         run: |
-          echo "Production smoke failed; rollback was attempted and the release is rejected." >&2
+          echo "Production verification or evidence retention failed; rollback was attempted and the release is rejected." >&2
           exit 1
       - name: Record immutable release identity
         shell: bash

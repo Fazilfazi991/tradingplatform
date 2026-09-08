@@ -1,7 +1,10 @@
+import json
 from datetime import UTC, datetime
+from pathlib import Path
 
 import pytest
 
+from scripts.create_deployment_evidence import main as create_evidence
 from scripts.validate_deployment_evidence import DeploymentEvidence
 
 
@@ -61,3 +64,36 @@ def test_deployment_evidence_detects_tampering():
         DeploymentEvidence.model_validate(
             {**item.model_dump(), "deployment_id": "tampered"}
         )
+
+
+def test_create_deployment_evidence_writes_valid_sealed_artifact(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    output = tmp_path / "deployment-evidence.json"
+    monkeypatch.setattr(
+        "sys.argv",
+        [
+            "create_deployment_evidence.py",
+            "--environment",
+            "production",
+            "--deployment-id",
+            "deployment-new",
+            "--rollback-deployment-id",
+            "deployment-previous",
+            "--commit-sha",
+            "a" * 40,
+            "--url",
+            "https://verified-edge.example",
+            "--operator",
+            "release-operator",
+            "--output",
+            str(output),
+        ],
+    )
+
+    assert create_evidence() == 0
+    payload = json.loads(output.read_text(encoding="utf-8"))
+    validated = DeploymentEvidence.model_validate(payload)
+    assert validated.environment == "production"
+    assert validated.checks.rollback_rehearsal == "PASS"
+    assert len(validated.artifact_hash) == 64

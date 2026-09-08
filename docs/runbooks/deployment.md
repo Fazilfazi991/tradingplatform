@@ -52,7 +52,9 @@ public-web environment contract against it. The report contains names and presen
 the file is deleted on step exit and never uploaded. Missing server-side internal-route credentials
 therefore stop staging before an artifact is built.
 
-Run `.github/workflows/release.yml` manually from `main`. It verifies the exact commit's `backend`,
+Run `.github/workflows/release.yml` manually from `main`. Supply the previous healthy production
+deployment ID and attest that rollback to it has been rehearsed successfully; the workflow rejects
+the release before staging when either condition is absent. It verifies the exact commit's `backend`,
 `web`, and `repository-safety` checks, builds with the pinned Vercel CLI, deploys using
 `--prod --skip-domain`, and smoke-tests the candidate. The promotion job consumes that workflow
 output directly; it cannot accept a caller-supplied deployment URL. It runs only after
@@ -92,13 +94,16 @@ protection redirect fails the smoke test.
 ## Production promotion
 
 Promote the already-verified immutable staging build. Do not rebuild from a different commit. Run
-the production smoke suite and record timestamp, commit, deployment ID, domain, operator, result,
-and rollback target. If canonical smoke fails, the workflow requests an immediate Vercel rollback,
+the HTTP boundary suite and browser console/network suite against the canonical origin, then record
+timestamp, commit, deployment ID, domain, operator, result, and rollback target. If either canonical
+smoke suite, evidence sealing, or evidence upload fails, the workflow requests an immediate Vercel rollback,
 waits for rollback status, and then rejects the release. A failed rollback also leaves the workflow
 red and requires the bad-deployment incident runbook; it must never be treated as a successful
 release.
 
-Seal the evidence as `deployment-evidence-v1` and validate it with:
+After canonical smoke passes, the workflow seals the evidence as `deployment-evidence-v1`, validates
+it, and uploads `deployment-evidence-<commit SHA>` with 90-day retention. To validate a downloaded
+copy manually, run:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\validate_deployment_evidence.py --file <evidence.json>

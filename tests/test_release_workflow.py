@@ -93,13 +93,21 @@ def test_failed_production_smoke_attempts_rollback_and_rejects_release() -> None
     text = workflow()
     promotion = text[text.index("promote-production:") :]
     smoke = promotion.index("id: production_smoke")
+    browser_smoke = promotion.index("id: production_browser_smoke")
+    evidence = promotion.index("id: deployment_evidence")
+    upload = promotion.index("id: upload_evidence")
     rollback = promotion.index("vercel rollback --yes --timeout=3m")
     status = promotion.index("vercel rollback status --timeout=3m")
     rejection = promotion.index("Fail release after rollback attempt")
-    assert smoke < rollback < status < rejection
-    assert "continue-on-error: true" in promotion
-    assert "if: steps.production_smoke.outcome == 'failure'" in promotion
-    assert "if: always() && steps.production_smoke.outcome == 'failure'" in promotion
+    assert smoke < browser_smoke < evidence < upload < rollback < status < rejection
+    assert promotion.count("continue-on-error: true") == 4
+    for step in (
+        "production_smoke",
+        "production_browser_smoke",
+        "deployment_evidence",
+        "upload_evidence",
+    ):
+        assert f"steps.{step}.outcome == 'failure'" in promotion
 
 
 def test_release_workflow_fails_closed_before_production_approval() -> None:
@@ -110,3 +118,29 @@ def test_release_workflow_fails_closed_before_production_approval() -> None:
     assert "--require-track public_platform" in text[authorization:promotion]
     assert "environment: production" in text[promotion:]
     assert "deployment:smoke" in text
+
+
+def test_release_workflow_requires_rollback_evidence_before_staging() -> None:
+    text = workflow()
+    authorization = text[text.index("authorize-staging:") : text.index("stage-production-build:")]
+    assert "rollback_deployment_id:" in text.split("jobs:", 1)[0]
+    assert "rollback_rehearsed:" in text.split("jobs:", 1)[0]
+    assert "ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}" in authorization
+    assert "ROLLBACK_REHEARSED: ${{ inputs.rollback_rehearsed }}" in authorization
+    assert 'test "${ROLLBACK_REHEARSED}" = "true"' in authorization
+    assert 'test -n "${ROLLBACK_DEPLOYMENT_ID}"' in authorization
+    assert '${{ inputs.rollback_deployment_id }}" \\' not in text
+
+
+def test_successful_promotion_uploads_validated_sealed_evidence() -> None:
+    promotion = workflow()[workflow().index("promote-production:") :]
+    smoke = promotion.index("id: production_smoke")
+    browser_smoke = promotion.index("id: production_browser_smoke")
+    create = promotion.index("python -m scripts.create_deployment_evidence")
+    validate = promotion.index("scripts/validate_deployment_evidence.py")
+    upload = promotion.index("actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02")
+    rollback = promotion.index("Roll back failed production release")
+    assert smoke < browser_smoke < create < validate < upload < rollback
+    assert "VISUAL_QA_BASE_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}" in promotion
+    assert "deployment-evidence-${{ github.sha }}" in promotion
+    assert "retention-days: 90" in promotion
