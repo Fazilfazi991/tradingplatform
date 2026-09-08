@@ -2,6 +2,10 @@
 
 Verified Edge is a mixed Python/Next repository. The public web deployment must use the root `vercel.json`; provider auto-detection is not an acceptable deployment contract.
 
+Automatic Vercel Git deployments are disabled in `vercel.json`. This is deliberate: a push to
+`main` is a tested repository update, not production authorization. Preview or production
+deployment must be initiated through a reviewed release process after the selected track passes.
+
 ## Environments
 
 - Local: synthetic/demo public routes; internal routes remain disabled unless local credentials are deliberately configured.
@@ -14,15 +18,18 @@ Never prefix provider, database, or internal-access credentials with `NEXT_PUBLI
 
 1. Confirm the intended commit and a clean working tree.
 2. Require green repository CI.
-3. Validate all required environment variable names without printing values.
+3. Require an explicit fail-closed Track A authorization:
+   `python scripts/audit_release_gates.py --require-track public_platform`.
+   Exit code `3` means the release remains blocked; do not deploy or override it.
+4. Validate all required environment variable names without printing values.
    Run `python scripts/verify_release_environment.py --profile public-web --stage staging`
    (or `production`). Validate worker profiles separately; the command reports presence only.
    The intelligence-worker profile requires both the OpenAI semantic runtime and the read-only
    `UPSTOX_ANALYTICS_TOKEN`, because provider health is a mandatory scheduled canary even while
    EOD collection remains disabled.
-4. Confirm `CODEX_RESEARCH_OPERATOR_ENABLED=false` unless the authenticated internal runtime is deliberately configured.
-5. Confirm public serializers reject internal, stale, mixed, and rights-unapproved records.
-6. Record the previous production deployment identifier for rollback.
+5. Confirm `CODEX_RESEARCH_OPERATOR_ENABLED=false` unless the authenticated internal runtime is deliberately configured.
+6. Confirm public serializers reject internal, stale, mixed, and rights-unapproved records.
+7. Record the previous production deployment identifier for rollback.
 
 ## Staging verification
 

@@ -95,6 +95,8 @@ def audit_manifest(manifest: dict[str, Any], *, repo: Path) -> dict[str, Any]:
             raise GateManifestError(f"{gate_id}: unknown blockers {unknown_blockers}")
         if state == "EXTERNAL" and not blockers:
             raise GateManifestError(f"{gate_id}: EXTERNAL requires a blocker")
+        if state == "PASS" and blockers:
+            raise GateManifestError(f"{gate_id}: PASS cannot retain blockers")
         gate_map[gate_id] = gate
 
     track_results: dict[str, dict[str, Any]] = {}
@@ -129,20 +131,45 @@ def audit_manifest(manifest: dict[str, Any], *, repo: Path) -> dict[str, Any]:
     }
 
 
+def release_authorization(report: dict[str, Any], track_id: str) -> dict[str, Any]:
+    tracks = report.get("tracks")
+    if not isinstance(tracks, dict) or track_id not in tracks:
+        raise GateManifestError(f"unknown release track: {track_id}")
+    track = tracks[track_id]
+    authorized = track.get("ready") is True and not report.get("evidence_errors")
+    return {
+        "track": track_id,
+        "authorized": authorized,
+        "decision": track.get("decision"),
+        "nonpassing_gates": track.get("nonpassing_gates", []),
+    }
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description="Audit fail-closed release gates")
     parser.add_argument("--manifest", type=Path, default=Path("config/release-gates.json"))
     parser.add_argument("--repo", type=Path, default=Path.cwd())
+    parser.add_argument(
+        "--require-track",
+        choices=("public_platform", "promotion", "prediction"),
+        help="exit nonzero unless the selected release track is fully authorized",
+    )
     args = parser.parse_args()
     repo = args.repo.resolve()
     try:
         manifest = json.loads((repo / args.manifest).read_text(encoding="utf-8"))
         report = audit_manifest(manifest, repo=repo)
+        if args.require_track:
+            report["authorization"] = release_authorization(report, args.require_track)
     except (GateManifestError, OSError, json.JSONDecodeError, subprocess.SubprocessError) as exc:
         print(json.dumps({"status": "INVALID", "error": str(exc)}, indent=2))
         return 2
     print(json.dumps(report, indent=2, sort_keys=True))
-    return 0 if not report["evidence_errors"] else 2
+    if report["evidence_errors"]:
+        return 2
+    if args.require_track and not report["authorization"]["authorized"]:
+        return 3
+    return 0
 
 
 if __name__ == "__main__":

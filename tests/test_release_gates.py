@@ -6,7 +6,11 @@ from pathlib import Path
 
 import pytest
 
-from scripts.audit_release_gates import GateManifestError, audit_manifest
+from scripts.audit_release_gates import (
+    GateManifestError,
+    audit_manifest,
+    release_authorization,
+)
 
 REPO = Path(__file__).resolve().parents[1]
 
@@ -41,9 +45,41 @@ def test_external_state_requires_registered_blocker() -> None:
         audit_manifest(changed, repo=REPO)
 
 
+def test_pass_state_cannot_retain_external_blockers() -> None:
+    changed = copy.deepcopy(manifest())
+    changed["gates"][0]["state"] = "PASS"
+    with pytest.raises(GateManifestError, match="PASS cannot retain blockers"):
+        audit_manifest(changed, repo=REPO)
+
+
+def test_current_public_track_is_not_authorized_for_release() -> None:
+    report = audit_manifest(manifest(), repo=REPO)
+    authorization = release_authorization(report, "public_platform")
+    assert authorization == {
+        "track": "public_platform",
+        "authorized": False,
+        "decision": "PRODUCTION BLOCKED",
+        "nonpassing_gates": [
+            "engineering",
+            "data",
+            "intelligence",
+            "public_safety",
+            "product",
+            "operations",
+        ],
+    }
+
+
+def test_unknown_release_track_is_rejected() -> None:
+    report = audit_manifest(manifest(), repo=REPO)
+    with pytest.raises(GateManifestError, match="unknown release track"):
+        release_authorization(report, "not-a-track")
+
+
 def test_missing_evidence_blocks_every_dependent_track() -> None:
     changed = copy.deepcopy(manifest())
     changed["gates"][0]["state"] = "PASS"
+    changed["gates"][0]["blockers"] = []
     changed["gates"][0]["evidence"] = ["does-not-exist.txt"]
     report = audit_manifest(changed, repo=REPO)
     assert report["evidence_errors"] == [
