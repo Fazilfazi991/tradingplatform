@@ -91,6 +91,10 @@ Provider, collector, freshness, scheduler, cost, schema, quarantine, snapshot, b
 contracts exist and are locally tested. Continuous production telemetry, notification routing,
 managed retention, and supervised worker evidence require the external worker/storage host.
 
+Codex review maintenance is active through a quiet-on-unchanged daily runtime triage and a weekly
+readiness audit. Both are read-only and cannot substitute for platform-owned supervision or incident
+delivery.
+
 ## 12. SEO
 
 Approved informational routes have metadata, self-referential canonical URLs, Open Graph/Twitter

@@ -73,6 +73,15 @@ def test_linked_hosting_root_is_reconciled_without_claiming_deployment() -> None
     assert "EXT-06" in engineering["blockers"]
 
 
+def test_codex_maintenance_contract_separates_review_from_runtime() -> None:
+    text = (REPO / "CODEX_MAINTENANCE_AUTOMATIONS.md").read_text(encoding="utf-8")
+    assert "verified-edge-daily-runtime-triage" in text
+    assert "verified-edge-weekly-readiness-audit" in text
+    assert "they do not collect market data" in text
+    assert "cannot satisfy web uptime" in text
+    assert "production worker supervision" in text
+
+
 def test_unknown_state_is_rejected() -> None:
     changed = copy.deepcopy(manifest())
     changed["gates"][0]["state"] = "ALMOST_READY"

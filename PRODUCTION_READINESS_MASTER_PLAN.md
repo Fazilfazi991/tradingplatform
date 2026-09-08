@@ -230,7 +230,7 @@ Acceptance: routes exist, match actual behavior and data rights, and receive own
 - Implement provider, collector, freshness, scheduler, cost, schema, quarantine, snapshot, backup, and deployment monitoring.
 - Version thresholds; deduplicate and resolve incidents; document severity, ownership, response, rollback, and postmortem flow.
 - Add privacy-conscious analytics only after owner approval. If enabled, track CTA, search, demo exploration, methodology, validation, and waitlist/contact funnels without sensitive research data.
-- Define safe Codex maintenance routines and periodic audits; scheduled Codex work may inspect/report but must not be the production runtime.
+- Define safe Codex maintenance routines and periodic audits; scheduled Codex work may inspect/report but must not be the production runtime. The installed daily runtime-triage heartbeat and weekly readiness audit are review-only and explicitly prohibited from starting workers, changing gates, issuing predictions, deploying, or publishing; their safety contract is recorded in `CODEX_MAINTENANCE_AUTOMATIONS.md`.
 
 ### Promotion package
 
