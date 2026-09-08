@@ -51,3 +51,20 @@ def test_missing_evidence_blocks_every_dependent_track() -> None:
     ]
     assert report["tracks"]["public_platform"]["ready"] is False
     assert report["tracks"]["promotion"]["ready"] is False
+
+
+def test_decisive_json_assertion_failure_is_reported_and_blocks_track() -> None:
+    changed = copy.deepcopy(manifest())
+    prediction = next(gate for gate in changed["gates"] if gate["id"] == "prediction")
+    assertion = next(
+        item for item in prediction["assertions"] if item["json_path"] == "holdout_access_count"
+    )
+    assertion["equals"] = 2
+    report = audit_manifest(changed, repo=REPO)
+    assert report["evidence_errors"] == [
+        (
+            "prediction:research/prediction-v1/prediction-v1-holdout-report.json:"
+            "holdout_access_count:ASSERTION_FAILED"
+        )
+    ]
+    assert report["tracks"]["prediction"]["ready"] is False

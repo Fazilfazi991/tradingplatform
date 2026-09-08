@@ -35,6 +35,15 @@ def _external_blocker_ids(repo: Path) -> set[str]:
     }
 
 
+def _json_value(payload: Any, path: str) -> Any:
+    value = payload
+    for segment in path.split("."):
+        if not isinstance(value, dict) or segment not in value:
+            raise GateManifestError(f"JSON path not found: {path}")
+        value = value[segment]
+    return value
+
+
 def audit_manifest(manifest: dict[str, Any], *, repo: Path) -> dict[str, Any]:
     if manifest.get("schema_version") != "release-gates-v1":
         raise GateManifestError("unsupported schema_version")
@@ -65,8 +74,22 @@ def audit_manifest(manifest: dict[str, Any], *, repo: Path) -> dict[str, Any]:
             raise GateManifestError(f"{gate_id}: evidence is required")
         for relative in evidence:
             path = (repo / relative).resolve()
-            if repo.resolve() not in path.parents or not path.is_file():
+            if repo.resolve() not in path.parents or not path.is_file() or path.stat().st_size == 0:
                 evidence_errors.append(f"{gate_id}:{relative}:MISSING_OR_OUTSIDE_REPO")
+        for assertion in gate.get("assertions", []):
+            relative = assertion.get("path")
+            json_path = assertion.get("json_path")
+            if relative not in evidence or not isinstance(json_path, str):
+                raise GateManifestError(f"{gate_id}: assertion must reference declared evidence")
+            path = repo / relative
+            try:
+                payload = json.loads(path.read_text(encoding="utf-8"))
+                actual = _json_value(payload, json_path)
+            except (OSError, json.JSONDecodeError, GateManifestError):
+                evidence_errors.append(f"{gate_id}:{relative}:{json_path}:UNREADABLE")
+                continue
+            if actual != assertion.get("equals"):
+                evidence_errors.append(f"{gate_id}:{relative}:{json_path}:ASSERTION_FAILED")
         unknown_blockers = sorted(set(blockers) - blocker_ids)
         if unknown_blockers:
             raise GateManifestError(f"{gate_id}: unknown blockers {unknown_blockers}")

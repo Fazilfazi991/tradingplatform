@@ -29,6 +29,12 @@
         "config/market-data-eod.json",
         "docs/runbooks/upstox-ingestion.md"
       ],
+      "assertions": [
+        {"path": "research/market-readiness/current-nifty200-validation.json", "json_path": "total", "equals": 200},
+        {"path": "research/market-readiness/current-nifty200-validation.json", "json_path": "mapped", "equals": 200},
+        {"path": "config/market-data-eod.json", "json_path": "public_output", "equals": false},
+        {"path": "config/market-data-eod.json", "json_path": "execution_operations", "equals": false}
+      ],
       "blockers": [
         "EXT-01",
         "EXT-02",
@@ -115,6 +121,14 @@
         "research/prediction-v1/forward-package-v1.json",
         "config/forward-paper.json",
         "PREDICTIVE_FEATURE_READINESS_REPORT.md"
+      ],
+      "assertions": [
+        {"path": "research/prediction-v1/prediction-v1-holdout-report.json", "json_path": "decision", "equals": "HOLDOUT_PASS"},
+        {"path": "research/prediction-v1/prediction-v1-holdout-report.json", "json_path": "holdout_access_count", "equals": 1},
+        {"path": "research/prediction-v1/prediction-v1-holdout-report.json", "json_path": "forward_predictions_started", "equals": false},
+        {"path": "research/prediction-v1/forward-package-v1.json", "json_path": "approved", "equals": false},
+        {"path": "config/forward-paper.json", "json_path": "enabled", "equals": false},
+        {"path": "config/forward-paper.json", "json_path": "package_path", "equals": null}
       ],
       "blockers": [
         "EXT-02",

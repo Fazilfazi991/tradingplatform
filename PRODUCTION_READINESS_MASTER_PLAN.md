@@ -29,29 +29,36 @@ fails closed when evidence is missing or the manifest is inconsistent.
 
 ### Current operating truth
 
-- No intelligence worker or market-data EOD worker is running.
-- The intelligence database contains schedules but zero executions, raw artifacts, events, or incidents.
-- Market-data execution operations are disabled and no EOD scheduler consumes the configuration.
-- The normal intelligence worker does not invoke the live LLM/forensic semantic pipeline.
-- Research Operator has historical pilot ledger entries but is not a supervised autonomous process.
-- Internal/admin pages and `/api/research-desk` are publicly reachable without authentication.
+- No production intelligence worker is installed or running. The local worker rehearsal is stopped.
+- Historical local operations/soak databases contain real executions and evidence, but they do not
+  prove current production continuity.
+- Market-data EOD and provider-health jobs are owned by the platform scheduler. EOD execution remains
+  deliberately disabled; the read-only health canary passed a bounded check on 8 September 2026.
+- The normal intelligence worker invokes the configured semantic pipeline under explicit activation,
+  budget, schema, cache, grounding, and quarantine controls.
+- Research Operator has historical pilot ledger entries but is not installed as a supervised
+  production process.
+- Internal/admin pages and `/api/research-desk` deny anonymous access, are no-store/noindex, and log
+  sanitized authorization outcomes.
 - Public redistribution rights for Upstox/provider data are not approved.
-- There is no repository CI workflow, explicit hosting configuration, staging/production contract, deployment runbook, rollback runbook, or post-deploy smoke gate.
-- A Next-generated change to `apps/web/next-env.d.ts` was present during the audit and must be normalized before the clean-tree gate is evaluated.
+- Reproducible GitHub CI, explicit Vercel root configuration, environment contracts, deployment and
+  rollback runbooks, a hash-sealed deployment-evidence validator, and post-build smoke gates exist.
+  No canonical staging/production deployment evidence has been supplied.
+- The branch is clean and synchronized at the commit reported by the machine-readable gate audit.
 
 ## 2. Route and surface classification
 
 | Surface | Intended class | Launch disposition |
 |---|---|---|
-| `/` | PUBLIC | Rebuild as public product homepage |
-| `/fusion` | PUBLIC / DEMO | Keep public with evidence/abstention language |
-| `/models` | PUBLIC METHODOLOGY | Reconcile status vocabulary before release |
-| `/predictions` | DEMO / EXPERIMENTAL | Public only if demo state dominates and no live implication exists |
-| `/stocks/[symbol]` | DEMO / EXPERIMENTAL | Validate supported symbols; unknown symbols must 404 |
-| `/sectors`, `/intelligence`, `/historical` | DEMO / EDUCATIONAL | Preserve only with explicit synthetic provenance |
-| `/research`, `/research/prediction-v1` | INTERNAL RESEARCH | Authenticate and exclude from indexing/public navigation |
-| `/research-desk`, `/data-health`, `/settings` | INTERNAL ADMIN | Authenticate and exclude from indexing/public navigation |
-| `/api/research-desk` | INTERNAL API | Deny by default; authenticate/authorize and bound resource use |
+| `/` | PUBLIC | Public launch page implemented; final deployment/legal gates remain |
+| `/fusion` | PUBLIC / DEMO | Synthetic, abstaining, and noindex |
+| `/models` | PUBLIC METHODOLOGY | Canonical status vocabulary applied |
+| `/predictions` | DEMO / EXPERIMENTAL | Synthetic state dominates; noindex and no live implication |
+| `/stocks/[symbol]` | DEMO / EXPERIMENTAL | Supported demo symbols only; unknown symbols return 404 |
+| `/sectors`, `/intelligence`, `/historical` | DEMO / EDUCATIONAL | Explicit synthetic provenance and noindex |
+| `/research`, `/research/prediction-v1` | INTERNAL RESEARCH | Authenticated, noindex, absent from public navigation |
+| `/research-desk`, `/data-health`, `/settings` | INTERNAL ADMIN | Authenticated, noindex, absent from public navigation |
+| `/api/research-desk` | INTERNAL API | Deny by default; authenticated, bounded, cached, and rate-limited |
 
 No live or licensed raw provider payload may be serialized to a public route merely because that route is visually labelled internal or demo.
 
@@ -59,55 +66,55 @@ No live or licensed raw provider payload may be serialized to a public route mer
 
 Gate states are `PASS`, `FAIL`, or `EXTERNAL`. A track releases only when every required gate is `PASS`; an external dependency remains an explicit blocker rather than being silently waived.
 
-### Engineering gate — FAIL
+### Engineering gate — EXTERNAL
 
-- [ ] Clean main branch and reproducible dependency installation.
-- [ ] CI runs backend tests, Ruff, Mypy, frontend lint/typecheck/build, secret scan, dependency audit, link checks, and required security tests.
-- [ ] No critical Python/TypeScript errors, console errors, broken links, or dead routes.
-- [ ] Database migrations/state initialization and reproducibility documented and tested.
-- [ ] Supervised schedulers/workers stable; missing handlers fail closed; timeouts are enforceable; retries are bounded.
-- [ ] Provider errors and runtime failures create actionable incidents.
-- [ ] Health monitoring and post-deploy verification work.
+- [x] Clean main branch and reproducible dependency installation.
+- [x] CI runs backend tests, Ruff, Mypy, frontend lint/typecheck/build, secret scan, dependency audit, link checks, and required security tests.
+- [x] No known critical Python/TypeScript errors, automated console errors, broken links, or dead public routes.
+- [x] Local durable state initialization, restart recovery, backup, and reproducibility are documented and tested.
+- [x] Missing handlers fail closed; Linux deadlines are enforceable; retries, leases, and checkpoints are bounded.
+- [x] Provider errors and runtime failures create sanitized actionable incidents.
+- [ ] Production supervision, monitoring continuity, deployment promotion, and post-deploy verification require the external host/domain and repository controls.
 
-### Data gate — FAIL / EXTERNAL
+### Data gate — EXTERNAL
 
-- [ ] Upstox authentication health verified without exposing credentials.
-- [ ] Current-universe mapping and point-in-time membership validated.
-- [ ] Freshness enforcement, stale blocking, deterministic manifests, provenance, and corporate-action warnings verified end to end.
-- [ ] Live/demo separation enforced in serializers and tests.
-- [ ] Data health visible to authorized operators.
+- [x] Upstox authentication health verified through a bounded read-only canary without exposing credentials.
+- [ ] Current-universe mapping is 200/200 exact; point-in-time historical membership remains external.
+- [x] Freshness enforcement, stale blocking, deterministic manifests, provenance, and corporate-action warnings are implemented and tested at local boundaries.
+- [x] Live/demo separation is enforced in serializers and negative tests.
+- [x] Data-health evidence is visible only to authorized operators and does not pretend to be a live browser probe.
 - [ ] Public redistribution/derived-data rights approved or public output limited to independently safe content. **EXTERNAL**
 
-### Intelligence gate — FAIL
+### Intelligence gate — EXTERNAL
 
-- [ ] RBI/SEBI collection runs under the supervised platform scheduler.
-- [ ] Luna structured-analysis runtime is wired into the normal worker under frozen prompt/model/schema controls.
-- [ ] Hallucination quarantine, provider cost ledger, source provenance, Research Desk, and strict Fusion abstention operate continuously.
-- [ ] No unverified input is silently promoted; source staleness and collection failures open and resolve incidents.
+- [ ] RBI/SEBI collection is wired to the supervised platform scheduler; continuous production execution requires the external worker host.
+- [x] Luna structured analysis is wired into the normal worker under frozen prompt/model/schema controls.
+- [ ] Hallucination quarantine, provider cost ledger, provenance, Research Desk, and Fusion abstention are implemented; continuous production operation is not yet evidenced.
+- [x] Unverified inputs remain blocked; source staleness and collection failures open and resolve incidents.
 
-### Public safety gate — FAIL / EXTERNAL
+### Public safety gate — EXTERNAL
 
-- [ ] No fixture/live mixing or fabricated metrics.
-- [ ] Claims never exceed `HOLDOUT VALIDATED — FORWARD REQUIRED`.
-- [ ] No BUY/SELL, target price, return probability, recommendation, or misleading confidence wording.
-- [ ] Public-data rights are enforced in code and verified by negative tests.
-- [ ] Risk, privacy, terms, data-source, methodology, and validation disclosures match the actual perimeter. Final legal/compliance wording approval is **EXTERNAL**.
+- [x] No fixture/live mixing or fabricated metrics pass the public serializer.
+- [x] Claims never exceed `HOLDOUT VALIDATED — FORWARD REQUIRED`.
+- [x] No BUY/SELL, target price, return probability, recommendation, or misleading confidence wording is public.
+- [x] Public-data rights are enforced in code and verified by negative tests.
+- [ ] Risk, privacy, terms, data-source, methodology, and validation drafts match the implemented perimeter; final legal/compliance approval is **EXTERNAL**.
 
-### Product gate — FAIL
+### Product gate — EXTERNAL
 
-- [ ] Public homepage explains the product, evidence process, limitations, and primary journey in plain language.
-- [ ] Navigation cleanly separates public and authenticated internal areas.
-- [ ] Desktop and mobile layouts pass screenshot QA at 1920, 1440, 1366, 1024, 430, 390, and 375 px.
-- [ ] Every data surface has honest empty, loading, stale, offline, and error states; custom 404 exists.
-- [ ] Metadata, accessibility, performance budgets, sitemap/robots, and canonical behavior pass.
+- [x] Public homepage explains the product, evidence process, limitations, and primary journey in plain language.
+- [x] Navigation cleanly separates public and authenticated internal areas.
+- [x] Automated screenshot QA passes at 1920, 1440, 1366, 1024, 430, 390, and 375 px.
+- [x] Data surfaces preserve honest empty, stale, unavailable, insufficient, and abstention states; custom 404 exists.
+- [ ] Metadata, automated accessibility, local performance budgets, sitemap/robots, and canonical behavior pass; manual assistive-technology and deployed Web Vitals acceptance remain external.
 
-### Operations gate — FAIL
+### Operations gate — EXTERNAL
 
-- [ ] Authorized health dashboard covers provider, collectors, spend, scheduler, sources, incidents, and last-success timestamps.
-- [ ] Incident taxonomy, thresholds, deduplication, resolution, escalation, and runbooks operate.
-- [ ] Deployment, rollback, backup, restore, retention, and archive policies are tested.
+- [ ] Authorized health surfaces exist, but live provider/collector/spend/scheduler/incident continuity awaits the production worker and storage host.
+- [x] Incident taxonomy, thresholds, deduplication, resolution, and runbooks are implemented and locally tested.
+- [ ] Deployment evidence, rollback, backup, restore, retention, and archive contracts are implemented; managed off-host retention and deployed recovery evidence remain external.
 - [ ] Staging and production are separate, documented, and smoke-tested.
-- [ ] Codex maintenance routines do not substitute for a platform-owned scheduler.
+- [x] Platform-owned schedules are distinct from Codex review/maintenance work.
 
 ## 4. P0 — blockers that must be resolved before Track A production
 
