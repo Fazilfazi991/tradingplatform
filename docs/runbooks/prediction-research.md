@@ -8,6 +8,19 @@
 
 Never delete negative results, rerun the same holdout as a new validation, change the frozen registration, publish forecast output, or initiate paper predictions. A critical methodology defect invalidates the experiment version; record it and start a newly registered future experiment.
 
+## Post-holdout forward artifact
+
+`scripts/build_forward_model.py` performs a post-holdout refit using only the candidates,
+hyperparameters, calibration method, features, targets, abstention policy, and OOD policy sealed
+before the one-time holdout. It uses completed targets through the frozen dataset cutoff, reserves
+the final 126 eligible sessions for calibration, applies horizon purging, exports portable numeric
+parameters, and verifies exported inference against the fitted scikit-learn pipelines.
+
+The generated package is always `approved: false`; the committed runtime configuration remains
+disabled and has no package path. Building an artifact therefore neither opens the holdout nor
+starts forward prediction issuance. Approval, production market-data eligibility, and an explicit
+runtime change require a separate reviewed release action.
+
 ## Forward-paper activation boundary
 
 `config/forward-paper.json` is deliberately disabled. Enabling it is not sufficient to start
