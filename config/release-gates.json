@@ -82,6 +82,7 @@
         "apps/web/src/app/opengraph-image.tsx",
         "apps/web/src/app/twitter-image.tsx",
         "apps/web/src/app/apple-icon.tsx",
+        "SEO_CONTENT_STRATEGY.md",
         "config/web-performance-budgets.json",
         "apps/web/scripts/performance-qa.mjs"
       ],
@@ -110,6 +111,7 @@
       "evidence": [
         "PROMOTION_READINESS_REPORT.md",
         "PROMOTION_PACKAGE_DRAFT.md",
+        "SEO_CONTENT_STRATEGY.md",
         "CLAIMS_LEDGER.md"
       ],
       "blockers": [

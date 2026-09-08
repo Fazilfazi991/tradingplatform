@@ -44,6 +44,9 @@ Decision: **BLOCKED**
   coverage resolves and validates those rendered metadata URLs, while the share-card copy preserves
   the no-trading-signals and evidence-boundary language. This is technical asset readiness, not
   authorization to publish promotion.
+- The India-focused search-intent plan now assigns one people-first purpose to each indexable public
+  page, rejects fabricated volume/ranking claims and keyword-spam expansion, and keeps Search Console
+  activation dependent on the canonical domain, privacy decision, and owner approval.
 
 ## Still required
 
