@@ -1,0 +1,12 @@
+{
+  "version": "current-intelligence-health-v1",
+  "heartbeat_stale_seconds": 150,
+  "source_freshness_cadence_multiplier": 2,
+  "scheduler_late_tolerance_seconds": 150,
+  "semantic_elevated_failure_rate": 0.05,
+  "semantic_critical_failure_rate": 0.2,
+  "semantic_health_window_seconds": 86400,
+  "quarantine_warning_count": 1,
+  "monitor_cadence_seconds": 300,
+  "minimum_recovery_cycles": 3
+}

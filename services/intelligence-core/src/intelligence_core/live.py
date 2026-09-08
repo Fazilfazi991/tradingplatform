@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Literal
 from zoneinfo import ZoneInfo
 
+from research_core.common import stable_hash
 from verified_edge.eod import EodCollector, EodConfig, EodLedger
 from verified_edge.provider_health import MarketProviderHealthLedger, check_market_provider
 from verified_edge.providers.upstox import UpstoxMarketDataProvider
@@ -23,6 +24,11 @@ from intelligence_core.macro import build_macro_snapshot, default_unknown_state
 from intelligence_core.models import CollectionPolicy, HealthStatus, IntelligenceIncident
 from intelligence_core.operations import build_daily_archive, daily_summary
 from intelligence_core.reports import daily_audit_report, maintenance_report
+from intelligence_core.runtime_forensics import (
+    CollectionAttemptRecord,
+    ForensicRuntimeStore,
+    TransportStatus,
+)
 from intelligence_core.worker import JobHandler
 
 FEEDS = {
@@ -36,31 +42,103 @@ def collect_and_persist(
     collector: OfficialRssCollector,
     *,
     sleeper=time.sleep,
+    forensics: ForensicRuntimeStore | None = None,
+    job: DurableJob | None = None,
+    scheduled_at: datetime | None = None,
 ) -> dict[str, int | str]:
     artifacts = []
     retries = 0
     for uri in collector.discover()[: collector.policy.maximum_requests]:
         for attempt in range(collector.policy.retries + 1):
+            attempt_started = datetime.now(UTC)
+            started_clock = time.perf_counter()
             try:
-                artifacts.append(collector.fetch(uri))
+                artifact = collector.fetch(uri)
+                events = collector.normalize(collector.parse(artifact), artifact)
+                artifacts.append(
+                    (
+                        artifact,
+                        events,
+                        attempt_started,
+                        datetime.now(UTC),
+                        attempt + 1,
+                        (time.perf_counter() - started_clock) * 1000,
+                    )
+                )
                 break
-            except Exception:
+            except Exception as error:
+                if forensics is not None and job is not None:
+                    terminal = attempt >= collector.policy.retries
+                    forensics.add_collection_attempt(
+                        CollectionAttemptRecord(
+                            job_id=f"{job.name}:{job.next_run_at.isoformat()}",
+                            source_id=collector.policy.source_id,
+                            scheduled_for=scheduled_at or job.next_run_at,
+                            started_at=attempt_started,
+                            completed_at=datetime.now(UTC),
+                            attempt_ordinal=attempt + 1,
+                            transport_status=TransportStatus.FAILED,
+                            error_class=type(error).__name__,
+                            handler_status="FAILED",
+                            parse_status="NOT_REACHED",
+                            recovered=False,
+                            terminal_job_status="FAILED" if terminal else "RETRY_PENDING",
+                            latency_ms=(time.perf_counter() - started_clock) * 1000,
+                            provenance_hash=stable_hash(
+                                {
+                                    "job": job.name,
+                                    "scheduled_for": (scheduled_at or job.next_run_at).isoformat(),
+                                    "attempt": attempt + 1,
+                                    "error_class": type(error).__name__,
+                                }
+                            ),
+                        )
+                    )
                 if attempt >= collector.policy.retries:
                     raise
                 retries += 1
                 sleeper(min(collector.policy.backoff_seconds * (2**attempt), 30))
     totals = {"records_seen": 0, "records_new": 0}
-    for artifact in artifacts:
-        result = store.persist_collection(
-            artifact, collector.normalize(collector.parse(artifact), artifact)
-        )
+    for artifact, events, attempt_started, attempt_completed, ordinal, latency_ms in artifacts:
+        result = store.persist_collection(artifact, events)
+        if forensics is not None and job is not None:
+            forensics.add_collection_attempt(
+                CollectionAttemptRecord(
+                    job_id=f"{job.name}:{job.next_run_at.isoformat()}",
+                    source_id=collector.policy.source_id,
+                    scheduled_for=scheduled_at or job.next_run_at,
+                    started_at=attempt_started,
+                    completed_at=attempt_completed,
+                    attempt_ordinal=ordinal,
+                    transport_status=TransportStatus.SUCCEEDED,
+                    error_class=None,
+                    handler_status="RECOVERED" if ordinal > 1 else "SUCCEEDED",
+                    parse_status="PASS",
+                    records_seen=result["records_seen"],
+                    canonical_events=result["records_new"],
+                    duplicate_count=result["records_seen"] - result["records_new"],
+                    recovered=ordinal > 1,
+                    terminal_job_status="SUCCEEDED",
+                    latency_ms=latency_ms,
+                    provenance_hash=stable_hash(
+                        {
+                            "job": job.name,
+                            "scheduled_for": (scheduled_at or job.next_run_at).isoformat(),
+                            "attempt": ordinal,
+                            "artifact": artifact.sha256,
+                        }
+                    ),
+                )
+            )
         totals = {key: totals[key] + result[key] for key in totals}
         store.set_checkpoint(artifact.source_id, artifact.sha256, now=artifact.observed_at)
         collector.advance_checkpoint(artifact.sha256)
     return {"status": "COLLECTED", "retries": retries, **totals}
 
 
-def live_source_handlers(store: SQLiteOperationsStore) -> dict[str, JobHandler]:
+def live_source_handlers(
+    store: SQLiteOperationsStore, forensics: ForensicRuntimeStore | None = None
+) -> dict[str, JobHandler]:
     sources = {source.source_id: source for source in initial_sources()}
     handlers: dict[str, JobHandler] = {}
     for job_name, source_id in (
@@ -78,7 +156,12 @@ def live_source_handlers(store: SQLiteOperationsStore) -> dict[str, JobHandler]:
             _now: datetime,
             collector: OfficialRssCollector = collector,
         ) -> dict:
-            return collect_and_persist(store, collector)
+            return collect_and_persist(
+                store,
+                collector,
+                forensics=forensics,
+                job=_job,
+            )
 
         handlers[job_name] = handler
     return handlers
@@ -92,14 +175,33 @@ def operational_handlers(
     def health(_job: DurableJob, now: datetime) -> dict:
         events = store.events()
         states = {}
+        source_jobs = {
+            "rbi-press-releases-rss": "rbi-rss",
+            "sebi-rss": "sebi-rss",
+        }
         for source in (item for item in initial_sources() if item.active):
-            latest = max(
+            stale_after_seconds = source.expected_latency_seconds * 2
+            latest_event = max(
                 (event.observed_at for event in events if event.source_id == source.source_id),
+                default=None,
+            )
+            execution = store.connection.execute(
+                "SELECT ended_at FROM executions WHERE job_name=? AND status='SUCCEEDED' "
+                "ORDER BY ended_at DESC LIMIT 1",
+                (source_jobs[source.source_id],),
+            ).fetchone()
+            latest_collection = (
+                datetime.fromisoformat(execution["ended_at"])
+                if execution and execution["ended_at"]
+                else None
+            )
+            latest = max(
+                (value for value in (latest_event, latest_collection) if value is not None),
                 default=None,
             )
             state = (
                 HealthStatus.HEALTHY
-                if latest and (now - latest).total_seconds() <= 7200
+                if latest and (now - latest).total_seconds() <= stale_after_seconds
                 else HealthStatus.STALE
             )
             states[source.source_id] = state
@@ -112,8 +214,14 @@ def operational_handlers(
                         severity="WARNING",
                         source_id=source.source_id,
                         evidence={
-                            "last_observed_at": latest.isoformat() if latest else None,
-                            "stale_after_seconds": 7200,
+                            "last_successful_collection_at": (
+                                latest_collection.isoformat() if latest_collection else None
+                            ),
+                            "last_new_event_observed_at": (
+                                latest_event.isoformat() if latest_event else None
+                            ),
+                            "stale_after_seconds": stale_after_seconds,
+                            "freshness_basis": "source_expected_latency_x2",
                         },
                         affected_data=(source.source_id,),
                     )

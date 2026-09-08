@@ -1,0 +1,79 @@
+{
+  "generated_at": "2026-09-08T07:31:24.982379Z",
+  "authority": "post-soak supervised operational recovery",
+  "historical_soak_report_mutated": false,
+  "historical_high_incidents": [
+    {
+      "incident_id": "dd7b1eaf-ed6a-4192-b27c-f7165444d7ab",
+      "incident_type": "LLM_HALLUCINATION_QUARANTINE",
+      "created_at": "2026-09-03T14:41:11.954099Z",
+      "last_seen_at": "2026-09-08T06:45:16.170204Z",
+      "historical_status": "OPEN",
+      "current_status": "OPEN_ACTIVE_RECURRENCE",
+      "affected_subsystem": "Luna semantic validation",
+      "containment_status": "PASS",
+      "remediation": "Unsupported numeric claims remain quarantined, tombstoned, uncached and excluded downstream.",
+      "closure_criteria": "A frozen bounded live semantic window completes below the configured failure threshold with no terminal quarantine recurrence."
+    },
+    {
+      "incident_id": "4a65e821-504b-45be-8b78-cf75c401a4ff",
+      "incident_type": "LLM_SCHEMA_FAILURE_SPIKE",
+      "created_at": "2026-09-03T14:42:03.651840Z",
+      "last_seen_at": "2026-09-08T06:45:30.964230Z",
+      "historical_status": "OPEN",
+      "current_status": "OPEN_ACTIVE_RECURRENCE",
+      "affected_subsystem": "Semantic structured-output validation",
+      "containment_status": "PASS",
+      "remediation": "Strict validation was retained; transport and semantic health remain separate.",
+      "closure_criteria": "A representative frozen live canary window remains below the 5% threshold without weakening validation."
+    },
+    {
+      "incident_id": "0472a14f-f01f-482f-8737-0ee2ca4eaa43",
+      "incident_type": "SOURCE_COLLECTION_FAILURE",
+      "created_at": "2026-09-04T12:47:51.392440Z",
+      "last_seen_at": "2026-09-04T12:47:51.392440Z",
+      "historical_status": "OPEN",
+      "current_status": "RESOLVED",
+      "affected_subsystem": "RBI official RSS collection",
+      "containment_status": "PASS",
+      "remediation": "Historical failure recovered on the next soak cycle; the supervised recovery completed three further scheduled cycles without failure.",
+      "closure_criteria": "Satisfied: current collection, reconciled forensic attempts, no observed data loss, and three scheduled successes."
+    }
+  ],
+  "current_high_incidents": [
+    {
+      "incident_id": "e16fbfde-10c0-419e-b622-3ac727f60c88",
+      "incident_type": "LLM_HALLUCINATION_QUARANTINE",
+      "status": "OPEN",
+      "source_id": "rbi-press-releases-rss"
+    },
+    {
+      "incident_id": "f12fa804-7299-49ac-a026-d3584f4d34f0",
+      "incident_type": "LLM_HALLUCINATION_QUARANTINE",
+      "status": "OPEN",
+      "source_id": "rbi-press-releases-rss"
+    },
+    {
+      "incident_id": "ef3a6ffe-d875-4071-82ec-d1efd873dca7",
+      "incident_type": "LLM_SCHEMA_FAILURE_SPIKE",
+      "status": "OPEN",
+      "source_id": null
+    }
+  ],
+  "current_evidence": {
+    "provider_transport_health": "HEALTHY",
+    "semantic_validation_health": "CRITICAL_FAILURE_RATE",
+    "semantic_attempts": 20,
+    "validation_failures": 8,
+    "failure_rate": 0.4,
+    "terminal_quarantines": 2,
+    "active_tombstones": 2,
+    "transport_failures": 0,
+    "rbi_scheduled_cycles": 3,
+    "sebi_scheduled_cycles": 3,
+    "collection_failures": 0,
+    "configuration_drift": "PASS",
+    "forward_paper": "DISABLED"
+  },
+  "decision": "INTELLIGENCE OPERATIONS RECOVERY NEEDS WORK"
+}

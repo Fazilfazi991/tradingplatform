@@ -31,8 +31,10 @@ class SQLiteOperationsStore:
     def __init__(self, path: str | Path) -> None:
         self.path = Path(path)
         self.path.parent.mkdir(parents=True, exist_ok=True)
-        self.connection = sqlite3.connect(self.path)
+        self.connection = sqlite3.connect(self.path, timeout=30)
         self.connection.row_factory = sqlite3.Row
+        self.connection.execute("PRAGMA busy_timeout=30000")
+        self.connection.execute("PRAGMA journal_mode=WAL")
         self._migrate()
 
     def _migrate(self) -> None:
@@ -66,6 +68,9 @@ class SQLiteOperationsStore:
         CREATE TABLE IF NOT EXISTS service_runtime (
           instance_id TEXT PRIMARY KEY, pid INTEGER NOT NULL, started_at TEXT NOT NULL,
           heartbeat_at TEXT NOT NULL, status TEXT NOT NULL, stopped_at TEXT
+        );
+        CREATE TABLE IF NOT EXISTS service_control (
+          instance_id TEXT PRIMARY KEY, stop_requested INTEGER NOT NULL DEFAULT 0
         );
         """)
         self.connection.commit()
@@ -197,6 +202,7 @@ class SQLiteOperationsStore:
         source_id: str | None,
         now: datetime,
         resolution: str,
+        affected_data: str | None = None,
     ) -> int:
         rows = self.connection.execute("SELECT incident_id,payload_json FROM incidents").fetchall()
         resolved = 0
@@ -206,11 +212,50 @@ class SQLiteOperationsStore:
                 payload.get("incident_type") != incident_type
                 or payload.get("source_id") != source_id
                 or payload.get("status") not in {"OPEN", "ACKNOWLEDGED"}
+                or (affected_data is not None and affected_data not in payload.get("affected_data", []))
             ):
                 continue
             payload.update(
                 status="RESOLVED",
                 resolution=resolution,
+                closed_at=now.astimezone(UTC).isoformat(),
+            )
+            self.connection.execute(
+                "UPDATE incidents SET payload_json=? WHERE incident_id=?",
+                (json.dumps(payload, sort_keys=True), incident_id),
+            )
+            resolved += 1
+        self.connection.commit()
+        return resolved
+
+    def reconcile_completed_missed_runs(self, *, now: datetime) -> int:
+        rows = self.connection.execute("SELECT incident_id,payload_json FROM incidents").fetchall()
+        resolved = 0
+        for incident_id, payload_json in rows:
+            payload = json.loads(payload_json)
+            if payload.get("incident_type") != "SCHEDULER_MISSED_RUN" or payload.get(
+                "status"
+            ) not in {"OPEN", "ACKNOWLEDGED"}:
+                continue
+            affected = payload.get("affected_data") or []
+            if not affected:
+                continue
+            completed_rows = self.connection.execute(
+                "SELECT started_at,ended_at FROM executions WHERE job_name=? "
+                "AND status='SUCCEEDED' ORDER BY started_at DESC",
+                (affected[0],),
+            ).fetchall()
+            opened_at = datetime.fromisoformat(payload["opened_at"])
+            recovered = any(
+                datetime.fromisoformat(row["ended_at"] or row["started_at"])
+                >= opened_at - timedelta(seconds=5)
+                for row in completed_rows
+            )
+            if not recovered:
+                continue
+            payload.update(
+                status="RESOLVED",
+                resolution="MISSED_EXECUTION_COMPLETED",
                 closed_at=now.astimezone(UTC).isoformat(),
             )
             self.connection.execute(
@@ -288,16 +333,47 @@ class SQLiteOperationsStore:
                 "raw_artifacts",
                 "information_events",
                 "service_runtime",
+                "service_control",
             )
         }
 
-    def start_service(self, instance_id: str, pid: int, *, now: datetime) -> None:
+    def start_service(
+        self,
+        instance_id: str,
+        pid: int,
+        *,
+        now: datetime,
+        active_within: timedelta = timedelta(seconds=150),
+    ) -> None:
         timestamp = now.astimezone(UTC).isoformat()
-        self.connection.execute(
-            "INSERT INTO service_runtime VALUES(?,?,?,?,?,NULL)",
-            (instance_id, pid, timestamp, timestamp, "RUNNING"),
-        )
-        self.connection.commit()
+        try:
+            self.connection.execute("BEGIN IMMEDIATE")
+            rows = self.connection.execute(
+                "SELECT instance_id,heartbeat_at FROM service_runtime WHERE status='RUNNING'"
+            ).fetchall()
+            fresh = [
+                row
+                for row in rows
+                if now.astimezone(UTC) - datetime.fromisoformat(row["heartbeat_at"])
+                <= active_within
+            ]
+            if fresh:
+                raise RuntimeError("an active intelligence worker already owns the runtime")
+            self.connection.execute(
+                "UPDATE service_runtime SET status='STALE',stopped_at=? WHERE status='RUNNING'",
+                (timestamp,),
+            )
+            self.connection.execute(
+                "INSERT INTO service_runtime VALUES(?,?,?,?,?,NULL)",
+                (instance_id, pid, timestamp, timestamp, "RUNNING"),
+            )
+            self.connection.execute(
+                "INSERT OR REPLACE INTO service_control VALUES(?,0)", (instance_id,)
+            )
+            self.connection.commit()
+        except Exception:
+            self.connection.rollback()
+            raise
 
     def heartbeat_service(self, instance_id: str, *, now: datetime) -> None:
         cursor = self.connection.execute(
@@ -308,6 +384,28 @@ class SQLiteOperationsStore:
             self.connection.rollback()
             raise RuntimeError("service runtime is not registered as running")
         self.connection.commit()
+
+    def request_service_stop(self) -> str | None:
+        row = self.connection.execute(
+            "SELECT instance_id FROM service_runtime WHERE status='RUNNING' "
+            "ORDER BY started_at DESC LIMIT 1"
+        ).fetchone()
+        if row is None:
+            return None
+        instance_id = str(row["instance_id"])
+        self.connection.execute(
+            "INSERT INTO service_control(instance_id,stop_requested) VALUES(?,1) "
+            "ON CONFLICT(instance_id) DO UPDATE SET stop_requested=1",
+            (instance_id,),
+        )
+        self.connection.commit()
+        return instance_id
+
+    def service_stop_requested(self, instance_id: str) -> bool:
+        row = self.connection.execute(
+            "SELECT stop_requested FROM service_control WHERE instance_id=?", (instance_id,)
+        ).fetchone()
+        return bool(row and row[0])
 
     def stop_service(self, instance_id: str, *, now: datetime) -> None:
         timestamp = now.astimezone(UTC).isoformat()

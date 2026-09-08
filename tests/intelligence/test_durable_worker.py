@@ -15,6 +15,7 @@ from intelligence_core.models import (
     IntelligenceRuntimeMode,
     IntelligenceRuntimePolicy,
 )
+from intelligence_core.runtime_forensics import ForensicRuntimeStore
 from intelligence_core.semantic_runtime import configured_semantic_handler
 from intelligence_core.worker import IntelligenceWorker
 from verified_edge.providers.upstox import AuthenticationError
@@ -97,6 +98,40 @@ def test_missed_run_opens_incident_and_shutdown_is_graceful(tmp_path):
     assert store.incidents()[0]["incident_type"] == "SCHEDULER_MISSED_RUN"
     worker.request_shutdown()
     assert worker.shutdown.is_set()
+
+
+def test_missed_run_alert_is_deduplicated_and_resolved_by_on_time_run(tmp_path):
+    start = datetime(2026, 8, 30, tzinfo=UTC)
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    store.load_config(config(tmp_path), now=start)
+    worker = IntelligenceWorker(
+        store,
+        {"poll": lambda _job, _now: {"status": "OK"}},
+        mode=IntelligenceRuntimeMode.FIXTURE,
+    )
+    worker.run_once(now=start + timedelta(hours=2))
+    missed = [row for row in store.incidents() if row["incident_type"] == "SCHEDULER_MISSED_RUN"]
+    assert len(missed) == 1
+    next_due = store.all_jobs()[0].next_run_at
+    worker.run_once(now=next_due)
+    missed = [row for row in store.incidents() if row["incident_type"] == "SCHEDULER_MISSED_RUN"]
+    assert len(missed) == 1
+    assert missed[0]["status"] == "RESOLVED"
+
+
+def test_completed_catchup_reconciles_missed_run_incident(tmp_path):
+    start = datetime(2026, 8, 30, tzinfo=UTC)
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    store.load_config(config(tmp_path), now=start)
+    worker = IntelligenceWorker(
+        store,
+        {"poll": lambda _job, _now: {"status": "OK"}},
+        mode=IntelligenceRuntimeMode.FIXTURE,
+    )
+    completed = start + timedelta(hours=2)
+    worker.run_once(now=completed)
+    assert store.reconcile_completed_missed_runs(now=completed + timedelta(seconds=1)) == 1
+    assert store.incidents()[0]["status"] == "RESOLVED"
 
 
 def test_missing_handler_fails_closed_and_records_incident(tmp_path):
@@ -213,6 +248,31 @@ def test_collection_retries_are_bounded_and_checkpoint_advances(tmp_path):
     result = collect_and_persist(store, item, sleeper=lambda _seconds: None)
     assert result["retries"] == 2 and attempts == 3
     assert store.checkpoint(source.source_id) == item.checkpoint()
+
+
+def test_live_collection_records_authoritative_forensic_attempt(tmp_path):
+    xml = b"""<rss><channel><item><title>Update</title><link>https://rbi.org.in/a</link>
+    <guid>fresh-1</guid><pubDate>Tue, 08 Sep 2026 05:00:00 +0000</pubDate></item></channel></rss>"""
+    source = initial_sources()[0]
+    collector = OfficialRssCollector(
+        source,
+        CollectionPolicy(source_id=source.source_id, cadence_seconds=900),
+        "https://rbi.org.in/feed.xml",
+        transport=httpx.MockTransport(
+            lambda _request: httpx.Response(
+                200, content=xml, headers={"content-type": "text/xml"}
+            )
+        ),
+    )
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    forensics = ForensicRuntimeStore(tmp_path / "forensics.db")
+    job = DurableJob("rbi-rss", "INTERVAL", source.source_id, 900, None, None, datetime(2026, 9, 8, 5, tzinfo=UTC), "1")
+    result = collect_and_persist(store, collector, forensics=forensics, job=job)
+    attempt = forensics.collection_attempts()[0]
+    assert result["records_seen"] == 1
+    assert attempt.source_id == source.source_id
+    assert attempt.terminal_job_status == "SUCCEEDED"
+    assert attempt.records_seen == 1
 
 
 def test_every_configured_job_has_an_operational_handler(tmp_path):
@@ -340,3 +400,28 @@ def test_service_runtime_heartbeat_reports_stale_and_stopped(tmp_path):
         )["status"]
         == "STOPPED"
     )
+
+
+def test_service_runtime_rejects_concurrent_live_worker(tmp_path):
+    now = datetime(2026, 8, 30, tzinfo=UTC)
+    database = tmp_path / "ops.db"
+    first = SQLiteOperationsStore(database)
+    second = SQLiteOperationsStore(database)
+    first.start_service("one", 1, now=now)
+    with pytest.raises(RuntimeError, match="active intelligence worker"):
+        second.start_service("two", 2, now=now + timedelta(seconds=5))
+    first.stop_service("one", now=now + timedelta(seconds=6))
+    second.start_service("two", 2, now=now + timedelta(seconds=7))
+    assert second.service_status(
+        now=now + timedelta(seconds=7), stale_after=timedelta(seconds=30)
+    )["instance_id"] == "two"
+
+
+def test_service_runtime_stop_request_is_durable(tmp_path):
+    now = datetime(2026, 8, 30, tzinfo=UTC)
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    assert store.request_service_stop() is None
+    store.start_service("worker", 1, now=now)
+    assert not store.service_stop_requested("worker")
+    assert store.request_service_stop() == "worker"
+    assert store.service_stop_requested("worker")

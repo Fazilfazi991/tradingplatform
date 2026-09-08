@@ -253,7 +253,9 @@ def semantic_health(
 
 class ForensicRuntimeStore:
     def __init__(self, path: Path) -> None:
-        self.connection = sqlite3.connect(path)
+        self.connection = sqlite3.connect(path, timeout=30)
+        self.connection.execute("PRAGMA busy_timeout=30000")
+        self.connection.execute("PRAGMA journal_mode=WAL")
         self.connection.executescript("""
         CREATE TABLE IF NOT EXISTS llm_attempts (
           attempt_id TEXT PRIMARY KEY, semantic_request_id TEXT NOT NULL,

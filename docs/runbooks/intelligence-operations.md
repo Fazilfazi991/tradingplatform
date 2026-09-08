@@ -8,13 +8,51 @@ Run one scheduler pass with `python scripts/run_intelligence_worker.py --once`. 
 omitting `--once`; stop with Ctrl+C. Local state is `data/local/intelligence-operations.sqlite3` and is
 not committed. Validate approved feeds with `python scripts/validate_live_intelligence_sources.py`.
 
+## Windows supervised operation
+
+The approved Windows workstation supervisor is Task Scheduler. Install or repair both the worker
+and its independent five-minute health monitor from a normal PowerShell session:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File scripts\install_intelligence_worker_task.ps1
+```
+
+The worker task is `VerifiedEdge-IntelligenceWorker`; its monitor is
+`VerifiedEdge-IntelligenceWorker-HealthMonitor`. The worker loads the ignored local `.env` into its
+own process, requires the approved `gpt-5.6-luna` model, enables the internal semantic path, and
+writes sanitized logs under `data/local/intelligence-worker/`. Neither task is a Codex automation.
+
+```powershell
+Get-ScheduledTask -TaskName "VerifiedEdge-IntelligenceWorker*"
+Get-ScheduledTaskInfo -TaskName VerifiedEdge-IntelligenceWorker
+.\.venv\Scripts\python.exe scripts\run_intelligence_worker.py --stop
+Start-ScheduledTask -TaskName VerifiedEdge-IntelligenceWorker
+Get-Content data\local\intelligence-worker\worker.log -Tail 100
+.\.venv\Scripts\python.exe scripts\run_intelligence_worker.py --status
+.\.venv\Scripts\python.exe scripts\build_current_intelligence_health.py
+```
+
+The task survives terminal and Codex closure. It restarts a failed worker up to five times and
+starts again at the current user's next logon. It is not an unattended Windows service: collection
+does not start before interactive logon after reboot. Deploy the reviewed systemd unit on the
+intended Linux worker host for unattended boot persistence and least-privilege service identity.
+
+Safe recovery is: inspect Task Scheduler result and the sanitized log, generate current health,
+request a graceful stop with `--stop`, confirm `STOPPED`, then start the task once and observe at least three real
+source cycles. Never delete the operations or forensic databases to make an alert disappear.
+
+Credential failure is reported without values. Source failures preserve bounded attempt records;
+Luna transport and semantic failures remain separate. A stale heartbeat requires supervisor/process
+inspection. A current heartbeat alone does not prove source freshness or semantic health.
+
 Check the platform-owned worker heartbeat without exposing job payloads or credentials:
 
 ```powershell
 .\.venv\Scripts\python.exe scripts\run_intelligence_worker.py --status
 ```
 
-`RUNNING` means the latest heartbeat is no more than 30 seconds old. `STALE` means the process did
+`RUNNING` means the latest heartbeat is within the configured stale threshold (150 seconds, covering
+the bounded 120-second job deadline plus polling margin). `STALE` means the process did
 not shut down cleanly or is no longer making progress; inspect the service manager and incidents,
 then restart under the approved host supervisor. `STOPPED` is a graceful exit and `NOT_STARTED`
 means this state database has never hosted a continuous worker. The heartbeat is a health signal,

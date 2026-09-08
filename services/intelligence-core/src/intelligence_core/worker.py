@@ -109,7 +109,7 @@ class IntelligenceWorker:
             if self.shutdown.is_set():
                 break
             lateness = (now - job.next_run_at).total_seconds()
-            if lateness > 3600:
+            if lateness > 3600 and not self.store.has_open_incident("SCHEDULER_MISSED_RUN"):
                 self.store.record_incident(
                     IntelligenceIncident(
                         incident_type="SCHEDULER_MISSED_RUN",
@@ -130,6 +130,21 @@ class IntelligenceWorker:
                 handler = self.handlers[job.name]
                 with enforced_deadline(self.job_timeout_seconds) as deadline_enforced:
                     result = handler(job, now)
+                if lateness <= 3600:
+                    self.store.resolve_open_incidents(
+                        "SCHEDULER_MISSED_RUN",
+                        source_id=None,
+                        now=now,
+                        resolution="SCHEDULED_EXECUTION_RETURNED_WITHIN_TOLERANCE",
+                        affected_data=job.name,
+                    )
+                if job.source_id:
+                    self.store.resolve_open_incidents(
+                        "SOURCE_COLLECTION_FAILURE",
+                        source_id=job.source_id,
+                        now=now,
+                        resolution="SOURCE_COLLECTION_RECOVERED",
+                    )
                 elapsed = time.perf_counter() - started
                 if elapsed > self.job_timeout_seconds:
                     status = "TIMED_OUT"
@@ -186,7 +201,9 @@ class IntelligenceWorker:
                     )
                 )
             try:
-                self.store.finish_execution(key, job, now=now, status=status, result=result)
+                self.store.finish_execution(
+                    key, job, now=datetime.now(UTC), status=status, result=result
+                )
             finally:
                 self.store.release(job.name, self.owner)
             results.append({"job": job.name, "status": status, **result})
@@ -198,6 +215,9 @@ class IntelligenceWorker:
         try:
             self.store.heartbeat_service(self.owner, now=datetime.now(UTC))
             while not self.shutdown.wait(poll_seconds):
+                if self.store.service_stop_requested(self.owner):
+                    self.shutdown.set()
+                    break
                 self.store.heartbeat_service(self.owner, now=datetime.now(UTC))
                 self.run_once()
         finally:
