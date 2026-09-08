@@ -29,6 +29,10 @@ Decision: **BLOCKED**
   boundary, rechecks Track A authorization, and only then reaches the protected production approval.
   It has not been run because the required external gates and hosted environment configuration are
   still open.
+- Authenticated Vercel inspection confirms Standard Protection covers the staged generated URL.
+  The workflow now requires a dedicated automation-bypass secret before build and sends it only in
+  the protection-bypass header; the project and GitHub release environments do not yet contain that
+  credential.
 - Local SQLite backup/restore integrity checks and a real intelligence-worker
   start/heartbeat/graceful-stop rehearsal pass. These do not substitute for managed production
   storage, retention, host supervision, or deployed recovery evidence.
@@ -47,6 +51,9 @@ Decision: **BLOCKED**
   CLS, and encoded document/JavaScript/CSS/font/total payload. A separate production-build boundary
   audit inspects every public HTML response and referenced text asset, verifies protected denials,
   and rejects credential identifiers, machine paths, internal runtime paths, and exposed source maps.
+- A hosted Fusion CLS regression was source-attributed to the streamed shell footer and corrected by
+  reserving stable shell geometry. Repeated Fusion CLS measurements now remain well below the frozen
+  `0.08` budget, and the replacement exact-commit hosted run passes.
 - Generated Open Graph, Twitter, and Apple touch assets now ship from the production build. Smoke
   coverage resolves and validates those rendered metadata URLs, while the share-card copy preserves
   the no-trading-signals and evidence-boundary language. This is technical asset readiness, not

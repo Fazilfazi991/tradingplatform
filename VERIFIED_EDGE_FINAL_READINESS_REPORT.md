@@ -2,7 +2,7 @@
 
 Status date: 2026-09-08
 
-Evidence baseline: `main` at `3082250e9176954e7ea1314db4879130e14a80b3`
+Evidence baseline: `main` at `a76959f647c911549fd5890df98eac7e6109c837`
 
 Report type: fail-closed readiness snapshot; not a launch authorization
 
@@ -16,17 +16,20 @@ production.
 ## 2. Git
 
 - Branch: `main`
-- Evidence commit: `df8c57bc034e4c0a0647d0153fbff56ad39aee7b`
+- Implementation evidence commit: `a76959f647c911549fd5890df98eac7e6109c837`
 - Working tree at evidence capture: clean
 - Remote match at evidence capture: yes
-- Hosted quality: [run 34183532768](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34183532768), success
+- Hosted quality: [run 34187566398](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34187566398), success
 
 The eventual release commit must be recorded by the deployment-evidence artifact. A tracked report
 cannot truthfully embed the hash of the commit that first contains itself.
 
-Environment audit: the linked Vercel project has no project variables. GitHub has `Preview` and
-`Production`, but lacks the workflow-required `production-staging`; the existing environments have
-no reviewers, branch restrictions, secrets, or variables. No values were inspected or disclosed.
+Environment audit: the linked `tradingplatform` Vercel project has no project variables. Standard
+Protection is enabled and protects generated deployment URLs, while the public production domain
+would remain unprotected. No automation-bypass secret or GitHub Actions trusted source is configured.
+GitHub has `Preview` and `Production`, but lacks the workflow-required `production-staging`; the
+existing environments have no reviewers, branch restrictions, secrets, or variables. No values were
+inspected or disclosed.
 
 ## 3. Product
 
@@ -86,8 +89,11 @@ are enabled. Branch rules, required checks, and pull-request review remain absen
 ## 10. Performance
 
 The optimized local production build passes versioned budgets for navigation response, LCP, CLS,
-document, JavaScript, CSS, font, and total encoded payload across representative routes. Deployed
-Web Vitals and representative INP remain unavailable until a canonical deployment receives traffic.
+document, JavaScript, CSS, font, and total encoded payload across representative routes. A hosted
+Fusion CLS failure (`0.089` versus the `0.08` budget) was traced to the streamed shell briefly placing
+the footer in-view; reserved shell geometry reduced repeated local Fusion measurements to
+`0.0001`–`0.0093`, and exact-commit hosted quality then passed. Deployed Web Vitals and representative
+INP remain unavailable until a canonical deployment receives traffic.
 
 ## 11. Monitoring
 
@@ -135,14 +141,15 @@ redistribution and derived/commercial-use rights remain absent.
 
 Evidence baseline results:
 
-- Backend: 359 passed, 1 skipped
+- Backend: 361 passed, 1 skipped (362 collected)
 - Ruff: pass
 - Mypy: pass across 69 source files
 - Frontend unit tests: 11 passed
 - Frontend lint/typecheck/build: pass
 - Full Node dependency audit, including locked release tooling: no known vulnerabilities
 - Repository secret scan and diff check: pass
-- Hosted quality run 34184909520: backend, web, and repository-safety pass
+- Hosted quality run 34187566398: backend, web, and repository-safety pass for the exact
+  `a76959f647c911549fd5890df98eac7e6109c837` implementation baseline
 
 ## 18. External blockers
 
