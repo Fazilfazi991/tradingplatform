@@ -16,10 +16,10 @@ production.
 ## 2. Git
 
 - Branch: `main`
-- Evidence commit: `3082250e9176954e7ea1314db4879130e14a80b3`
+- Evidence commit: `df8c57bc034e4c0a0647d0153fbff56ad39aee7b`
 - Working tree at evidence capture: clean
 - Remote match at evidence capture: yes
-- Hosted quality: [run 34181254358](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34181254358), success
+- Hosted quality: [run 34183532768](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34183532768), success
 
 The eventual release commit must be recorded by the deployment-evidence artifact. A tracked report
 cannot truthfully embed the hash of the commit that first contains itself.
@@ -131,14 +131,14 @@ redistribution and derived/commercial-use rights remain absent.
 
 Evidence baseline results:
 
-- Backend: 345 passed, 1 skipped
+- Backend: 352 passed, 1 skipped
 - Ruff: pass
 - Mypy: pass across 69 source files
 - Frontend unit tests: 11 passed
 - Frontend lint/typecheck/build: pass
 - Production dependency audit: no known vulnerabilities
 - Repository secret scan and diff check: pass
-- Hosted quality run 34181254358: backend, web, and repository-safety pass
+- Hosted quality run 34183532768: backend, web, and repository-safety pass
 
 ## 18. External blockers
 
