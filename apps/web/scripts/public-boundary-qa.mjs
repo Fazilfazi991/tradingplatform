@@ -12,6 +12,11 @@ const configPath = fileURLToPath(
 );
 const nextCli = fileURLToPath(new URL("../node_modules/next/dist/bin/next", import.meta.url));
 const config = JSON.parse(await readFile(configPath, "utf8"));
+const forbiddenText = [
+  ...config.forbidden_text,
+  ["BEGIN", "PRIVATE", "KEY"].join(" "),
+  ["BEGIN", "RSA", "PRIVATE", "KEY"].join(" "),
+];
 const server = spawn(process.execPath, [nextCli, "start", "--hostname", host, "--port", port], {
   cwd: webRoot,
   env: { ...process.env, NODE_ENV: "production" },
@@ -36,7 +41,7 @@ async function waitUntilReady() {
 }
 
 function inspectText(label, text, failures) {
-  for (const forbidden of config.forbidden_text) {
+  for (const forbidden of forbiddenText) {
     if (text.includes(forbidden)) failures.push(`${label}: exposed forbidden marker ${forbidden}`);
   }
   if (/file:\/\/\/(?:[A-Za-z]:\/|home\/|Users\/)/i.test(text)) {
