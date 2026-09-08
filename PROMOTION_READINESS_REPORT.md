@@ -29,6 +29,10 @@ Decision: **BLOCKED**
   boundary, rechecks Track A authorization, and only then reaches the protected production approval.
   It has not been run because the required external gates and hosted environment configuration are
   still open.
+- The manual workflow now requires a previous healthy deployment ID and successful rollback-rehearsal
+  attestation before staging. After promotion it runs HTTP and real-browser console/network checks,
+  seals and validates `deployment-evidence-v1`, and retains it as a commit-addressed artifact. A
+  smoke, sealing, or upload failure triggers rollback and rejects the release.
 - Authenticated Vercel inspection confirms Standard Protection covers the staged generated URL.
   The workflow now requires a dedicated automation-bypass secret before build and sends it only in
   the protection-bypass header; the project and GitHub release environments do not yet contain that

@@ -2,7 +2,7 @@
 
 Status date: 2026-09-08
 
-Evidence baseline: `main` at `a76959f647c911549fd5890df98eac7e6109c837`
+Evidence baseline: `main` at `16e043bccf1e0b5baecf640778d86470d2736f45`
 
 Report type: fail-closed readiness snapshot; not a launch authorization
 
@@ -16,10 +16,10 @@ production.
 ## 2. Git
 
 - Branch: `main`
-- Implementation evidence commit: `a76959f647c911549fd5890df98eac7e6109c837`
+- Implementation evidence commit: `16e043bccf1e0b5baecf640778d86470d2736f45`
 - Working tree at evidence capture: clean
 - Remote match at evidence capture: yes
-- Hosted quality: [run 34187566398](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34187566398), success
+- Hosted quality: [run 34188605536](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34188605536), success
 
 The eventual release commit must be recorded by the deployment-evidence artifact. A tracked report
 cannot truthfully embed the hash of the commit that first contains itself.
@@ -141,15 +141,15 @@ redistribution and derived/commercial-use rights remain absent.
 
 Evidence baseline results:
 
-- Backend: 361 passed, 1 skipped (362 collected)
+- Backend: 364 passed, 1 skipped (365 collected)
 - Ruff: pass
 - Mypy: pass across 69 source files
 - Frontend unit tests: 11 passed
 - Frontend lint/typecheck/build: pass
 - Full Node dependency audit, including locked release tooling: no known vulnerabilities
 - Repository secret scan and diff check: pass
-- Hosted quality run 34187566398: backend, web, and repository-safety pass for the exact
-  `a76959f647c911549fd5890df98eac7e6109c837` implementation baseline
+- Hosted quality run 34188605536: backend, web, and repository-safety pass for the exact
+  `16e043bccf1e0b5baecf640778d86470d2736f45` implementation baseline
 
 ## 18. External blockers
 
