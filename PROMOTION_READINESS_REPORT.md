@@ -16,7 +16,8 @@ Decision: **BLOCKED**
   were repaired; the 98-combination public route/viewport matrix passes overflow, content, H1,
   and framework-overlay checks.
 - Synthetic demo routes now emit `noindex, nofollow`; the sitemap is limited to approved
-  informational routes and supports validated explicit or Vercel production origins.
+  informational routes and supports validated explicit or Vercel production origins. Each sitemap
+  route now emits a smoke-verified self-referential canonical URL.
 - Keyboard-first skip navigation and automated structural accessibility checks now pass across
   all 14 public routes; local optimized-build response and bundle baselines are recorded in
   `PUBLIC_PRODUCT_QA.md`.

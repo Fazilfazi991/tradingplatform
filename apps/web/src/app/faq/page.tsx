@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import { PublicDoc } from "@/components/public-doc";
-export const metadata: Metadata = { title: "FAQ", description: "Answers about Verified Edge demo data, predictions, abstention, evidence, and validation." };
+export const metadata: Metadata = { title: "FAQ", description: "Answers about Verified Edge demo data, predictions, abstention, evidence, and validation.", alternates: { canonical: "/faq" } };
 const questions=[
   ["Is this live market data?","No. Public market and forecast values are synthetic unless explicitly marked otherwise."],
   ["Does Verified Edge tell me what to buy or sell?","No. It does not provide BUY/SELL calls, target prices, execution, or personalized advice."],

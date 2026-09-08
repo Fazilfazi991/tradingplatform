@@ -43,6 +43,7 @@ const publicRoutes = [
   "/", "/methodology", "/data-sources", "/validation", "/models", "/about", "/faq",
   "/risk", "/privacy", "/terms", "/contact", "/predictions", "/stocks/RELIANCE", "/fusion",
 ];
+const indexableRoutes = ["/", "/methodology", "/data-sources", "/validation", "/models", "/about", "/faq"];
 const protectedRoutes = [
   "/research", "/research/prediction-v1", "/research-desk", "/data-health", "/settings",
   "/api/research-desk",
@@ -82,6 +83,16 @@ try {
     const response = await request(path);
     const body = await response.text();
     assert(/<meta name="robots" content="noindex, nofollow"/i.test(body), `${path} lacks noindex`);
+  }
+  for (const path of indexableRoutes) {
+    const response = await request(path);
+    const body = await response.text();
+    const canonicalMatch = body.match(/<link rel="canonical" href="([^"]+)"/i);
+    assert(canonicalMatch, `${path} omitted its canonical URL`);
+    const canonicalUrl = new URL(canonicalMatch[1].replaceAll("&amp;", "&"), origin);
+    assert(canonicalUrl.origin === origin, `${path} canonical used the wrong origin`);
+    assert(canonicalUrl.pathname === path, `${path} canonical pointed to ${canonicalUrl.pathname}`);
+    assert(!canonicalUrl.search && !canonicalUrl.hash, `${path} canonical included search or hash state`);
   }
   const securityResponse = await request("/");
   const requiredSecurityHeaders = {

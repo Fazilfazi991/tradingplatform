@@ -1,5 +1,8 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, Check, CircleSlash2, Fingerprint, Scale, ShieldCheck } from "lucide-react";
+
+export const metadata: Metadata = { alternates: { canonical: "/" } };
 
 const engines = [
   ["Technical", "Price structure"], ["Historical", "Comparable regimes"],

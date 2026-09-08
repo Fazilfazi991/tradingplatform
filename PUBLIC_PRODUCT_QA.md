@@ -65,7 +65,9 @@ historical, intelligence, and sector demos emit `noindex, nofollow` and are excl
 
 The sitemap contains only approved informational routes when a validated canonical origin is
 available. Explicit HTTPS configuration is preferred; Vercel's production-domain environment
-is the safe fallback. Unsafe non-local HTTP origins are rejected.
+is the safe fallback. Unsafe non-local HTTP origins are rejected. All seven sitemap routes emit an
+explicit self-referential canonical URL, and the production smoke gate rejects a missing canonical,
+wrong origin or path, or canonical containing search/hash state.
 
 ## Public payload boundary
 
