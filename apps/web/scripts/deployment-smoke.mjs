@@ -34,9 +34,10 @@ function assert(condition, message) {
 }
 
 async function request(path) {
-  const headers = bypass
-    ? { "x-vercel-protection-bypass": bypass, "x-vercel-set-bypass-cookie": "true" }
-    : {};
+  // Every CI request carries the bypass header directly. Do not request a bypass
+  // cookie: Vercel establishes it through a redirect, while this audit keeps
+  // redirects manual so that unexpected protection or application redirects fail.
+  const headers = bypass ? { "x-vercel-protection-bypass": bypass } : {};
   return fetch(`${deploymentOrigin}${path}`, { headers, redirect: "manual" });
 }
 

@@ -10,6 +10,12 @@ def workflow() -> str:
     return (ROOT / ".github" / "workflows" / "release.yml").read_text(encoding="utf-8")
 
 
+def deployment_smoke() -> str:
+    return (ROOT / "apps" / "web" / "scripts" / "deployment-smoke.mjs").read_text(
+        encoding="utf-8"
+    )
+
+
 def test_release_workflow_is_manual_and_disables_concurrent_promotions() -> None:
     text = workflow()
     assert "workflow_dispatch:" in text
@@ -65,6 +71,15 @@ def test_release_workflow_uses_lockfile_installed_vercel_cli() -> None:
     assert package["devDependencies"]["vercel"] == "59.11.7"
     assert "pnpm dlx vercel" not in text
     assert text.count("pnpm exec vercel") >= 6
+
+
+def test_deployment_smoke_uses_header_only_protection_bypass() -> None:
+    text = deployment_smoke()
+    assert '"x-vercel-protection-bypass": bypass' in text
+    assert '"x-vercel-set-bypass-cookie"' not in text
+    assert "?x-vercel-protection-bypass" not in text
+    assert "redirect: \"manual\"" in text
+    assert "bypass," not in text[text.index("console.log") :]
 
 
 def test_failed_production_smoke_attempts_rollback_and_rejects_release() -> None:
