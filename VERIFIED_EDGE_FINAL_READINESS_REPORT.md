@@ -2,7 +2,7 @@
 
 Status date: 2026-09-08
 
-Implementation evidence baseline: `main` at `ea456f909bef148a8637e09b01c156590ac1c363`
+Implementation evidence baseline: `main` at `b921068d076f227f54d83eb1e3f20e5ffc54145b`
 
 Report type: fail-closed readiness snapshot; not a launch authorization
 
@@ -16,10 +16,10 @@ production.
 ## 2. Git
 
 - Branch: `main`
-- Implementation evidence commit: `ea456f909bef148a8637e09b01c156590ac1c363`
+- Implementation evidence commit: `b921068d076f227f54d83eb1e3f20e5ffc54145b`
 - Working tree at evidence capture: clean
 - Remote match at evidence capture: yes
-- Hosted quality: [run 34202219466](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34202219466), success across backend, web, and repository-safety
+- Hosted quality: [run 34204363022](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34204363022), success across backend, web, and repository-safety
 
 The eventual release commit must be recorded by the deployment-evidence artifact. A tracked report
 cannot truthfully embed the hash of the commit that first contains itself.

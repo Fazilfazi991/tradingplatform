@@ -61,6 +61,12 @@ only the internal LLM runtime. Forward Paper remains controlled separately and d
   and terminal disposition. Keep the source incident open until a later scheduled success.
 - Luna failure: separate transport state from schema/grounding validation. Quarantined responses
   retain fingerprints and usage, cannot enter the success cache, and remain excluded downstream.
+- Policy-change recovery: current semantic health is computed only from attempts matching the latest
+  exact provider/model/prompt/schema/routing/config/retry/grounding identity. Historical attempts
+  remain visible under `historical_window_totals` but cannot contaminate the new rate. A canary proves
+  connectivity and basic validation only; it is excluded from the configured 40-attempt operational
+  closure sample. Until that sample completes, report `INSUFFICIENT_SAMPLE` and keep prior semantic
+  incidents open.
 - Supervisor failure: inspect Task Scheduler history and process ancestry. A current worker must be
   descended from the Task Scheduler service. A singleton rejection normally means another healthy
   worker already owns the runtime.
