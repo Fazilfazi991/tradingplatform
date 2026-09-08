@@ -109,6 +109,37 @@ def test_rate_limit_bounded_retries():
     assert len(attempts) == 3
 
 
+def test_malformed_retry_after_is_bounded_and_sanitized():
+    attempts = []
+    delays = []
+    provider = UpstoxMarketDataProvider(
+        token="redacted",
+        client=client(
+            lambda request: (
+                attempts.append(request),
+                httpx.Response(429, headers={"Retry-After": "not-a-number"}),
+            )[1]
+        ),
+        sleeper=delays.append,
+    )
+    with pytest.raises(RateLimitError):
+        provider.health_check()
+    assert len(attempts) == 3
+    assert len(delays) == 2
+    assert all(0 <= delay <= 8 for delay in delays)
+
+
+@pytest.mark.parametrize("status", [302, 400, 404])
+def test_unexpected_http_status_is_sanitized_without_response_body(status):
+    provider = UpstoxMarketDataProvider(
+        token="redacted",
+        client=client(lambda _: httpx.Response(status, content=b"sensitive provider body")),
+    )
+    with pytest.raises(ProviderError, match=f"HTTP {status}") as captured:
+        provider.health_check()
+    assert "sensitive provider body" not in str(captured.value)
+
+
 def test_malformed_provider_payload():
     provider = UpstoxMarketDataProvider(
         token="redacted",

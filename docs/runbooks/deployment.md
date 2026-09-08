@@ -17,6 +17,9 @@ Never prefix provider, database, or internal-access credentials with `NEXT_PUBLI
 3. Validate all required environment variable names without printing values.
    Run `python scripts/verify_release_environment.py --profile public-web --stage staging`
    (or `production`). Validate worker profiles separately; the command reports presence only.
+   The intelligence-worker profile requires both the OpenAI semantic runtime and the read-only
+   `UPSTOX_ANALYTICS_TOKEN`, because provider health is a mandatory scheduled canary even while
+   EOD collection remains disabled.
 4. Confirm `CODEX_RESEARCH_OPERATOR_ENABLED=false` unless the authenticated internal runtime is deliberately configured.
 5. Confirm public serializers reject internal, stale, mixed, and rights-unapproved records.
 6. Record the previous production deployment identifier for rollback.

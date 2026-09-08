@@ -21,6 +21,7 @@ def test_production_profiles_fail_closed_when_required_values_are_absent():
     report = validate_environment({}, profile="intelligence-worker", stage="production")
     assert report["status"] == "FAIL"
     assert "OPENAI_API_KEY:MISSING" in report["errors"]
+    assert "UPSTOX_ANALYTICS_TOKEN:MISSING" in report["errors"]
     assert "LLM_RUNTIME_ENABLED:MUST_BE_TRUE" in report["errors"]
 
 

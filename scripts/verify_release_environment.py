@@ -29,6 +29,7 @@ REQUIREMENTS: dict[Profile, tuple[Requirement, ...]] = {
         Requirement("LLM_RUNTIME_ENABLED", ("staging", "production")),
         Requirement("OPENAI_API_KEY", ("staging", "production"), True),
         Requirement("OPENAI_MODEL", ("staging", "production")),
+        Requirement("UPSTOX_ANALYTICS_TOKEN", ("staging", "production"), True),
     ),
     "market-worker": (
         Requirement("UPSTOX_ANALYTICS_TOKEN", ("staging", "production"), True),

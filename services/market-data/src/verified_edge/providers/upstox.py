@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import gzip
 import json
+import math
 import os
 import random
 import time
@@ -85,14 +86,19 @@ class UpstoxMarketDataProvider(MarketDataProvider):
                         raise RateLimitError("Upstox rate limit persisted after bounded retries")
                     raise ProviderError(f"Upstox server error {response.status_code}")
                 retry_after = response.headers.get("Retry-After")
-                delay = (
-                    float(retry_after)
-                    if retry_after
-                    else (2 ** (attempt - 1) + random.random() / 10)
+                try:
+                    delay = float(retry_after) if retry_after else None
+                except (TypeError, ValueError):
+                    delay = None
+                bounded_delay = (
+                    delay
+                    if delay is not None and math.isfinite(delay) and delay >= 0
+                    else 2 ** (attempt - 1) + random.random() / 10
                 )
-                self._sleep(min(delay, 8))
+                self._sleep(min(bounded_delay, 8))
                 continue
-            response.raise_for_status()
+            if response.is_error or response.is_redirect:
+                raise ProviderError(f"Upstox request failed with HTTP {response.status_code}")
             return response
         raise AssertionError("unreachable")
 
