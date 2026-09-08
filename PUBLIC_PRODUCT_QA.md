@@ -66,7 +66,7 @@ is the safe fallback. Unsafe non-local HTTP origins are rejected.
 
 The production-build audit at `pnpm public-boundary:web` fetches all 14 public routes, verifies the
 six internal/admin/API denial surfaces, and follows every referenced Next.js static asset. The
-current run inspected 13 text assets and found no credential identifiers, private-key markers,
+current run inspected 14 text assets and found no credential identifiers, private-key markers,
 local machine paths, internal forward-model paths, or runtime-state paths. It also probed every
 public JavaScript chunk for a corresponding source map and found zero exposed maps. This is a local
 release gate; the same inspection remains mandatory against staging and the canonical deployment.
@@ -83,9 +83,18 @@ release gate; the same inspection remains mandatory against staging and the cano
 
 `pnpm performance:web` starts the optimized production build and measures six representative routes
 in a clean Chrome context against versioned budgets in `config/web-performance-budgets.json`. The
-current run recorded a maximum 156.1ms navigation response, 364ms LCP, 0.0159 CLS, 250,336 bytes of
-route JavaScript, 98,040 bytes of fonts, and 390,797 total encoded bytes. Every route passed.
+current run recorded a maximum 168.9ms navigation response, 588ms LCP, 0.0765 CLS, 251,286 bytes of
+route JavaScript, 98,040 bytes of fonts, and 394,162 total encoded bytes. Every route passed.
 
 These measurements are reproducible local lab evidence, not production TTFB or real-user evidence.
 INP requires representative deployed interaction data and remains part of the canonical deployment
 acceptance rather than being inferred from a synthetic click.
+
+## Share and installed-app assets
+
+The canonical metadata now resolves generated 1200 × 630 Open Graph and Twitter PNG cards plus a
+180 × 180 Apple touch icon. The production smoke gate reads the URLs from rendered metadata,
+fetches each asset, verifies its PNG response, and rejects unexpectedly small social images. The
+share card uses the existing Evidence Lens visual system and limits its message to the platform's
+evidence, contradiction, provenance, uncertainty, and no-trading-signals boundaries. Bundled
+Newsreader and Manrope font subsets retain their SIL Open Font License notices.

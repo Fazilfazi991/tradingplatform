@@ -16,7 +16,7 @@ export const metadata: Metadata = {
   applicationName: "Verified Edge",
   manifest: "/manifest.webmanifest",
   openGraph: { type: "website", siteName: "Verified Edge", title: "Market intelligence that shows its work", description: "Evidence-led market research with contradictions and uncertainty intact." },
-  twitter: { card: "summary", title: "Verified Edge", description: "Evidence-led market research with contradictions and uncertainty intact." },
+  twitter: { card: "summary_large_image", title: "Verified Edge", description: "Evidence-led market research with contradictions and uncertainty intact." },
 };
 
 export default function RootLayout({ children }: Readonly<{children:React.ReactNode}>) {

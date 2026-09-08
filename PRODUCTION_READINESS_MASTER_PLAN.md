@@ -106,7 +106,7 @@ Gate states are `PASS`, `FAIL`, or `EXTERNAL`. A track releases only when every 
 - [x] Navigation cleanly separates public and authenticated internal areas.
 - [x] Automated screenshot QA passes at 1920, 1440, 1366, 1024, 430, 390, and 375 px.
 - [x] Data surfaces preserve honest empty, stale, unavailable, insufficient, and abstention states; custom 404 exists.
-- [ ] Metadata, automated accessibility, local performance budgets, sitemap/robots, and canonical behavior pass; manual assistive-technology and deployed Web Vitals acceptance remain external.
+- [ ] Metadata (including generated Open Graph, Twitter, and Apple touch assets), automated accessibility, local performance budgets, sitemap/robots, and canonical behavior pass; manual assistive-technology and deployed Web Vitals acceptance remain external.
 
 ### Operations gate — EXTERNAL
 

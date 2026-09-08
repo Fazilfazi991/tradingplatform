@@ -39,6 +39,10 @@ Decision: **BLOCKED**
   CLS, and encoded document/JavaScript/CSS/font/total payload. A separate production-build boundary
   audit inspects every public HTML response and referenced text asset, verifies protected denials,
   and rejects credential identifiers, machine paths, internal runtime paths, and exposed source maps.
+- Generated Open Graph, Twitter, and Apple touch assets now ship from the production build. Smoke
+  coverage resolves and validates those rendered metadata URLs, while the share-card copy preserves
+  the no-trading-signals and evidence-boundary language. This is technical asset readiness, not
+  authorization to publish promotion.
 
 ## Still required
 

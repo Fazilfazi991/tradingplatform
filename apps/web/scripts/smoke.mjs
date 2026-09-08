@@ -103,6 +103,22 @@ try {
   const manifest = await manifestResponse.json();
   assert(manifest.name === "Verified Edge — Market Prediction Intelligence", "web manifest has wrong identity");
   assert(manifest.start_url === "/" && manifest.scope === "/", "web manifest escapes public root");
+  for (const [property, expectedType] of [
+    ["og:image", "image/png"],
+    ["twitter:image", "image/png"],
+  ]) {
+    const match = homepage.match(new RegExp(`<meta (?:property|name)="${property}" content="([^"]+)"`));
+    assert(match, `homepage omitted ${property}`);
+    const imageResponse = await fetch(new URL(match[1].replaceAll("&amp;", "&"), origin));
+    assert(imageResponse.status === 200, `${property} image unavailable`);
+    assert(imageResponse.headers.get("content-type")?.includes(expectedType), `${property} has wrong content type`);
+    assert((await imageResponse.arrayBuffer()).byteLength > 10_000, `${property} image is unexpectedly small`);
+  }
+  const appleIconMatch = homepage.match(/<link rel="apple-touch-icon" href="([^"]+)"/);
+  assert(appleIconMatch, "homepage omitted Apple touch icon");
+  const appleIconResponse = await fetch(new URL(appleIconMatch[1].replaceAll("&amp;", "&"), origin));
+  assert(appleIconResponse.status === 200, "Apple touch icon unavailable");
+  assert(appleIconResponse.headers.get("content-type")?.includes("image/png"), "Apple touch icon has wrong content type");
   console.log(`Public release smoke checks passed; ${linkedPaths.size} internal links verified.`);
 } finally {
   server.kill("SIGTERM");

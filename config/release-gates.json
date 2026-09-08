@@ -79,6 +79,9 @@
         "PUBLIC_PRODUCT_QA.md",
         "apps/web/scripts/visual-qa.mjs",
         "apps/web/scripts/smoke.mjs",
+        "apps/web/src/app/opengraph-image.tsx",
+        "apps/web/src/app/twitter-image.tsx",
+        "apps/web/src/app/apple-icon.tsx",
         "config/web-performance-budgets.json",
         "apps/web/scripts/performance-qa.mjs"
       ],
