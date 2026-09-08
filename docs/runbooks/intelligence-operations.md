@@ -21,6 +21,13 @@ means this state database has never hosted a continuous worker. The heartbeat is
 not a process manager: production must use the hosting platform's restart policy and least-privilege
 service identity.
 
+On the intended Linux worker host, each Python job runs under a `SIGALRM` deadline and a timeout is
+recorded immediately as `SCHEDULER_JOB_TIMEOUT`; the handler does not continue after the exception.
+Windows has no equivalent signal and is explicitly reported as a cooperative local fallback, where
+the timeout is detected after return. Production supervision must additionally apply a process-level
+stop timeout and restart policy so native code or an uninterruptible system call cannot hang the
+service indefinitely.
+
 Backfills require source, bounded start/end, reason, operator identity, and `BACKFILL`; they may never
 be relabelled as prospectively observed. Daily archives are immutable. Reprocessing the same raw
 artifacts must reproduce the same semantic hash or open a replay incident.

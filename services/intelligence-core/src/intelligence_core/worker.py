@@ -4,9 +4,11 @@ import os
 import signal
 import threading
 import time
-from collections.abc import Callable
+from collections.abc import Callable, Iterator
+from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
+from types import FrameType
 from uuid import uuid4
 
 from intelligence_core.durable import DurableJob, SQLiteOperationsStore
@@ -17,6 +19,46 @@ from intelligence_core.models import (
 )
 
 JobHandler = Callable[[DurableJob, datetime], dict]
+
+
+class JobDeadlineExceeded(TimeoutError):
+    pass
+
+
+@contextmanager
+def enforced_deadline(seconds: float) -> Iterator[bool]:
+    """Interrupt Python handlers on the Linux production host.
+
+    Windows has no SIGALRM; its local runtime retains post-return timeout detection and must rely on
+    the documented process supervisor for hard termination.
+    """
+    supported = (
+        os.name == "posix"
+        and threading.current_thread() is threading.main_thread()
+        and hasattr(signal, "setitimer")
+    )
+    if not supported:
+        yield False
+        return
+
+    def expire(_signum: int, _frame: FrameType | None) -> None:
+        raise JobDeadlineExceeded("job deadline exceeded")
+
+    # Dynamic lookup keeps this module importable/type-checkable on Windows, where these names do
+    # not exist; the production branch above has already established POSIX support.
+    sigalrm = getattr(signal, "SIGALRM")  # noqa: B009
+    setitimer = getattr(signal, "setitimer")  # noqa: B009
+    itimer_real = getattr(signal, "ITIMER_REAL")  # noqa: B009
+    previous_handler = signal.getsignal(sigalrm)
+    signal.signal(sigalrm, expire)
+    previous_timer = setitimer(itimer_real, seconds)
+    try:
+        yield True
+    finally:
+        setitimer(itimer_real, 0)
+        signal.signal(sigalrm, previous_handler)
+        if previous_timer[0] > 0:
+            setitimer(itimer_real, previous_timer[0], previous_timer[1])
 
 
 class IntelligenceWorker:
@@ -86,7 +128,8 @@ class IntelligenceWorker:
             status = "SUCCEEDED"
             try:
                 handler = self.handlers[job.name]
-                result = handler(job, now)
+                with enforced_deadline(self.job_timeout_seconds) as deadline_enforced:
+                    result = handler(job, now)
                 elapsed = time.perf_counter() - started
                 if elapsed > self.job_timeout_seconds:
                     status = "TIMED_OUT"
@@ -99,11 +142,33 @@ class IntelligenceWorker:
                                 "job": job.name,
                                 "elapsed_seconds": elapsed,
                                 "timeout_seconds": self.job_timeout_seconds,
-                                "note": "cooperative timeout detected after handler return",
+                                "enforcement": (
+                                    "SIGNAL_ENFORCED"
+                                    if deadline_enforced
+                                    else "COOPERATIVE_LOCAL_FALLBACK"
+                                ),
                             },
                             affected_data=(job.name,),
                         )
                     )
+            except JobDeadlineExceeded:
+                elapsed = time.perf_counter() - started
+                status = "TIMED_OUT"
+                result = {"error": "JobDeadlineExceeded"}
+                self.store.record_incident(
+                    IntelligenceIncident(
+                        incident_type="SCHEDULER_JOB_TIMEOUT",
+                        severity="HIGH",
+                        source_id=job.source_id,
+                        evidence={
+                            "job": job.name,
+                            "elapsed_seconds": elapsed,
+                            "timeout_seconds": self.job_timeout_seconds,
+                            "enforcement": "SIGNAL_ENFORCED",
+                        },
+                        affected_data=(job.name,),
+                    )
+                )
             except Exception as error:  # noqa: BLE001 - worker boundary sanitizes and records failures
                 status = "FAILED"
                 result = {"error": type(error).__name__}

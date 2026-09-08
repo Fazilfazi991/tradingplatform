@@ -1,4 +1,6 @@
 import json
+import os
+import time
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
 
@@ -121,6 +123,30 @@ def test_handler_failure_is_sanitized_and_incidented(tmp_path):
     incident = store.incidents()[0]
     assert incident["incident_type"] == "SOURCE_COLLECTION_FAILURE"
     assert "sensitive provider body" not in json.dumps(incident)
+
+
+@pytest.mark.skipif(os.name != "posix", reason="SIGALRM is a Linux production-host control")
+def test_handler_deadline_is_enforced_on_linux(tmp_path):
+    now = datetime(2026, 8, 30, tzinfo=UTC)
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    store.load_config(config(tmp_path), now=now)
+
+    def slow(_job, _now):
+        time.sleep(1)
+        return {"should_not_complete": True}
+
+    worker = IntelligenceWorker(
+        store,
+        {"poll": slow},
+        mode=IntelligenceRuntimeMode.FIXTURE,
+        job_timeout_seconds=0.05,
+    )
+    started = time.perf_counter()
+    result = worker.run_once(now=now + timedelta(minutes=15))[0]
+    assert time.perf_counter() - started < 0.5
+    assert result["status"] == "TIMED_OUT"
+    assert result["error"] == "JobDeadlineExceeded"
+    assert store.incidents()[0]["evidence"]["enforcement"] == "SIGNAL_ENFORCED"
 
 
 def test_timezone_and_calendar_boundaries():
