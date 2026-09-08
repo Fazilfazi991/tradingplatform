@@ -228,6 +228,7 @@ jobs:
         run: |
           pnpm exec vercel rollback "${ROLLBACK_DEPLOYMENT_ID}" --yes --timeout=3m --token="${VERCEL_TOKEN}"
           pnpm exec vercel rollback status --timeout=3m --token="${VERCEL_TOKEN}"
+          pnpm --dir apps/web deployment:smoke -- "${VERIFIED_EDGE_CANONICAL_URL}" "${VERIFIED_EDGE_CANONICAL_URL}"
       - name: Fail release after rollback attempt
         if: always() && (steps.production_smoke.outcome == 'failure' || steps.production_browser_smoke.outcome == 'failure' || steps.deployment_evidence.outcome == 'failure' || steps.upload_evidence.outcome == 'failure')
         run: |

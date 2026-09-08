@@ -98,8 +98,9 @@ def test_failed_production_smoke_attempts_rollback_and_rejects_release() -> None
     upload = promotion.index("id: upload_evidence")
     rollback = promotion.index('vercel rollback "${ROLLBACK_DEPLOYMENT_ID}" --yes --timeout=3m')
     status = promotion.index("vercel rollback status --timeout=3m")
+    rollback_smoke = promotion.index("deployment:smoke", status)
     rejection = promotion.index("Fail release after rollback attempt")
-    assert smoke < browser_smoke < evidence < upload < rollback < status < rejection
+    assert smoke < browser_smoke < evidence < upload < rollback < status < rollback_smoke < rejection
     assert promotion.count("continue-on-error: true") == 4
     for step in (
         "production_smoke",

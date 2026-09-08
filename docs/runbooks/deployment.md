@@ -98,7 +98,8 @@ the HTTP boundary suite and browser console/network suite against the canonical 
 timestamp, commit, deployment ID, domain, operator, result, and rollback target. If either canonical
 smoke suite, evidence sealing, or evidence upload fails, the workflow requests an immediate Vercel rollback
 to the exact recorded healthy deployment,
-waits for rollback status, and then rejects the release. A failed rollback also leaves the workflow
+waits for rollback status, re-runs the canonical HTTP boundary suite, and then rejects the release.
+A failed rollback or failed post-rollback smoke also leaves the workflow
 red and requires the bad-deployment incident runbook; it must never be treated as a successful
 release.
 
