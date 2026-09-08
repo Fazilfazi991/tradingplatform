@@ -1,7 +1,9 @@
 # Verified Edge SEO and Search-Intent Strategy
 
-Status: **DRAFT — ACTIVATION REQUIRES CANONICAL DOMAIN AND OWNER APPROVAL**  
-Scope: public informational Track A pages only  
+Status: **DRAFT — ACTIVATION REQUIRES CANONICAL DOMAIN AND OWNER APPROVAL**
+
+Scope: public informational Track A pages only
+
 Evidence date: 2026-09-08
 
 This plan maps legitimate product questions to the small set of public pages that already answer
