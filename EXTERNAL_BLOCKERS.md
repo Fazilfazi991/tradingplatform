@@ -15,5 +15,6 @@ Status date: 2026-09-08
 | EXT-09 | Public positioning and promotion | Owner approval of demo discoverability, claims ledger, launch copy and publication channels | Promotion blocked | Prepare drafts only; do not publish | OPEN |
 | EXT-10 | Additional intelligence sources | Credentials, contracts, access and rights for Fundamental, Flow/Derivatives and broader macro inputs | Specialist live coverage incomplete | Report `ENGINEERING_ONLY`, `INSUFFICIENT_EVIDENCE`, or `ABSTAIN` | OPEN |
 | EXT-11 | Prospective validation time | Sufficient immutable forward predictions, elapsed outcome windows and preregistered evaluation minimums | Track B remains unavailable | Continue internal forward paper collection; do not publish predictions | OPEN |
+| EXT-12 | Manual accessibility and deployed performance acceptance | Screen-reader, forced-colors, 200%/400% zoom review plus production Web Vitals against the canonical deployment | Automated QA alone cannot prove the complete product gate | Keep automated accessibility, responsive, bundle, and smoke gates enforced; do not claim full production acceptance | OPEN |
 
 Closing a blocker requires dated evidence and the accountable approver. A code change cannot close a rights, legal, domain, or elapsed-time dependency.

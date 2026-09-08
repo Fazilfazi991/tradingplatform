@@ -36,6 +36,8 @@ jobs:
         run: python -m pip_audit
       - name: Environment contract (local public build)
         run: python scripts/verify_release_environment.py --profile public-web --stage local
+      - name: Release gate manifest
+        run: python scripts/audit_release_gates.py
 
   web:
     runs-on: ubuntu-latest

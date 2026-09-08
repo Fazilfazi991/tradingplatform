@@ -1,0 +1,160 @@
+{
+  "schema_version": "release-gates-v1",
+  "allowed_gate_states": [
+    "PASS",
+    "FAIL",
+    "EXTERNAL"
+  ],
+  "gates": [
+    {
+      "id": "engineering",
+      "state": "EXTERNAL",
+      "evidence": [
+        ".github/workflows/quality.yml",
+        "requirements-dev.lock",
+        "pnpm-lock.yaml",
+        "scripts/validate_deployment_evidence.py"
+      ],
+      "blockers": [
+        "EXT-06",
+        "EXT-07"
+      ],
+      "reason": "Local and hosted checks pass, but protected deployment promotion and production smoke evidence require hosting and repository controls."
+    },
+    {
+      "id": "data",
+      "state": "EXTERNAL",
+      "evidence": [
+        "research/market-readiness/current-nifty200-validation.json",
+        "config/market-data-eod.json",
+        "docs/runbooks/upstox-ingestion.md"
+      ],
+      "blockers": [
+        "EXT-01",
+        "EXT-02",
+        "EXT-03",
+        "EXT-04"
+      ],
+      "reason": "Internal backfill and mapping evidence exist; public rights, point-in-time membership, adjustment semantics, and independent reconciliation remain open."
+    },
+    {
+      "id": "intelligence",
+      "state": "EXTERNAL",
+      "evidence": [
+        "config/intelligence-schedules.json",
+        "infra/systemd/verified-edge-intelligence.service",
+        "docs/runbooks/intelligence-operations.md"
+      ],
+      "blockers": [
+        "EXT-06"
+      ],
+      "reason": "The supervised runtime contract is implemented, but no approved production host, persistent runtime, or notification destination is installed."
+    },
+    {
+      "id": "public_safety",
+      "state": "EXTERNAL",
+      "evidence": [
+        "apps/web/src/lib/public-delivery.ts",
+        "apps/web/src/lib/route-policy.ts",
+        "CLAIMS_LEDGER.md"
+      ],
+      "blockers": [
+        "EXT-01",
+        "EXT-05"
+      ],
+      "reason": "Technical boundaries are enforced; data-rights and legal approval remain external."
+    },
+    {
+      "id": "product",
+      "state": "EXTERNAL",
+      "evidence": [
+        "PUBLIC_PRODUCT_QA.md",
+        "apps/web/scripts/visual-qa.mjs",
+        "apps/web/scripts/smoke.mjs"
+      ],
+      "blockers": [
+        "EXT-06",
+        "EXT-12"
+      ],
+      "reason": "Automated public-route and viewport QA passes; production performance and the remaining manual accessibility checks require a deployed target and human assistive-technology review."
+    },
+    {
+      "id": "operations",
+      "state": "EXTERNAL",
+      "evidence": [
+        "infra/systemd/verified-edge-intelligence.service",
+        "scripts/runtime_backup.py",
+        "scripts/validate_deployment_evidence.py"
+      ],
+      "blockers": [
+        "EXT-06"
+      ],
+      "reason": "Service, recovery, and deployment evidence contracts exist, but production supervision, storage, alert routing, and rollback evidence do not."
+    },
+    {
+      "id": "promotion",
+      "state": "EXTERNAL",
+      "evidence": [
+        "PROMOTION_READINESS_REPORT.md",
+        "PROMOTION_PACKAGE_DRAFT.md",
+        "CLAIMS_LEDGER.md"
+      ],
+      "blockers": [
+        "EXT-05",
+        "EXT-06",
+        "EXT-09"
+      ],
+      "reason": "Launch materials are drafts; legal, deployed-production, positioning, and publication approvals remain open."
+    },
+    {
+      "id": "prediction",
+      "state": "FAIL",
+      "evidence": [
+        "research/prediction-v1/prediction-v1-holdout-report.json",
+        "config/forward-paper.json",
+        "PREDICTIVE_FEATURE_READINESS_REPORT.md"
+      ],
+      "blockers": [
+        "EXT-02",
+        "EXT-03",
+        "EXT-04",
+        "EXT-11"
+      ],
+      "reason": "The sealed holdout passed, but no approved frozen package or sufficient prospective forward sample exists."
+    }
+  ],
+  "tracks": {
+    "public_platform": {
+      "required_gates": [
+        "engineering",
+        "data",
+        "intelligence",
+        "public_safety",
+        "product",
+        "operations"
+      ],
+      "ready_decision": "PRODUCTION READY",
+      "blocked_decision": "PRODUCTION BLOCKED"
+    },
+    "promotion": {
+      "required_gates": [
+        "engineering",
+        "data",
+        "intelligence",
+        "public_safety",
+        "product",
+        "operations",
+        "promotion"
+      ],
+      "ready_decision": "PROMOTION READY",
+      "blocked_decision": "PROMOTION BLOCKED"
+    },
+    "prediction": {
+      "required_gates": [
+        "prediction"
+      ],
+      "ready_decision": "PREDICTION FEATURE READY",
+      "blocked_decision": "HOLDOUT VALIDATED — FORWARD REQUIRED"
+    }
+  }
+}

@@ -12,3 +12,5 @@ Only decisions or credentials that require owner authority are listed here. Ordi
 8. Supply strong staging/production internal-access credentials through the hosting secret store; never commit or message their values.
 9. Provide or approve the Linux worker host, locked service identity, persistent encrypted storage,
    and incident notification destinations needed to install the reviewed systemd service.
+10. Arrange the final assistive-technology review and canonical-deployment performance acceptance;
+    provide the resulting dated evidence for the release gate.

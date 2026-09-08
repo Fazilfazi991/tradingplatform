@@ -2,12 +2,17 @@
 
 Status date: 2026-09-08  
 Audit baseline: `main` at `1a067f0937abb73cf432a39eda05548f3ec1c3b5`  
-Last reconciled implementation: `main` at `0398554c9dabace63417aec991978a0885b6f70b`
+Last reconciled implementation: see the current Git commit reported by `scripts/audit_release_gates.py`
 Scope: public Track A platform, promotion readiness, and separately gated Track B predictive research  
 Current overall decision: **PRODUCTION / PROMOTION BLOCKED**  
 Track B: **HOLDOUT VALIDATED — FORWARD REQUIRED**
 
 This is the controlling plan for the production-readiness mission. It was created after a full repository, product, runtime, security, data-rights, research, and deployment audit. Work must follow the priority and release gates below. Passing a code check alone never implies production readiness.
+
+The machine-readable authority for current gate states is `config/release-gates.json`. Run
+`python scripts/audit_release_gates.py` to validate its evidence references, external-blocker
+references, Git state, and independent Track A, promotion, and prediction decisions. The validator
+fails closed when evidence is missing or the manifest is inconsistent.
 
 ## 1. Audited baseline
 
