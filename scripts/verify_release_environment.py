@@ -5,6 +5,7 @@ import json
 import os
 from collections.abc import Mapping
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Literal
 from urllib.parse import urlparse
 
@@ -35,6 +36,36 @@ REQUIREMENTS: dict[Profile, tuple[Requirement, ...]] = {
         Requirement("UPSTOX_ANALYTICS_TOKEN", ("staging", "production"), True),
     ),
 }
+
+
+def load_dotenv(path: Path) -> dict[str, str]:
+    """Load a generated dotenv file without logging names or values from the file."""
+    environment: dict[str, str] = {}
+    for raw_line in path.read_text(encoding="utf-8").splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].lstrip()
+        name, separator, raw_value = line.partition("=")
+        name = name.strip()
+        if not separator or not name.isidentifier():
+            raise ValueError("INVALID_DOTENV_ENTRY")
+        value = raw_value.strip()
+        if value.startswith('"'):
+            try:
+                decoded = json.loads(value)
+            except json.JSONDecodeError as error:
+                raise ValueError("INVALID_DOTENV_ENTRY") from error
+            if not isinstance(decoded, str):
+                raise ValueError("INVALID_DOTENV_ENTRY")
+            value = decoded
+        elif value.startswith("'"):
+            if len(value) < 2 or not value.endswith("'"):
+                raise ValueError("INVALID_DOTENV_ENTRY")
+            value = value[1:-1]
+        environment[name] = value
+    return environment
 
 
 def validate_environment(
@@ -92,8 +123,11 @@ def main() -> int:
     parser = argparse.ArgumentParser(description="Validate release environment names safely")
     parser.add_argument("--profile", choices=tuple(REQUIREMENTS), required=True)
     parser.add_argument("--stage", choices=("local", "staging", "production"), required=True)
+    parser.add_argument("--dotenv-file", type=Path)
     args = parser.parse_args()
-    report = validate_environment(os.environ, profile=args.profile, stage=args.stage)
+    environment = load_dotenv(args.dotenv_file) if args.dotenv_file else {}
+    environment.update(os.environ)
+    report = validate_environment(environment, profile=args.profile, stage=args.stage)
     print(json.dumps(report, indent=2, sort_keys=True))
     return 0 if report["status"] == "PASS" else 2
 

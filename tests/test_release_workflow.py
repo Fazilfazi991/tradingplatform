@@ -46,6 +46,18 @@ def test_staged_build_receives_the_validated_canonical_origin() -> None:
     assert "https://*)" in staging
 
 
+def test_staged_build_validates_pulled_server_environment_without_retaining_it() -> None:
+    text = workflow()
+    staging = text[text.index("stage-production-build:") : text.index("authorize-production:")]
+    assert " env pull " in staging
+    assert '--dotenv-file "${release_env}"' in staging
+    assert "--profile public-web --stage production" in staging
+    assert "trap 'rm -f \"${release_env}\"' EXIT" in staging
+    validation = staging.index("Validate pulled public-web environment")
+    build = staging.index("Build production artifact")
+    assert validation < build
+
+
 def test_release_workflow_fails_closed_before_production_approval() -> None:
     text = workflow()
     authorization = text.index("authorize-production:")

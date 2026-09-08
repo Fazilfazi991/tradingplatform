@@ -47,6 +47,11 @@ The staging job maps the approved `VERIFIED_EDGE_CANONICAL_URL` to the web build
 and the public Next.js bundle must not depend on an unverified project-level default. The workflow
 rejects an empty or non-HTTPS canonical origin before building.
 
+After pulling production project settings, the job also pulls an ephemeral dotenv file and runs the
+public-web environment contract against it. The report contains names and presence booleans only;
+the file is deleted on step exit and never uploaded. Missing server-side internal-route credentials
+therefore stop staging before an artifact is built.
+
 Run `.github/workflows/release.yml` manually from `main`. It verifies the exact commit's `backend`,
 `web`, and `repository-safety` checks, builds with the pinned Vercel CLI, deploys using
 `--prod --skip-domain`, and smoke-tests the candidate. The promotion job consumes that workflow

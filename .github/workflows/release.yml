@@ -64,6 +64,9 @@ jobs:
         with:
           node-version: "24"
           cache: pnpm
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: "3.12"
       - name: Require complete release environment
         shell: bash
         run: |
@@ -79,6 +82,13 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - name: Pull production project settings
         run: pnpm dlx vercel@${VERCEL_CLI_VERSION} pull --yes --environment=production --token="${VERCEL_TOKEN}"
+      - name: Validate pulled public-web environment without disclosing values
+        shell: bash
+        run: |
+          release_env="${RUNNER_TEMP}/verified-edge-release.env"
+          trap 'rm -f "${release_env}"' EXIT
+          pnpm dlx vercel@${VERCEL_CLI_VERSION} env pull "${release_env}" --yes --environment=production --token="${VERCEL_TOKEN}"
+          python scripts/verify_release_environment.py --profile public-web --stage production --dotenv-file "${release_env}"
       - name: Build production artifact
         run: pnpm dlx vercel@${VERCEL_CLI_VERSION} build --prod --token="${VERCEL_TOKEN}"
       - name: Deploy without assigning production domains
