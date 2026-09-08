@@ -17,6 +17,7 @@ from intelligence_core.models import (
 )
 from intelligence_core.semantic_runtime import configured_semantic_handler
 from intelligence_core.worker import IntelligenceWorker
+from verified_edge.providers.upstox import AuthenticationError
 
 
 def config(tmp_path, jobs=None):
@@ -232,6 +233,35 @@ def test_market_eod_scheduler_handler_is_fail_closed_by_config(tmp_path):
         "reason": "MARKET_DATA_EOD_EXECUTION_OPERATIONS_FALSE",
         "public_delivery": "BLOCKED",
     }
+
+
+def test_market_provider_health_handler_incidents_and_recovery(tmp_path, monkeypatch):
+    now = datetime(2026, 9, 8, 12, tzinfo=UTC)
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    state = {"error": True}
+
+    class Provider:
+        def __init__(self, token=None):
+            assert token is None
+
+        def get_market_status(self, exchange="NSE"):
+            if state["error"]:
+                raise AuthenticationError("sensitive provider response")
+            return {"exchange": exchange, "status": "CLOSING_END"}
+
+    monkeypatch.setattr("intelligence_core.live.UpstoxMarketDataProvider", Provider)
+    handler = operational_handlers(store, tmp_path / "intelligence")["market-provider-health"]
+    job = DurableJob("market-provider-health", "INTERVAL", None, 900, None, None, now, "1")
+    failed = handler(job, now)
+    assert failed["status"] == "AUTHENTICATION_FAILED"
+    incident = store.incidents()[0]
+    assert incident["incident_type"] == "MARKET_DATA_AUTH_FAILURE"
+    assert "sensitive provider response" not in json.dumps(incident)
+
+    state["error"] = False
+    recovered = handler(job, now + timedelta(minutes=1))
+    assert recovered["status"] == "HEALTHY"
+    assert store.incidents()[0]["status"] == "RESOLVED"
 
 
 def test_source_health_incident_is_deduplicated_and_resolvable(tmp_path):

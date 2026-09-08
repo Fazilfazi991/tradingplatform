@@ -2,7 +2,7 @@ import { PageHeader, SectionHeader, Tag } from "@/components/ui";
 
 const health = [
   ["Provider contract", "UPSTOX · READ ONLY", "pass"],
-  ["Last bounded authentication check", "PASSED · 7 SEP 2026", "pass"],
+  ["Last bounded authentication check", "PASSED · 8 SEP 2026", "pass"],
   ["Current authentication health", "NOT CHECKED BY THIS PAGE", "deferred"],
   ["Platform worker", "NOT STARTED", "deferred"],
   ["Scheduled EOD collection", "DISABLED", "deferred"],
@@ -52,7 +52,7 @@ export default function DataHealth() {
       <section className="section">
         <div className="card">
           <h3>Operational interpretation</h3>
-          <p>This page records bounded activation evidence. It does not call Upstox, inspect credentials, or infer current provider availability. Current health requires the protected worker heartbeat, EOD ledger, source freshness, and provider canaries on the production host.</p>
+          <p>This page records bounded activation evidence. It does not call Upstox, inspect credentials, or infer current provider availability. The production worker is configured to run a sanitized read-only provider canary every 15 minutes, but current health still requires that worker, its heartbeat, and its private append-only health ledger to be active on the production host.</p>
         </div>
       </section>
     </div>

@@ -5,9 +5,11 @@ import os
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from typing import Literal
 from zoneinfo import ZoneInfo
 
 from verified_edge.eod import EodCollector, EodConfig, EodLedger
+from verified_edge.provider_health import MarketProviderHealthLedger, check_market_provider
 from verified_edge.providers.upstox import UpstoxMarketDataProvider
 
 from intelligence_core.catalog import initial_sources
@@ -254,6 +256,58 @@ def operational_handlers(
             ledger.close()
         return {**report, "run_state": run.state}
 
+    def market_provider_health(_job: DurableJob, now: datetime) -> dict:
+        provider = UpstoxMarketDataProvider(token=os.getenv("UPSTOX_ANALYTICS_TOKEN"))
+        record = check_market_provider(provider, now=now)
+        ledger_path = root.parent / "market-provider-health.sqlite3"
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        ledger = MarketProviderHealthLedger(ledger_path)
+        try:
+            ledger.append(record)
+            report = ledger.report(now=now)
+        finally:
+            ledger.close()
+        incident_by_status: dict[
+            str,
+            Literal[
+                "MARKET_DATA_AUTH_FAILURE",
+                "MARKET_DATA_RATE_LIMITED",
+                "MARKET_DATA_PROVIDER_DOWN",
+            ],
+        ] = {
+            "AUTHENTICATION_FAILED": "MARKET_DATA_AUTH_FAILURE",
+            "RATE_LIMITED": "MARKET_DATA_RATE_LIMITED",
+            "SCHEMA_FAILED": "MARKET_DATA_PROVIDER_DOWN",
+            "UNAVAILABLE": "MARKET_DATA_PROVIDER_DOWN",
+        }
+        incident_type = incident_by_status.get(record.status)
+        if incident_type and not store.has_open_incident(incident_type):
+            store.record_incident(
+                IntelligenceIncident(
+                    incident_type=incident_type,
+                    severity="HIGH",
+                    evidence={
+                        "provider": record.provider,
+                        "error_class": record.error_class,
+                        "credential_value_recorded": False,
+                    },
+                    affected_data=("UPSTOX_INTERNAL",),
+                )
+            )
+        if record.status == "HEALTHY":
+            for resolved_type in (
+                "MARKET_DATA_AUTH_FAILURE",
+                "MARKET_DATA_RATE_LIMITED",
+                "MARKET_DATA_PROVIDER_DOWN",
+            ):
+                store.resolve_open_incidents(
+                    resolved_type,
+                    source_id=None,
+                    now=now,
+                    resolution="read-only provider health recovered",
+                )
+        return report
+
     return {
         "source-health": health,
         "macro-release-processing": lambda _job, _now: {
@@ -312,6 +366,7 @@ def operational_handlers(
             "status": "PASS_DETERMINISTIC_FIXTURE_CONTRACTS"
         },
         "event-intelligence-build": event_build,
+        "market-provider-health": market_provider_health,
         "market-data-eod": market_eod,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,

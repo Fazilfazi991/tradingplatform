@@ -339,6 +339,9 @@ class IntelligenceIncident(FrozenModel):
         "LLM_COST_BUDGET_EXCEEDED",
         "LLM_HALLUCINATION_QUARANTINE",
         "SOURCE_COLLECTION_FAILURE",
+        "MARKET_DATA_AUTH_FAILURE",
+        "MARKET_DATA_RATE_LIMITED",
+        "MARKET_DATA_PROVIDER_DOWN",
         "SOAK_CONFIGURATION_DRIFT",
     ]
     severity: Literal["INFO", "WARNING", "HIGH", "CRITICAL"]
