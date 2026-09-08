@@ -11,6 +11,7 @@ from uuid import UUID, uuid4
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from research_core.common import stable_hash
+from research_core.metrics import expected_calibration_error
 
 
 class ForwardLedgerError(ValueError):
@@ -29,13 +30,22 @@ class ForwardPrediction(BaseModel):
     as_of_date: date
     horizon_sessions: int = Field(gt=0)
     issued_at: datetime
+    information_cutoff: datetime
+    market_data_cutoff: datetime
     outcome_available_at: datetime
     decision: ForwardDecision
     probabilities: tuple[float, float, float] | None = None
+    baseline_probabilities: tuple[float, float, float]
     abstention_reasons: tuple[str, ...] = ()
     dataset_hash: str = Field(min_length=64, max_length=64)
     model_hash: str = Field(min_length=64, max_length=64)
     feature_config_hash: str = Field(min_length=64, max_length=64)
+    feature_snapshot_hash: str = Field(min_length=64, max_length=64)
+    model_version: str = Field(min_length=1, max_length=120)
+    target_version: str = Field(min_length=1, max_length=120)
+    ood_state: Literal["IN_DISTRIBUTION", "WEAK_OOD", "STRONG_OOD", "UNKNOWN"]
+    market_regime: str | None = Field(default=None, max_length=120)
+    provenance: dict[str, Any]
     code_sha: str = Field(min_length=7, max_length=64)
     research_mode: Literal["ENGINEERING_FIXTURE"] = "ENGINEERING_FIXTURE"
     public_delivery: Literal["BLOCKED"] = "BLOCKED"
@@ -43,8 +53,19 @@ class ForwardPrediction(BaseModel):
 
     @model_validator(mode="after")
     def validate_causal_record(self) -> ForwardPrediction:
+        issued = self.issued_at.astimezone(UTC)
+        information = self.information_cutoff.astimezone(UTC)
+        market = self.market_data_cutoff.astimezone(UTC)
+        if market > information or information > issued:
+            raise ValueError("market-data and information cutoffs must precede issuance")
         if self.outcome_available_at <= self.issued_at:
             raise ValueError("outcome must become available after issuance")
+        if any(value < 0 or value > 1 for value in self.baseline_probabilities) or abs(
+            sum(self.baseline_probabilities) - 1.0
+        ) > 1e-6:
+            raise ValueError("baseline probabilities must be normalized")
+        if not self.provenance:
+            raise ValueError("forward predictions require provenance")
         if self.decision is ForwardDecision.ISSUED:
             if self.probabilities is None or self.abstention_reasons:
                 raise ValueError("issued predictions require probabilities and no abstention reasons")
@@ -188,9 +209,14 @@ class ForwardValidationLedger:
         ]
         brier = None
         log_loss = None
+        baseline_brier = None
+        baseline_log_loss = None
+        calibration_error = None
         if scored:
             brier_values = []
             log_losses = []
+            baseline_brier_values = []
+            baseline_log_losses = []
             for prediction, outcome in scored:
                 assert prediction.probabilities is not None
                 truth = tuple(float(index == outcome.realized_class) for index in range(3))
@@ -198,8 +224,45 @@ class ForwardValidationLedger:
                     sum((probability - actual) ** 2 for probability, actual in zip(prediction.probabilities, truth))
                 )
                 log_losses.append(-math.log(max(prediction.probabilities[outcome.realized_class], 1e-15)))
+                baseline_brier_values.append(
+                    sum(
+                        (probability - actual) ** 2
+                        for probability, actual in zip(prediction.baseline_probabilities, truth)
+                    )
+                )
+                baseline_log_losses.append(
+                    -math.log(max(prediction.baseline_probabilities[outcome.realized_class], 1e-15))
+                )
             brier = sum(brier_values) / len(brier_values)
             log_loss = sum(log_losses) / len(log_losses)
+            baseline_brier = sum(baseline_brier_values) / len(baseline_brier_values)
+            baseline_log_loss = sum(baseline_log_losses) / len(baseline_log_losses)
+            calibration_error = sum(
+                expected_calibration_error(
+                    [int(outcome.realized_class == class_index) for _, outcome in scored],
+                    [
+                        prediction.probabilities[class_index]
+                        for prediction, _ in scored
+                        if prediction.probabilities is not None
+                    ],
+                )
+                for class_index in range(3)
+            ) / 3
+        horizons = sorted({item.horizon_sessions for item in predictions})
+        by_horizon = {
+            str(horizon): self._cohort_report(
+                [item for item in predictions if item.horizon_sessions == horizon], outcomes
+            )
+            for horizon in horizons
+        }
+        ood_counts = {
+            state: sum(item.ood_state == state for item in predictions)
+            for state in ("IN_DISTRIBUTION", "WEAK_OOD", "STRONG_OOD", "UNKNOWN")
+        }
+        regime_counts = {
+            regime: sum((item.market_regime or "UNKNOWN") == regime for item in predictions)
+            for regime in sorted({item.market_regime or "UNKNOWN" for item in predictions})
+        }
         return {
             "status": "FORWARD VALIDATION IN PROGRESS" if predictions else "FORWARD REQUIRED",
             "research_mode": "ENGINEERING_FIXTURE",
@@ -212,12 +275,46 @@ class ForwardValidationLedger:
             "abstention_rate": (len(predictions) - issued) / len(predictions) if predictions else 0.0,
             "multiclass_brier": brier,
             "log_loss": log_loss,
+            "calibration_error": calibration_error,
+            "baseline_multiclass_brier": baseline_brier,
+            "baseline_log_loss": baseline_log_loss,
+            "brier_improvement_vs_baseline": (
+                baseline_brier - brier
+                if baseline_brier is not None and brier is not None
+                else None
+            ),
+            "log_loss_improvement_vs_baseline": (
+                baseline_log_loss - log_loss
+                if baseline_log_loss is not None and log_loss is not None
+                else None
+            ),
+            "by_horizon": by_horizon,
+            "ood_counts": ood_counts,
+            "regime_counts": regime_counts,
             "metrics_state": "AVAILABLE" if scored else "INSUFFICIENT_FORWARD_OUTCOMES",
             "ledger_hash": stable_hash(
                 {
                     "predictions": [item.record_hash for item in predictions],
                     "outcomes": [item.record_hash for item in outcomes],
                 }
+            ),
+        }
+
+    @staticmethod
+    def _cohort_report(
+        predictions: list[ForwardPrediction], outcomes: list[ForwardOutcome]
+    ) -> dict[str, Any]:
+        outcome_ids = {item.prediction_id for item in outcomes}
+        issued = [item for item in predictions if item.decision is ForwardDecision.ISSUED]
+        resolved = sum(item.prediction_id in outcome_ids for item in issued)
+        return {
+            "predictions": len(predictions),
+            "issued": len(issued),
+            "abstained": len(predictions) - len(issued),
+            "resolved": resolved,
+            "outcome_coverage": resolved / len(issued) if issued else 0.0,
+            "abstention_rate": (
+                (len(predictions) - len(issued)) / len(predictions) if predictions else 0.0
             ),
         }
 

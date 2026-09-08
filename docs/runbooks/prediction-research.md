@@ -21,6 +21,11 @@ disabled and has no package path. Building an artifact therefore neither opens t
 starts forward prediction issuance. Approval, production market-data eligibility, and an explicit
 runtime change require a separate reviewed release action.
 
+Every immutable forward record must carry distinct information and market-data cutoffs, frozen
+model/target/feature identities, a feature-snapshot hash, frozen baseline probabilities, OOD state,
+optional regime, and source provenance. Reports preserve horizon cohorts, abstention, outcome
+coverage, proper scores, calibration error, frozen-baseline comparison, OOD, and regime counts.
+
 ## Forward-paper activation boundary
 
 `config/forward-paper.json` is deliberately disabled. Enabling it is not sufficient to start

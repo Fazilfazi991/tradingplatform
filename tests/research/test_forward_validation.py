@@ -28,12 +28,21 @@ def prediction(**updates) -> ForwardPrediction:
         "as_of_date": date(2026, 9, 8),
         "horizon_sessions": 1,
         "issued_at": NOW,
+        "information_cutoff": NOW - timedelta(minutes=1),
+        "market_data_cutoff": NOW - timedelta(minutes=2),
         "outcome_available_at": NOW + timedelta(days=1),
         "decision": ForwardDecision.ISSUED,
         "probabilities": (0.2, 0.5, 0.3),
+        "baseline_probabilities": (0.33, 0.34, 0.33),
         "dataset_hash": HASH,
         "model_hash": "b" * 64,
         "feature_config_hash": "c" * 64,
+        "feature_snapshot_hash": "d" * 64,
+        "model_version": "forward-model-v1",
+        "target_version": "prediction-v1-volatility-neutral-1",
+        "ood_state": "IN_DISTRIBUTION",
+        "market_regime": "NORMAL",
+        "provenance": {"source": "UPSTOX_INTERNAL", "public_delivery": "BLOCKED"},
         "code_sha": "315d043",
     }
     values.update(updates)
@@ -92,6 +101,19 @@ def test_empty_ledger_truthfully_remains_forward_required(tmp_path):
         "abstention_rate": 0.0,
         "multiclass_brier": None,
         "log_loss": None,
+        "calibration_error": None,
+        "baseline_multiclass_brier": None,
+        "baseline_log_loss": None,
+        "brier_improvement_vs_baseline": None,
+        "log_loss_improvement_vs_baseline": None,
+        "by_horizon": {},
+        "ood_counts": {
+            "IN_DISTRIBUTION": 0,
+            "WEAK_OOD": 0,
+            "STRONG_OOD": 0,
+            "UNKNOWN": 0,
+        },
+        "regime_counts": {},
         "metrics_state": "INSUFFICIENT_FORWARD_OUTCOMES",
         "ledger_hash": ledger.report()["ledger_hash"],
     }
@@ -177,3 +199,33 @@ def test_abstention_cannot_receive_an_outcome(tmp_path):
     )
     with pytest.raises(ForwardLedgerError, match="abstained"):
         ledger.resolve(outcome, now=NOW + timedelta(days=1))
+
+
+def test_forward_contract_rejects_noncausal_cutoffs_and_bad_baseline():
+    with pytest.raises(ValueError, match="cutoffs"):
+        prediction(information_cutoff=NOW + timedelta(seconds=1))
+    with pytest.raises(ValueError, match="baseline probabilities"):
+        prediction(baseline_probabilities=(0.2, 0.2, 0.2))
+
+
+def test_forward_report_preserves_baseline_and_cohort_evidence(tmp_path):
+    ledger = ForwardValidationLedger(tmp_path / "forward.sqlite3")
+    item = prediction()
+    ledger.issue(item, now=NOW)
+    ledger.resolve(
+        ForwardOutcome(
+            prediction_id=item.prediction_id,
+            resolved_at=NOW + timedelta(days=1),
+            realized_class=2,
+            realized_return=0.01,
+            market_data_hash="f" * 64,
+        ),
+        now=NOW + timedelta(days=1),
+    )
+    report = ledger.report()
+    assert report["baseline_multiclass_brier"] == pytest.approx(0.6734)
+    assert report["brier_improvement_vs_baseline"] == pytest.approx(0.6734 - 0.78)
+    assert report["by_horizon"]["1"]["resolved"] == 1
+    assert report["ood_counts"]["IN_DISTRIBUTION"] == 1
+    assert report["regime_counts"] == {"NORMAL": 1}
+    ledger.close()
