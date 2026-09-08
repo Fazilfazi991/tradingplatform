@@ -96,7 +96,8 @@ protection redirect fails the smoke test.
 Promote the already-verified immutable staging build. Do not rebuild from a different commit. Run
 the HTTP boundary suite and browser console/network suite against the canonical origin, then record
 timestamp, commit, deployment ID, domain, operator, result, and rollback target. If either canonical
-smoke suite, evidence sealing, or evidence upload fails, the workflow requests an immediate Vercel rollback,
+smoke suite, evidence sealing, or evidence upload fails, the workflow requests an immediate Vercel rollback
+to the exact recorded healthy deployment,
 waits for rollback status, and then rejects the release. A failed rollback also leaves the workflow
 red and requires the bad-deployment incident runbook; it must never be treated as a successful
 release.

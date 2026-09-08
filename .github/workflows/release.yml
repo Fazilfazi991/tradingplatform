@@ -47,6 +47,10 @@ jobs:
             echo "A previous healthy rollback deployment ID is required." >&2
             exit 1
           }
+          [[ "${ROLLBACK_DEPLOYMENT_ID}" =~ ^(https://[A-Za-z0-9.-]+\.vercel\.app|dpl_[A-Za-z0-9]+)$ ]] || {
+            echo "Rollback target must be a Vercel deployment URL or deployment ID." >&2
+            exit 1
+          }
           for check in backend web repository-safety; do
             conclusions="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs" \
               --jq "[.check_runs[] | select(.name == \"${check}\")] | sort_by(.started_at) | last | .conclusion")"
@@ -176,6 +180,10 @@ jobs:
             https://*.vercel.app) ;;
             *) echo "Staged deployment URL is invalid" >&2; exit 1 ;;
           esac
+          test "${ROLLBACK_DEPLOYMENT_ID}" != "${STAGED_DEPLOYMENT_URL}" || {
+            echo "Rollback target must differ from the staged deployment." >&2
+            exit 1
+          }
       - name: Promote without rebuilding
         run: pnpm exec vercel promote "${STAGED_DEPLOYMENT_URL}" --yes --token="${VERCEL_TOKEN}"
       - name: Smoke canonical production deployment
@@ -218,7 +226,7 @@ jobs:
         if: always() && (steps.production_smoke.outcome == 'failure' || steps.production_browser_smoke.outcome == 'failure' || steps.deployment_evidence.outcome == 'failure' || steps.upload_evidence.outcome == 'failure')
         shell: bash
         run: |
-          pnpm exec vercel rollback --yes --timeout=3m --token="${VERCEL_TOKEN}"
+          pnpm exec vercel rollback "${ROLLBACK_DEPLOYMENT_ID}" --yes --timeout=3m --token="${VERCEL_TOKEN}"
           pnpm exec vercel rollback status --timeout=3m --token="${VERCEL_TOKEN}"
       - name: Fail release after rollback attempt
         if: always() && (steps.production_smoke.outcome == 'failure' || steps.production_browser_smoke.outcome == 'failure' || steps.deployment_evidence.outcome == 'failure' || steps.upload_evidence.outcome == 'failure')

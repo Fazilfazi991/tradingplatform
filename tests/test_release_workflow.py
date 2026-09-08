@@ -96,7 +96,7 @@ def test_failed_production_smoke_attempts_rollback_and_rejects_release() -> None
     browser_smoke = promotion.index("id: production_browser_smoke")
     evidence = promotion.index("id: deployment_evidence")
     upload = promotion.index("id: upload_evidence")
-    rollback = promotion.index("vercel rollback --yes --timeout=3m")
+    rollback = promotion.index('vercel rollback "${ROLLBACK_DEPLOYMENT_ID}" --yes --timeout=3m')
     status = promotion.index("vercel rollback status --timeout=3m")
     rejection = promotion.index("Fail release after rollback attempt")
     assert smoke < browser_smoke < evidence < upload < rollback < status < rejection
@@ -129,6 +129,7 @@ def test_release_workflow_requires_rollback_evidence_before_staging() -> None:
     assert "ROLLBACK_REHEARSED: ${{ inputs.rollback_rehearsed }}" in authorization
     assert 'test "${ROLLBACK_REHEARSED}" = "true"' in authorization
     assert 'test -n "${ROLLBACK_DEPLOYMENT_ID}"' in authorization
+    assert "dpl_[A-Za-z0-9]+" in authorization
     assert '${{ inputs.rollback_deployment_id }}" \\' not in text
 
 
@@ -144,3 +145,4 @@ def test_successful_promotion_uploads_validated_sealed_evidence() -> None:
     assert "VISUAL_QA_BASE_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}" in promotion
     assert "deployment-evidence-${{ github.sha }}" in promotion
     assert "retention-days: 90" in promotion
+    assert 'test "${ROLLBACK_DEPLOYMENT_ID}" != "${STAGED_DEPLOYMENT_URL}"' in promotion
