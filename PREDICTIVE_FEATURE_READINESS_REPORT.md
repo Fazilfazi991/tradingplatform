@@ -19,12 +19,17 @@ Decision: **HOLDOUT VALIDATED — FORWARD REQUIRED**
   outcomes. The committed runtime remains disabled and no package is configured.
 - Forward reports expose coverage, abstention rate, multiclass Brier, and log loss only after real
   outcomes exist; otherwise metrics remain `INSUFFICIENT_FORWARD_OUTCOMES`.
+- A portable post-holdout refit artifact now contains the four preselected logistic candidates,
+  train-only preprocessing, validation-tail sigmoid calibrators, train-relative OOD statistics,
+  frozen abstention policy, and exact dataset/registration/decision/holdout/code identities. Export
+  parity against the fitted scikit-learn pipelines passed. Its companion package is explicitly
+  unapproved, the runtime config has no package path, and no prediction was issued.
 
 ## Material limitations
 
 - `forward_predictions_started` is false in the authoritative holdout report.
-- No eligible frozen deployable model artifact or approved package exists. Issuance and resolution
-  entrypoints are implemented but disabled; no platform supervisor or live forward schedule operates.
+- A frozen model artifact exists, but its package is intentionally unapproved. Issuance and
+  resolution entrypoints remain disabled; no platform supervisor or live forward schedule operates.
 - Coverage is very low at the 1D, 3D, and 5D horizons.
 - Current-universe survivorship bias remains; point-in-time membership is unavailable.
 - Corporate-action adjustment semantics and independent market-data reconciliation remain unresolved.

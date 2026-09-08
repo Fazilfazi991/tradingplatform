@@ -111,6 +111,8 @@
       "state": "FAIL",
       "evidence": [
         "research/prediction-v1/prediction-v1-holdout-report.json",
+        "research/prediction-v1/forward-model-v1.json",
+        "research/prediction-v1/forward-package-v1.json",
         "config/forward-paper.json",
         "PREDICTIVE_FEATURE_READINESS_REPORT.md"
       ],
