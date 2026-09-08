@@ -24,6 +24,11 @@ Decision: **BLOCKED**
 - Reproducible GitHub CI runs pinned backend, frontend, repository-safety, dependency-audit,
   environment-contract, production-build, smoke, public-boundary, and local-performance gates.
   Every release candidate remains subject to a successful hosted run at its exact commit.
+- Automatic Git deployments are disabled. The manual release workflow verifies those exact hosted
+  checks, stages a production build without assigning public domains, smoke-tests the deployed
+  boundary, rechecks Track A authorization, and only then reaches the protected production approval.
+  It has not been run because the required external gates and hosted environment configuration are
+  still open.
 - Local SQLite backup/restore integrity checks and a real intelligence-worker
   start/heartbeat/graceful-stop rehearsal pass. These do not substitute for managed production
   storage, retention, host supervision, or deployed recovery evidence.

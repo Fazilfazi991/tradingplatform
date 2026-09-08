@@ -11,15 +11,17 @@
       "state": "EXTERNAL",
       "evidence": [
         ".github/workflows/quality.yml",
+        ".github/workflows/release.yml",
         "requirements-dev.lock",
         "pnpm-lock.yaml",
+        "apps/web/scripts/deployment-smoke.mjs",
         "scripts/validate_deployment_evidence.py"
       ],
       "blockers": [
         "EXT-06",
         "EXT-07"
       ],
-      "reason": "Local and hosted checks pass, but protected deployment promotion and production smoke evidence require hosting and repository controls."
+      "reason": "Local and hosted checks pass and the manual release workflow fails closed; executing protected promotion and recording production smoke evidence require hosting and repository controls."
     },
     {
       "id": "data",

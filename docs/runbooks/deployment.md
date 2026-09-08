@@ -3,8 +3,10 @@
 Verified Edge is a mixed Python/Next repository. The public web deployment must use the root `vercel.json`; provider auto-detection is not an acceptable deployment contract.
 
 Automatic Vercel Git deployments are disabled in `vercel.json`. This is deliberate: a push to
-`main` is a tested repository update, not production authorization. Preview or production
-deployment must be initiated through a reviewed release process after the selected track passes.
+`main` is a tested repository update, not production authorization. The manual `staged release`
+workflow may create a domainless production-shaped candidate only after the exact commit's hosted
+quality checks pass. Promotion remains impossible unless the public-platform track subsequently
+passes and the protected `production` environment is approved.
 
 ## Environments
 
@@ -31,6 +33,23 @@ Never prefix provider, database, or internal-access credentials with `NEXT_PUBLI
 6. Confirm public serializers reject internal, stale, mixed, and rights-unapproved records.
 7. Record the previous production deployment identifier for rollback.
 
+## GitHub release environments
+
+Configure two protected GitHub environments; do not store their values in the repository:
+
+- `production-staging`: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, optional
+  `VERCEL_AUTOMATION_BYPASS_SECRET`, and `VERIFIED_EDGE_CANONICAL_URL` as a non-secret variable.
+- `production`: the same scoped Vercel identifiers and canonical URL, with required owner/reviewer
+  approval and no self-approval.
+
+Run `.github/workflows/release.yml` manually from `main`. It verifies the exact commit's `backend`,
+`web`, and `repository-safety` checks, builds with the pinned Vercel CLI, deploys using
+`--prod --skip-domain`, and smoke-tests the candidate. The promotion job consumes that workflow
+output directly; it cannot accept a caller-supplied deployment URL. It runs only after
+`--require-track public_platform` succeeds and then requires the protected production approval.
+The workflow must remain red/blocked while the release manifest contains external or failed Track A
+gates.
+
 ## Staging verification
 
 Verify the exact built commit over HTTPS:
@@ -41,6 +60,11 @@ Verify the exact built commit over HTTPS:
 - Security headers are present.
 - No public response contains internal hashes, paths, live raw provider data, credentials, or research candidates.
 - Robots, sitemap, canonical metadata, 404, loading, and error states match the release report.
+
+The automated deployment smoke additionally scans rendered HTML and public JavaScript/CSS assets
+for forbidden internal markers and local paths, and rejects exposed JavaScript source maps. It is
+deployment evidence, not a substitute for the owner/legal/accessibility approvals in the release
+manifest.
 
 ## Production promotion
 

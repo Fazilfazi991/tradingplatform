@@ -326,6 +326,11 @@ The following are release artifacts, not aspirational prose:
 - Automatic Vercel Git deployments are disabled while release gates remain non-passing. A separate
   fail-closed track authorization command exits nonzero for blocked production, promotion, or
   prediction tracks, so green quality CI cannot be mistaken for deployment approval.
+- A manual staged-release workflow now verifies the exact commit's hosted checks, creates a
+  domainless production-shaped Vercel candidate, scans the deployed public/internal and asset
+  boundaries, and passes that exact deployment directly to an environment-protected promotion job.
+  Track A authorization runs between staging and promotion; no deployment was initiated without
+  the external project, domain, credentials, approvals, and passing release gates.
 - The pinned pnpm setup action now uses its Node 24-backed v6.0.10 commit, removing the hosted
   Node 20 action-runtime deprecation without changing the project's pnpm 11.19.0 contract.
 - A versioned production-build browser budget now gates representative public routes on navigation response, LCP, CLS, document, JavaScript, CSS, font, and total encoded payload; deployed field Web Vitals and INP remain external acceptance evidence.

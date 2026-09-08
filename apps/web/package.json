@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "smoke": "node scripts/smoke.mjs",
+    "deployment:smoke": "node scripts/deployment-smoke.mjs",
     "performance:qa": "node scripts/performance-qa.mjs",
     "public-boundary:qa": "node scripts/public-boundary-qa.mjs",
     "test": "node --test src/lib/*.test.ts",
