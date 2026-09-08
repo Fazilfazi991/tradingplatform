@@ -348,6 +348,11 @@ The following are release artifacts, not aspirational prose:
   deployment and rollback identifiers, HTTPS origin, environment contract, public/internal and
   payload boundaries, headers/indexing/404/console checks, migration state, and rollback rehearsal.
   No staging or production evidence has been fabricated.
+- Authenticated Vercel inspection found the existing linked project and the exact historical build
+  failure: the project-level `apps/web` root duplicated the repository-root build command into
+  `/apps/web/apps`. The project root is now reconciled to the repository root without triggering a
+  deployment. Automatic Git deployments remain disabled; canonical domain, protected release
+  environments, credentials, staged smoke, promotion, and rollback evidence remain external.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
 - A read-only EOD market collector and append-only ledger are wired into the platform scheduler. They
   enforce the India close window, exchange-complete status, exact current-universe mapping, atomic

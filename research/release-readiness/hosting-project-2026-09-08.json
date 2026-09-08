@@ -1,0 +1,28 @@
+{
+  "version": "hosting-project-evidence-v1",
+  "observed_at": "2026-09-08T07:09:38.7505867+04:00",
+  "observation_method": "AUTHENTICATED_VERCEL_DASHBOARD_AND_PUBLIC_GITHUB_DEPLOYMENT_API",
+  "project_linked": true,
+  "project_name": "tradingplatform",
+  "plan": "HOBBY",
+  "framework": "nextjs",
+  "node_version": "24.x",
+  "root_directory": "REPOSITORY_ROOT",
+  "root_directory_reconciled_at": "2026-09-08T07:09:00+04:00",
+  "automatic_git_deployments_disabled_by_repository": true,
+  "latest_observed_deployment": {
+    "github_deployment_id": 6319457664,
+    "vercel_deployment_id": "dpl_3XAmC63SU5nv2xV1kMUJQeicrkHi",
+    "commit_sha": "0e2ea09e451ed3d494b0dc6ce5dac7d7ea34d206",
+    "created_at": "2026-09-08T02:28:43Z",
+    "state": "failure",
+    "failure_class": "DUPLICATED_MONOREPO_ROOT",
+    "sanitized_failure": "Project root apps/web combined with the root build command pnpm --dir apps/web build, resolving an invalid apps/web/apps path."
+  },
+  "successful_staging_evidence": false,
+  "successful_production_evidence": false,
+  "canonical_domain_approved": false,
+  "release_environment_credentials_configured": false,
+  "deployment_triggered_by_reconciliation": false,
+  "release_impact": "EXT-06_REMAINS_OPEN_WITH_LINKED_PROJECT_AND_ROOT_DEFECT_RESOLVED"
+}

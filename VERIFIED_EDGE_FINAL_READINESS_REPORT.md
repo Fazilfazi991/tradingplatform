@@ -8,8 +8,10 @@ Report type: fail-closed readiness snapshot; not a launch authorization
 
 ## 1. Production URL
 
-**NOT AVAILABLE.** No canonical production domain or accepted production deployment evidence has
-been supplied. Local and Vercel candidate behavior must not be represented as production.
+**NOT AVAILABLE.** A Vercel project is linked. No canonical production domain or accepted
+successful deployment evidence has been supplied. Its historical monorepo-root defect is resolved
+without deploying. Local, failed, and future staged-candidate behavior must not be represented as
+production.
 
 ## 2. Git
 

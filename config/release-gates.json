@@ -13,6 +13,7 @@
         ".github/workflows/quality.yml",
         ".github/workflows/release.yml",
         "VERIFIED_EDGE_FINAL_READINESS_REPORT.md",
+        "research/release-readiness/hosting-project-2026-09-08.json",
         "research/release-readiness/repository-controls-2026-09-08.json",
         "requirements-dev.lock",
         "pnpm-lock.yaml",
@@ -20,6 +21,9 @@
         "scripts/validate_deployment_evidence.py"
       ],
       "assertions": [
+        {"path": "research/release-readiness/hosting-project-2026-09-08.json", "json_path": "project_linked", "equals": true},
+        {"path": "research/release-readiness/hosting-project-2026-09-08.json", "json_path": "root_directory", "equals": "REPOSITORY_ROOT"},
+        {"path": "research/release-readiness/hosting-project-2026-09-08.json", "json_path": "successful_production_evidence", "equals": false},
         {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "secret_protection_enabled", "equals": true},
         {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "push_protection_enabled", "equals": true},
         {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "rulesets_configured", "equals": false},
@@ -29,7 +33,7 @@
         "EXT-06",
         "EXT-07"
       ],
-      "reason": "Local and hosted checks pass and the manual release workflow fails closed; executing protected promotion and recording production smoke evidence require hosting and repository controls."
+      "reason": "Local and hosted checks pass, the linked Vercel root is reconciled, and the manual release workflow fails closed; approved release environments, protected promotion, and production smoke evidence remain external."
     },
     {
       "id": "data",

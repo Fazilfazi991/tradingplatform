@@ -51,6 +51,28 @@ def test_repository_security_is_partial_and_does_not_close_engineering() -> None
     assert "EXT-07" in engineering["blockers"]
 
 
+def test_linked_hosting_root_is_reconciled_without_claiming_deployment() -> None:
+    evidence = json.loads(
+        (
+            REPO
+            / "research"
+            / "release-readiness"
+            / "hosting-project-2026-09-08.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert evidence["project_linked"] is True
+    assert evidence["root_directory"] == "REPOSITORY_ROOT"
+    assert evidence["deployment_triggered_by_reconciliation"] is False
+    assert evidence["successful_staging_evidence"] is False
+    assert evidence["successful_production_evidence"] is False
+    assert evidence["canonical_domain_approved"] is False
+
+    current = manifest()
+    engineering = next(gate for gate in current["gates"] if gate["id"] == "engineering")
+    assert engineering["state"] == "EXTERNAL"
+    assert "EXT-06" in engineering["blockers"]
+
+
 def test_unknown_state_is_rejected() -> None:
     changed = copy.deepcopy(manifest())
     changed["gates"][0]["state"] = "ALMOST_READY"
