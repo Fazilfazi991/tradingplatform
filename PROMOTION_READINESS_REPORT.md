@@ -54,8 +54,9 @@ Decision: **BLOCKED**
 - Legal/compliance approval of all perimeter and policy language.
 - Public data-rights approval or proof that the launched payload contains only independently safe data.
 - Authenticated-route review in staging with production-shaped secrets and logs.
-- Manual screen-reader, contrast, Windows forced-colors, and 200%/400% zoom checks across the
-  full interactive public route inventory.
+- Manual screen-reader and human visual review of contrast, Windows forced-colors, and 200%/400%
+  browser zoom across the full interactive public route inventory. Automated structural,
+  target-size, reflow, forced-colors, and reduced-motion gates pass but do not replace this review.
 - Production performance and real-user Web Vitals measurements on staging/canonical hosting.
 - Canonical domain, canonical metadata, real sitemap, Search Console decision, staging/production smoke evidence, and rollback proof.
 - Production host supervision, notification destinations, managed backup/retention policy, and a

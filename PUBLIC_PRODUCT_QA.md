@@ -57,6 +57,13 @@ an automated structural check found no unlabeled buttons or form fields, missing
 alternatives, duplicate IDs, heading-level skips, missing main landmark, or unlabeled navigation
 landmarks. Reduced-motion CSS disables animation, transitions, and smooth scrolling.
 
+The optimized-build accessibility gate is reproducible with `pnpm accessibility:web` and runs in
+hosted CI. It additionally checks every visible mobile link/button against a 44px target minimum,
+tests 200% and 400% reflow at their equivalent 640px and 320px CSS viewports, verifies forced-colors
+mode remains structurally usable without horizontal overflow, and confirms that the homepage and
+Fusion animations stop under the reduced-motion preference. The gate identified and corrected an
+18px-tall stock-to-Fusion link before acceptance.
+
 ## Indexing boundary
 
 Public methodology/information routes are indexable. Synthetic forecast, stock, Fusion,
@@ -80,8 +87,9 @@ release gate; the same inspection remains mandatory against staging and the cano
 
 ## Remaining QA
 
-- Complete manual screen-reader behavior, 200%/400% zoom, and Windows forced-colors checks
-  across every interactive public route.
+- Complete manual screen-reader behavior and human visual review of contrast, 200%/400% browser
+  zoom, and Windows forced-colors across every interactive public route. Automated structural,
+  reflow, target-size, forced-colors, and reduced-motion gates now pass but do not replace that review.
 - Preserve launch screenshots only after the canonical staging domain and final legal copy are
   approved.
 - Measure production Web Vitals and server/API latency against staging and the final domain.

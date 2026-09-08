@@ -206,3 +206,4 @@ button { color:inherit; }
 @media(max-width:760px){.public-breadcrumbs{padding:8px 18px 0}.public-breadcrumbs a{display:inline-flex;align-items:center;min-height:44px}}
 
 @media(min-width:1310px){.home-hero{grid-template-columns:minmax(500px,.95fr) minmax(560px,1.05fr);min-height:650px}.home-message{padding:58px 32px}.home-message h1{max-width:12ch;font-size:clamp(54px,4.7vw,72px)}.home-trust{margin-top:32px;padding-top:20px}.home-evidence{padding:40px 42px 54px}.home-engine{min-height:58px}}
+.fusion-entry>a{min-height:44px}

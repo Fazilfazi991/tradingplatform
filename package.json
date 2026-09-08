@@ -10,7 +10,8 @@
     "test:web": "pnpm --dir apps/web test",
     "smoke:web": "pnpm --dir apps/web smoke",
     "performance:web": "pnpm --dir apps/web performance:qa",
-    "public-boundary:web": "pnpm --dir apps/web public-boundary:qa"
+    "public-boundary:web": "pnpm --dir apps/web public-boundary:qa",
+    "accessibility:web": "pnpm --dir apps/web accessibility:qa"
   },
   "dependencies": {
     "lucide-react": "^1.37.0",

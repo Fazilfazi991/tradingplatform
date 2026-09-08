@@ -318,6 +318,9 @@ The following are release artifacts, not aspirational prose:
   origin still depends on the external canonical-domain configuration.
 - All six secondary indexable routes now expose accessible visible breadcrumbs and canonical
   `BreadcrumbList` structured data; production smoke rejects missing navigation or schema drift.
+- Hosted CI now runs an optimized-build accessibility gate across all 14 public routes, including
+  semantics, keyboard skip navigation, mobile target size, 200%/400% reflow, forced colors, and
+  reduced motion; manual assistive-technology acceptance remains external.
 - The pinned pnpm setup action now uses its Node 24-backed v6.0.10 commit, removing the hosted
   Node 20 action-runtime deprecation without changing the project's pnpm 11.19.0 contract.
 - A versioned production-build browser budget now gates representative public routes on navigation response, LCP, CLS, document, JavaScript, CSS, font, and total encoded payload; deployed field Web Vitals and INP remain external acceptance evidence.
