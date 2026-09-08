@@ -98,7 +98,8 @@
       "evidence": [
         "infra/systemd/verified-edge-intelligence.service",
         "scripts/runtime_backup.py",
-        "scripts/validate_deployment_evidence.py"
+        "scripts/validate_deployment_evidence.py",
+        "CODEX_MAINTENANCE_AUTOMATIONS.md"
       ],
       "blockers": [
         "EXT-06"

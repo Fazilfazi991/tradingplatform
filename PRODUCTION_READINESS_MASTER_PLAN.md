@@ -307,6 +307,9 @@ The following are release artifacts, not aspirational prose:
 - `SEO_CONTENT_STRATEGY.md` maps India-focused, people-first search intents to the existing canonical
   public pages, prohibits unsupported query/claims expansion, and leaves Search Console and
   measurement inactive until the canonical domain, privacy, and owner gates are approved.
+- A read-only weekly Codex readiness audit is installed against the saved local project and recorded
+  in `CODEX_MAINTENANCE_AUTOMATIONS.md`. Its prompt prohibits mutation, deployment, publication,
+  runtime activation, and predictions; it remains separate from platform-owned scheduling.
 - A versioned production-build browser budget now gates representative public routes on navigation response, LCP, CLS, document, JavaScript, CSS, font, and total encoded payload; deployed field Web Vitals and INP remain external acceptance evidence.
 - GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
