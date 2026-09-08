@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import { NextResponse } from "next/server";
+import { FixedWindowLimiter, MemoryTtlCache } from "@/lib/bounded-runtime";
 
 type SafeCandidate = {
   id: string;
@@ -17,6 +18,15 @@ export const dynamic = "force-dynamic";
 const MAX_ARTIFACT_BYTES = 256 * 1024;
 const MAX_ENTRIES_SCANNED = 500;
 const MAX_CANDIDATES = 100;
+const limiter = new FixedWindowLimiter(30, 60_000);
+const cache = new MemoryTtlCache<ResearchDeskPayload>(15_000);
+const privateHeaders = { "Cache-Control": "private, no-store" };
+
+type ResearchDeskPayload = {
+  enabled: boolean;
+  status?: Record<string, unknown>;
+  candidates: SafeCandidate[];
+};
 
 function readJson(path: string): Record<string, unknown> | null {
   try {
@@ -58,7 +68,20 @@ function candidateFiles(root: string): string[] {
 
 export function GET() {
   const enabled = process.env.CODEX_RESEARCH_OPERATOR_ENABLED === "true";
-  if (!enabled) return NextResponse.json({ enabled: false, candidates: [] });
+  if (!enabled) {
+    return NextResponse.json(
+      { enabled: false, candidates: [] },
+      { headers: privateHeaders },
+    );
+  }
+  if (!limiter.allow()) {
+    return NextResponse.json(
+      { error: "RATE_LIMITED" },
+      { status: 429, headers: { ...privateHeaders, "Retry-After": "60" } },
+    );
+  }
+  const cached = cache.get();
+  if (cached) return NextResponse.json(cached, { headers: privateHeaders });
   const workspace = [process.cwd(), resolve(process.cwd(), "../..")].find((path) =>
     existsSync(resolve(path, "research/codex")),
   ) ?? process.cwd();
@@ -83,7 +106,7 @@ export function GET() {
       });
     }
   }
-  return NextResponse.json({
+  const payload: ResearchDeskPayload = {
     enabled: true,
     status: {
       lastRun: status.last_run ?? null,
@@ -100,5 +123,7 @@ export function GET() {
       researchIncidents: status.research_incidents ?? 0,
     },
     candidates: candidates.sort((left, right) => right.observedAt.localeCompare(left.observedAt)),
-  }, { headers: { "Cache-Control": "private, no-store" } });
+  };
+  cache.set(payload);
+  return NextResponse.json(payload, { headers: privateHeaders });
 }
