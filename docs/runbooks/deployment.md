@@ -54,7 +54,9 @@ therefore stop staging before an artifact is built.
 
 Run `.github/workflows/release.yml` manually from `main`. Supply the previous healthy production
 deployment ID and attest that rollback to it has been rehearsed successfully; the workflow rejects
-the release before staging when either condition is absent. It verifies the exact commit's `backend`,
+the release before staging when either condition is absent. After linking the approved Vercel project,
+it verifies that the exact rollback target is accessible without retaining inspection output. It then
+verifies the exact commit's `backend`,
 `web`, and `repository-safety` checks, builds with the pinned Vercel CLI, deploys using
 `--prod --skip-domain`, and smoke-tests the candidate. The promotion job consumes that workflow
 output directly; it cannot accept a caller-supplied deployment URL. It runs only after

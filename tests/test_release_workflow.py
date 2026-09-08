@@ -72,6 +72,17 @@ def test_staged_build_validates_pulled_server_environment_without_retaining_it()
     assert validation < build
 
 
+def test_staging_preflights_the_exact_rollback_target_before_build() -> None:
+    text = workflow()
+    staging = text[text.index("stage-production-build:") : text.index("authorize-production:")]
+    pull = staging.index("vercel pull")
+    inspect = staging.index('vercel inspect "${ROLLBACK_DEPLOYMENT_ID}"')
+    build = staging.index("Build production artifact")
+    assert "ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}" in staging
+    assert "> /dev/null" in staging[inspect:build]
+    assert pull < inspect < build
+
+
 def test_release_workflow_uses_lockfile_installed_vercel_cli() -> None:
     text = workflow()
     package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
