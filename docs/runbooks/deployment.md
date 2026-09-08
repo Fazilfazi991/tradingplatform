@@ -105,6 +105,19 @@ A failed rollback or failed post-rollback smoke also leaves the workflow
 red and requires the bad-deployment incident runbook; it must never be treated as a successful
 release.
 
+### First-release recovery candidate
+
+When no healthy rollback deployment exists, the owner may manually dispatch the same workflow with
+`bootstrap_staging=true`, an empty rollback target, and `rollback_rehearsed=false`. This exceptional
+mode still requires exact-commit hosted quality, the protected `production-staging` environment,
+complete secret/environment validation, a prebuilt domainless deployment, and the full staged smoke
+boundary. It records the candidate in the workflow summary and then stops: production authorization
+and promotion are structurally skipped.
+
+After the candidate is independently reviewed, rehearse rollback to it and retain the deployment ID.
+Only then may a later normal dispatch use it as the rollback target. Bootstrap mode is not a launch,
+does not assign a domain, does not close `EXT-06`, and must never be used to bypass Track A gates.
+
 After canonical smoke passes, the workflow seals the evidence as `deployment-evidence-v1`, validates
 it, and uploads `deployment-evidence-<commit SHA>` with 90-day retention. To validate a downloaded
 copy manually, run:

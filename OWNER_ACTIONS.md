@@ -12,7 +12,10 @@ Only decisions or credentials that require owner authority are listed here. Ordi
    automation-bypass secret for the protected staging smoke and store it only as the corresponding
    GitHub environment secret. The Vercel project currently has no project variables. Standard
    Protection is enabled for generated deployment URLs, and the project root already matches the
-   repository-root contract.
+   repository-root contract. Because no healthy rollback target exists, first run the reviewed
+   `bootstrap_staging` workflow mode after configuring `production-staging`; it creates and smokes a
+   domainless candidate but cannot promote it. Review it, rehearse rollback, and retain its deployment
+   ID before using the normal release path.
 3. Arrange legal/compliance review of the actual informational-research perimeter, Terms, Privacy, Risk Disclosure, data-source wording, validation-status wording, and any future paid/security-specific research.
 4. Decide whether synthetic demo forecasts may be publicly indexable or must remain unindexed/private during validation.
 5. Decide whether privacy-conscious analytics are approved; if yes, approve provider, events, retention, cookie/consent behavior, and privacy disclosure.

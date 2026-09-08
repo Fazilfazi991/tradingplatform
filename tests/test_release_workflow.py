@@ -135,7 +135,9 @@ def test_release_workflow_fails_closed_before_production_approval() -> None:
 def test_release_workflow_requires_rollback_evidence_before_staging() -> None:
     text = workflow()
     authorization = text[text.index("authorize-staging:") : text.index("stage-production-build:")]
-    assert "rollback_deployment_id:" in text.split("jobs:", 1)[0]
+    inputs = text.split("jobs:", 1)[0]
+    assert "bootstrap_staging:" in inputs
+    assert "rollback_deployment_id:" in inputs
     assert "rollback_rehearsed:" in text.split("jobs:", 1)[0]
     assert "ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}" in authorization
     assert "ROLLBACK_REHEARSED: ${{ inputs.rollback_rehearsed }}" in authorization
@@ -143,6 +145,22 @@ def test_release_workflow_requires_rollback_evidence_before_staging() -> None:
     assert 'test -n "${ROLLBACK_DEPLOYMENT_ID}"' in authorization
     assert "dpl_[A-Za-z0-9]+" in authorization
     assert '${{ inputs.rollback_deployment_id }}" \\' not in text
+
+
+def test_bootstrap_mode_can_only_create_a_domainless_recovery_candidate() -> None:
+    text = workflow()
+    authorization = text[text.index("authorize-staging:") : text.index("stage-production-build:")]
+    staging = text[text.index("stage-production-build:") : text.index("authorize-production:")]
+    production_authorization = text[
+        text.index("authorize-production:") : text.index("promote-production:")
+    ]
+
+    assert 'if [ "${BOOTSTRAP_STAGING}" = "true" ]; then' in authorization
+    assert 'test -z "${ROLLBACK_DEPLOYMENT_ID}"' in authorization
+    assert 'test "${ROLLBACK_REHEARSED}" = "false"' in authorization
+    assert "if: inputs.bootstrap_staging == false" in staging
+    assert "Bootstrap recovery candidate — no promotion attempted" in staging
+    assert "if: inputs.bootstrap_staging == false" in production_authorization
 
 
 def test_successful_promotion_uploads_validated_sealed_evidence() -> None:

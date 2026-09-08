@@ -3,9 +3,14 @@ name: staged release
 on:
   workflow_dispatch:
     inputs:
+      bootstrap_staging:
+        description: Create and verify a domainless recovery candidate only; never promote it
+        required: true
+        default: false
+        type: boolean
       rollback_deployment_id:
         description: Previous healthy production deployment ID or URL
-        required: true
+        required: false
         type: string
       rollback_rehearsed:
         description: Confirm rollback to the supplied deployment was rehearsed successfully
@@ -30,6 +35,7 @@ jobs:
       GH_TOKEN: ${{ github.token }}
       ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
       ROLLBACK_REHEARSED: ${{ inputs.rollback_rehearsed }}
+      BOOTSTRAP_STAGING: ${{ inputs.bootstrap_staging }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
@@ -39,18 +45,29 @@ jobs:
         shell: bash
         run: |
           test "${GITHUB_REF}" = "refs/heads/main"
-          test "${ROLLBACK_REHEARSED}" = "true" || {
-            echo "A successful rollback rehearsal must be attested before staging." >&2
-            exit 1
-          }
-          test -n "${ROLLBACK_DEPLOYMENT_ID}" || {
-            echo "A previous healthy rollback deployment ID is required." >&2
-            exit 1
-          }
-          [[ "${ROLLBACK_DEPLOYMENT_ID}" =~ ^(https://[A-Za-z0-9.-]+\.vercel\.app|dpl_[A-Za-z0-9]+)$ ]] || {
-            echo "Rollback target must be a Vercel deployment URL or deployment ID." >&2
-            exit 1
-          }
+          if [ "${BOOTSTRAP_STAGING}" = "true" ]; then
+            test -z "${ROLLBACK_DEPLOYMENT_ID}" || {
+              echo "Bootstrap mode cannot accept a caller-supplied rollback target." >&2
+              exit 1
+            }
+            test "${ROLLBACK_REHEARSED}" = "false" || {
+              echo "Bootstrap mode cannot attest a rollback rehearsal that has not occurred." >&2
+              exit 1
+            }
+          else
+            test "${ROLLBACK_REHEARSED}" = "true" || {
+              echo "A successful rollback rehearsal must be attested before staging." >&2
+              exit 1
+            }
+            test -n "${ROLLBACK_DEPLOYMENT_ID}" || {
+              echo "A previous healthy rollback deployment ID is required." >&2
+              exit 1
+            }
+            [[ "${ROLLBACK_DEPLOYMENT_ID}" =~ ^(https://[A-Za-z0-9.-]+\.vercel\.app|dpl_[A-Za-z0-9]+)$ ]] || {
+              echo "Rollback target must be a Vercel deployment URL or deployment ID." >&2
+              exit 1
+            }
+          fi
           for check in backend web repository-safety; do
             conclusions="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${GITHUB_SHA}/check-runs" \
               --jq "[.check_runs[] | select(.name == \"${check}\")] | sort_by(.started_at) | last | .conclusion")"
@@ -77,6 +94,7 @@ jobs:
       VERIFIED_EDGE_CANONICAL_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}
       NEXT_PUBLIC_SITE_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}
       ROLLBACK_DEPLOYMENT_ID: ${{ inputs.rollback_deployment_id }}
+      BOOTSTRAP_STAGING: ${{ inputs.bootstrap_staging }}
     steps:
       - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
       - uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
@@ -106,6 +124,7 @@ jobs:
       - name: Pull production project settings
         run: pnpm exec vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
       - name: Verify rollback target is accessible
+        if: inputs.bootstrap_staging == false
         shell: bash
         run: pnpm exec vercel inspect "${ROLLBACK_DEPLOYMENT_ID}" --token="${VERCEL_TOKEN}" > /dev/null
       - name: Validate pulled public-web environment without disclosing values
@@ -132,10 +151,19 @@ jobs:
           echo "- URL: ${deployment_url}" >> "${GITHUB_STEP_SUMMARY}"
       - name: Smoke staged deployment
         run: pnpm --dir apps/web deployment:smoke -- "${{ steps.deploy.outputs.url }}" "${VERIFIED_EDGE_CANONICAL_URL}"
+      - name: Record bootstrap recovery candidate
+        if: inputs.bootstrap_staging == true
+        shell: bash
+        run: |
+          echo "### Bootstrap recovery candidate — no promotion attempted" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Commit: ${GITHUB_SHA}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Candidate: ${{ steps.deploy.outputs.url }}" >> "${GITHUB_STEP_SUMMARY}"
+          echo "- Next step: rehearse rollback to this candidate before a normal release." >> "${GITHUB_STEP_SUMMARY}"
 
   authorize-production:
     name: Authorize Track A promotion
     needs: stage-production-build
+    if: inputs.bootstrap_staging == false
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
