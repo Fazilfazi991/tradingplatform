@@ -56,10 +56,22 @@ try {
     const context = await browser.newContext({ viewport: config.viewport });
     const page = await context.newPage();
     await page.addInitScript(() => {
-      window.__verifiedEdgePerformance = { cls: 0, lcp: 0 };
+      window.__verifiedEdgePerformance = { cls: 0, lcp: 0, layoutShifts: [] };
       new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          if (!entry.hadRecentInput) window.__verifiedEdgePerformance.cls += entry.value;
+          if (!entry.hadRecentInput) {
+            window.__verifiedEdgePerformance.cls += entry.value;
+            window.__verifiedEdgePerformance.layoutShifts.push({
+              value: Math.round(entry.value * 10000) / 10000,
+              sources: entry.sources.map((source) => ({
+                node: source.node instanceof Element
+                  ? `${source.node.tagName.toLowerCase()}${source.node.id ? `#${source.node.id}` : ""}${[...source.node.classList].map((name) => `.${name}`).join("")}`
+                  : "unknown",
+                previous: source.previousRect.toJSON(),
+                current: source.currentRect.toJSON(),
+              })),
+            });
+          }
         }
       }).observe({ type: "layout-shift", buffered: true });
       new PerformanceObserver((list) => {
@@ -71,7 +83,7 @@ try {
     const response = await page.goto(`${origin}${route}`, { waitUntil: "networkidle" });
     await delay(100);
     if (response?.status() !== 200) failures.push(`${route}: HTTP ${response?.status() ?? "missing"}`);
-    const metrics = await page.evaluate(() => {
+    const { metrics, layoutShifts } = await page.evaluate(() => {
       const navigation = performance.getEntriesByType("navigation")[0];
       const resources = performance.getEntriesByType("resource");
       const bytes = (suffix) => resources
@@ -80,18 +92,21 @@ try {
       const total = resources.reduce((sum, resource) => sum + resource.encodedBodySize, 0)
         + navigation.encodedBodySize;
       return {
-        navigation_response_ms: Math.round(navigation.responseEnd * 100) / 100,
-        largest_contentful_paint_ms:
-          Math.round(window.__verifiedEdgePerformance.lcp * 100) / 100,
-        cumulative_layout_shift:
-          Math.round(window.__verifiedEdgePerformance.cls * 10000) / 10000,
-        document_encoded_bytes: navigation.encodedBodySize,
-        javascript_encoded_bytes: bytes(".js"),
-        css_encoded_bytes: bytes(".css"),
-        font_encoded_bytes: resources
-          .filter((resource) => /\.(woff2?|ttf|otf)$/.test(new URL(resource.name).pathname))
-          .reduce((sum, resource) => sum + resource.encodedBodySize, 0),
-        total_encoded_bytes: total,
+        metrics: {
+          navigation_response_ms: Math.round(navigation.responseEnd * 100) / 100,
+          largest_contentful_paint_ms:
+            Math.round(window.__verifiedEdgePerformance.lcp * 100) / 100,
+          cumulative_layout_shift:
+            Math.round(window.__verifiedEdgePerformance.cls * 10000) / 10000,
+          document_encoded_bytes: navigation.encodedBodySize,
+          javascript_encoded_bytes: bytes(".js"),
+          css_encoded_bytes: bytes(".css"),
+          font_encoded_bytes: resources
+            .filter((resource) => /\.(woff2?|ttf|otf)$/.test(new URL(resource.name).pathname))
+            .reduce((sum, resource) => sum + resource.encodedBodySize, 0),
+          total_encoded_bytes: total,
+        },
+        layoutShifts: window.__verifiedEdgePerformance.layoutShifts,
       };
     });
     for (const [metric, actual] of Object.entries(metrics)) {
@@ -103,7 +118,13 @@ try {
       const failure = exceeded(metric, metrics[metric], maximum, route);
       if (failure) failures.push(failure);
     }
-    results.push({ route, ...metrics });
+    const includeShiftSources = metrics.cumulative_layout_shift
+      > config.budgets.cumulative_layout_shift;
+    results.push({
+      route,
+      ...metrics,
+      ...(includeShiftSources ? { layout_shift_sources: layoutShifts } : {}),
+    });
     await context.close();
   }
 

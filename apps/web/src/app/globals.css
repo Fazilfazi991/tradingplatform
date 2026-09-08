@@ -24,6 +24,7 @@ button { color:inherit; }
 .nav a.active svg { color:var(--amber); }
 .research-mode { margin-top:auto; padding:13px; border:1px solid #554528; border-radius:12px; color:var(--amber); font-size:11px; line-height:1.5; }
 .main { grid-column:2; min-width:0; }
+#main-content { min-height:calc(100svh - 42px); }
 .demo-banner { position:sticky; top:0; z-index:20; min-height:42px; display:flex; align-items:center; justify-content:center; gap:10px; padding:9px 24px; background:#1c1a12ee; border-bottom:1px solid #594927; color:#e9ca8d; font-size:11px; text-align:center; backdrop-filter:blur(12px); }
 .demo-banner b { border:1px solid #8b6c31; border-radius:999px; padding:3px 8px; letter-spacing:.08em; }
 .topbar { display:flex; justify-content:space-between; align-items:flex-end; gap:20px; padding:22px 34px 16px; border-bottom:1px solid #1a2925; }
