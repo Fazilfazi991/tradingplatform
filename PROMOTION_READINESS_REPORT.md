@@ -35,6 +35,10 @@ Decision: **BLOCKED**
 - The production smoke gate now crawls rendered internal links. It caught and closed unsupported
   stock links and inert forecast filters; the public demo exposes only its complete RELIANCE
   walkthrough and an explicit no-result state.
+- Versioned local performance budgets now gate representative routes on navigation response, LCP,
+  CLS, and encoded document/JavaScript/CSS/font/total payload. A separate production-build boundary
+  audit inspects every public HTML response and referenced text asset, verifies protected denials,
+  and rejects credential identifiers, machine paths, internal runtime paths, and exposed source maps.
 
 ## Still required
 

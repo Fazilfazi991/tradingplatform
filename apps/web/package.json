@@ -9,6 +9,7 @@
     "start": "next start",
     "smoke": "node scripts/smoke.mjs",
     "performance:qa": "node scripts/performance-qa.mjs",
+    "public-boundary:qa": "node scripts/public-boundary-qa.mjs",
     "test": "node --test src/lib/*.test.ts",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",

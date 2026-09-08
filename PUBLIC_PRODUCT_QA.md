@@ -62,6 +62,15 @@ The sitemap contains only approved informational routes when a validated canonic
 available. Explicit HTTPS configuration is preferred; Vercel's production-domain environment
 is the safe fallback. Unsafe non-local HTTP origins are rejected.
 
+## Public payload boundary
+
+The production-build audit at `pnpm public-boundary:web` fetches all 14 public routes, verifies the
+six internal/admin/API denial surfaces, and follows every referenced Next.js static asset. The
+current run inspected 13 text assets and found no credential identifiers, private-key markers,
+local machine paths, internal forward-model paths, or runtime-state paths. It also probed every
+public JavaScript chunk for a corresponding source map and found zero exposed maps. This is a local
+release gate; the same inspection remains mandatory against staging and the canonical deployment.
+
 ## Remaining QA
 
 - Complete manual screen-reader behavior, 200%/400% zoom, and Windows forced-colors checks
@@ -70,10 +79,13 @@ is the safe fallback. Unsafe non-local HTTP origins are rejected.
   approved.
 - Measure production Web Vitals and server/API latency against staging and the final domain.
 
-## Local production performance baseline
+## Local production performance gate
 
-Five direct requests per public route against the optimized local build produced median response
-times from 3.1ms to 13.4ms. The largest rendered HTML response was the Fusion demo at 60,333
-bytes. The complete build emitted 986,353 bytes of JavaScript and 52,969 bytes of CSS across all
-static chunks; these totals are not per-route transfer sizes. This is a reproducible local baseline,
-not production TTFB, Core Web Vitals, or real-user evidence.
+`pnpm performance:web` starts the optimized production build and measures six representative routes
+in a clean Chrome context against versioned budgets in `config/web-performance-budgets.json`. The
+current run recorded a maximum 156.1ms navigation response, 364ms LCP, 0.0159 CLS, 250,336 bytes of
+route JavaScript, 98,040 bytes of fonts, and 390,797 total encoded bytes. Every route passed.
+
+These measurements are reproducible local lab evidence, not production TTFB or real-user evidence.
+INP requires representative deployed interaction data and remains part of the canonical deployment
+acceptance rather than being inferred from a synthetic click.

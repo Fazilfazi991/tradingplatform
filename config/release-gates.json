@@ -62,6 +62,8 @@
       "evidence": [
         "apps/web/src/lib/public-delivery.ts",
         "apps/web/src/lib/route-policy.ts",
+        "config/public-boundary-audit.json",
+        "apps/web/scripts/public-boundary-qa.mjs",
         "CLAIMS_LEDGER.md"
       ],
       "blockers": [
@@ -76,7 +78,9 @@
       "evidence": [
         "PUBLIC_PRODUCT_QA.md",
         "apps/web/scripts/visual-qa.mjs",
-        "apps/web/scripts/smoke.mjs"
+        "apps/web/scripts/smoke.mjs",
+        "config/web-performance-budgets.json",
+        "apps/web/scripts/performance-qa.mjs"
       ],
       "blockers": [
         "EXT-06",

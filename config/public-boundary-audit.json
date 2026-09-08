@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "public_routes": [
+    "/",
+    "/methodology",
+    "/data-sources",
+    "/validation",
+    "/models",
+    "/about",
+    "/faq",
+    "/risk",
+    "/privacy",
+    "/terms",
+    "/contact",
+    "/predictions",
+    "/stocks/RELIANCE",
+    "/fusion"
+  ],
+  "protected_routes": [
+    "/research",
+    "/research/prediction-v1",
+    "/research-desk",
+    "/data-health",
+    "/settings",
+    "/api/research-desk"
+  ],
+  "forbidden_text": [
+    "OPENAI_API_KEY",
+    "UPSTOX_ANALYTICS_TOKEN",
+    "INTERNAL_ACCESS_PASSWORD",
+    "DATABASE_URL",
+    "BEGIN PRIVATE KEY",
+    "BEGIN RSA PRIVATE KEY",
+    "C:\\\\Users\\\\",
+    "/home/runner/",
+    "research/prediction-v1/forward-model-v1.json",
+    "runtime/intelligence-ops"
+  ]
+}
