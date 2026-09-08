@@ -283,6 +283,8 @@ Parallel work must use isolated `codex/` worktrees/branches with one owner per s
 
 The following are release artifacts, not aspirational prose:
 
+- `VERIFIED_EDGE_FINAL_READINESS_REPORT.md`: consolidated fail-closed evidence snapshot using the
+  exact 23-section acceptance structure; unavailable production evidence remains explicitly absent.
 - `PROMOTION_READINESS_REPORT.md`: public route inventory, claims ledger, responsive screenshots, accessibility, links, SEO, performance, legal approval state, promotion assets, and explicit pass/fail.
 - `PREDICTIVE_FEATURE_READINESS_REPORT.md`: immutable forward sample, coverage, accuracy/error, calibration, abstention, OOD/drift, regimes, failures, and separate Track B verdict.
 - `EXTERNAL_BLOCKERS.md`: authority, evidence needed, owner, impact, safe interim behavior, and resolution state for every external dependency.

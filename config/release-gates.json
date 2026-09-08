@@ -12,6 +12,7 @@
       "evidence": [
         ".github/workflows/quality.yml",
         ".github/workflows/release.yml",
+        "VERIFIED_EDGE_FINAL_READINESS_REPORT.md",
         "requirements-dev.lock",
         "pnpm-lock.yaml",
         "apps/web/scripts/deployment-smoke.mjs",
