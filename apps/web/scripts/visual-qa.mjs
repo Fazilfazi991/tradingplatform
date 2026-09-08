@@ -55,6 +55,8 @@ for (const [label, viewport] of viewports) {
   }
   await page.goto(base, { waitUntil: "networkidle" });
   await page.screenshot({ path: resolve(output, `home-${label}.png`), fullPage: true });
+  await page.goto(`${base}/methodology`, { waitUntil: "networkidle" });
+  await page.screenshot({ path: resolve(output, `public-doc-${label}.png`), fullPage: true });
   await page.close();
 }
 await browser.close();

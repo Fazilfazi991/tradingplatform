@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { PublicBreadcrumbs } from "@/components/public-breadcrumbs";
 
 export const metadata: Metadata = {
   title: "Evidence Engines",
@@ -7,5 +8,5 @@ export const metadata: Metadata = {
 };
 
 export default function ModelsLayout({ children }: Readonly<{ children: React.ReactNode }>) {
-  return children;
+  return <><PublicBreadcrumbs current="Seven evidence engines" path="/models" />{children}</>;
 }

@@ -8,4 +8,4 @@ const questions=[
   ["What does abstain mean?","The system does not have enough reliable, relevant, and sufficiently independent evidence to form a view."],
   ["Has the prediction engine been validated?","It passed a sealed historical holdout under a preregistered method. Prospective forward validation is still required."],
 ] as const;
-export default function Faq(){return <PublicDoc title="Frequently asked questions" summary="Direct answers about the product’s current boundaries."><div className="faq-list">{questions.map(([question,answer])=><section key={question}><h2>{question}</h2><p>{answer}</p></section>)}</div></PublicDoc>}
+export default function Faq(){return <PublicDoc path="/faq" title="Frequently asked questions" summary="Direct answers about the product’s current boundaries."><div className="faq-list">{questions.map(([question,answer])=><section key={question}><h2>{question}</h2><p>{answer}</p></section>)}</div></PublicDoc>}

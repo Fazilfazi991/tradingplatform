@@ -44,6 +44,7 @@ const publicRoutes = [
   "/risk", "/privacy", "/terms", "/contact", "/predictions", "/stocks/RELIANCE", "/fusion",
 ];
 const indexableRoutes = ["/", "/methodology", "/data-sources", "/validation", "/models", "/about", "/faq"];
+const breadcrumbRoutes = indexableRoutes.filter((path) => path !== "/");
 const protectedRoutes = [
   "/research", "/research/prediction-v1", "/research-desk", "/data-health", "/settings",
   "/api/research-desk",
@@ -93,6 +94,19 @@ try {
     assert(canonicalUrl.origin === origin, `${path} canonical used the wrong origin`);
     assert(canonicalUrl.pathname === path, `${path} canonical pointed to ${canonicalUrl.pathname}`);
     assert(!canonicalUrl.search && !canonicalUrl.hash, `${path} canonical included search or hash state`);
+  }
+  for (const path of breadcrumbRoutes) {
+    const response = await request(path);
+    const body = await response.text();
+    assert(/<nav[^>]+aria-label="Breadcrumb"/i.test(body), `${path} omitted breadcrumb navigation`);
+    assert(/<a[^>]+href="\/"[^>]*>Home<\/a>/i.test(body), `${path} breadcrumb omitted its home link`);
+    const structuredBlocks = [...body.matchAll(/<script type="application\/ld\+json">(.*?)<\/script>/g)]
+      .map((match) => JSON.parse(match[1]));
+    const breadcrumbs = structuredBlocks.find((block) => block["@type"] === "BreadcrumbList");
+    assert(breadcrumbs, `${path} omitted BreadcrumbList structured data`);
+    assert(breadcrumbs.itemListElement?.length === 2, `${path} breadcrumb schema has the wrong depth`);
+    assert(breadcrumbs.itemListElement[0]?.item === `${origin}/`, `${path} breadcrumb schema has the wrong root`);
+    assert(breadcrumbs.itemListElement[1]?.item === `${origin}${path}`, `${path} breadcrumb schema has the wrong canonical item`);
   }
   const securityResponse = await request("/");
   const requiredSecurityHeaders = {
