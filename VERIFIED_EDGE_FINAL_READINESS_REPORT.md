@@ -2,7 +2,7 @@
 
 Status date: 2026-09-08
 
-Evidence baseline: `main` at `d68fb465b85105083853ab4aa3e45943db02e72c`
+Implementation evidence baseline: `main` at `ea456f909bef148a8637e09b01c156590ac1c363`
 
 Report type: fail-closed readiness snapshot; not a launch authorization
 
@@ -16,10 +16,10 @@ production.
 ## 2. Git
 
 - Branch: `main`
-- Implementation evidence commit: `d68fb465b85105083853ab4aa3e45943db02e72c`
+- Implementation evidence commit: `ea456f909bef148a8637e09b01c156590ac1c363`
 - Working tree at evidence capture: clean
 - Remote match at evidence capture: yes
-- Hosted quality: [run 34189863853](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34189863853), success
+- Hosted quality: [run 34202219466](https://github.com/Fazilfazi991/tradingplatform/actions/runs/34202219466), success across backend, web, and repository-safety
 
 The eventual release commit must be recorded by the deployment-evidence artifact. A tracked report
 cannot truthfully embed the hash of the commit that first contains itself.
@@ -54,8 +54,11 @@ and 375 pixels. This does not replace the external assistive-technology review.
 
 The last qualifying historical 24-hour soak recorded News/Event `LIVE`, Macro `PARTIALLY_LIVE`,
 and Fundamental, Technical, Historical, Psychology, and Flow/Derivatives as engineering-only or
-insufficient. OpenAI structured-output health passed at the bounded activation point. No supervised
-production worker is currently evidenced, so historical health is not current production health.
+insufficient. A supervised local/internal Windows worker is currently collecting RBI/SEBI with
+healthy transport and scheduler continuity; this is not an approved production host. The Luna
+numeric-grounding defect is repaired under `event-grounding-v2` and
+`visible-text-signed-decimal-v2`; one bounded live canary passed, but the three HIGH semantic
+incidents remain open until a representative frozen window meets their closure criteria.
 
 ## 6. Prediction research
 
