@@ -36,6 +36,16 @@ def test_release_workflow_stages_without_domain_then_promotes_same_output() -> N
     assert "deployment_url:" not in text.split("jobs:", 1)[0]
 
 
+def test_staged_build_receives_the_validated_canonical_origin() -> None:
+    text = workflow()
+    staging = text[text.index("stage-production-build:") : text.index("authorize-production:")]
+    assert "VERIFIED_EDGE_CANONICAL_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}" in staging
+    assert "NEXT_PUBLIC_SITE_URL: ${{ vars.VERIFIED_EDGE_CANONICAL_URL }}" in staging
+    assert 'test "${NEXT_PUBLIC_SITE_URL}" = "${VERIFIED_EDGE_CANONICAL_URL}"' in staging
+    assert 'case "${NEXT_PUBLIC_SITE_URL}" in' in staging
+    assert "https://*)" in staging
+
+
 def test_release_workflow_fails_closed_before_production_approval() -> None:
     text = workflow()
     authorization = text.index("authorize-production:")

@@ -42,6 +42,11 @@ Configure two protected GitHub environments; do not store their values in the re
 - `production`: the same scoped Vercel identifiers and canonical URL, with required owner/reviewer
   approval and no self-approval.
 
+The staging job maps the approved `VERIFIED_EDGE_CANONICAL_URL` to the web build's
+`NEXT_PUBLIC_SITE_URL`. This is intentional: the release workflow owns the immutable build origin,
+and the public Next.js bundle must not depend on an unverified project-level default. The workflow
+rejects an empty or non-HTTPS canonical origin before building.
+
 Run `.github/workflows/release.yml` manually from `main`. It verifies the exact commit's `backend`,
 `web`, and `repository-safety` checks, builds with the pinned Vercel CLI, deploys using
 `--prod --skip-domain`, and smoke-tests the candidate. The promotion job consumes that workflow

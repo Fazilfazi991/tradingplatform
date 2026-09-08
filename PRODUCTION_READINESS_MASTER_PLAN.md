@@ -362,6 +362,10 @@ The following are release artifacts, not aspirational prose:
   environment has secrets, variables, branch restrictions, or required reviewers. No values were
   inspected and no settings were changed. The authoritative checklist is
   `research/release-readiness/release-environments-2026-09-08.json`.
+- The staged release now maps the protected GitHub canonical-origin variable directly into the
+  Next.js build's `NEXT_PUBLIC_SITE_URL` and rejects empty or non-HTTPS values. This prevents a
+  production-shaped artifact from silently inheriting a missing Vercel project variable and then
+  emitting invalid canonical, sitemap, robots, or structured-data origins.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
 - A read-only EOD market collector and append-only ledger are wired into the platform scheduler. They
   enforce the India close window, exchange-complete status, exact current-universe mapping, atomic
