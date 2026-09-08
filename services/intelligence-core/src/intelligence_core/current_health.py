@@ -81,6 +81,36 @@ def build_current_health(
         for row in forensics.attempts()
         if row.completed_at >= now - timedelta(seconds=int(policy["semantic_health_window_seconds"]))
     ]
+    latest_attempt = max(attempts, key=lambda row: row.completed_at) if attempts else None
+    policy_identity = (
+        {
+            "provider": latest_attempt.provider,
+            "model": latest_attempt.model,
+            "prompt_version": latest_attempt.prompt_version,
+            "schema_version": latest_attempt.schema_version,
+            "schema_hash": latest_attempt.schema_hash,
+            "routing_version": latest_attempt.routing_version,
+            "configuration_hash": latest_attempt.configuration_hash,
+            "retry_policy_version": latest_attempt.retry_policy_version,
+            "grounding_policy_version": latest_attempt.grounding_policy_version,
+        }
+        if latest_attempt
+        else None
+    )
+    current_policy_attempts = (
+        [
+            row
+            for row in attempts
+            if all(getattr(row, field) == value for field, value in policy_identity.items())
+        ]
+        if policy_identity
+        else []
+    )
+    current_operational_attempts = [
+        row
+        for row in current_policy_attempts
+        if not row.canonical_event_id.startswith("CANARY:")
+    ]
     collection_attempts = forensics.collection_attempts()
     if started_at:
         start = datetime.fromisoformat(started_at)
@@ -107,22 +137,34 @@ def build_current_health(
         for value in observation.values()
     )
     transport = transport_health(attempts).value
-    semantic = semantic_health(
-        attempts,
-        elevated=float(policy["semantic_elevated_failure_rate"]),
-        critical=float(policy["semantic_critical_failure_rate"]),
-    ).value
-    quarantined_attempts = sum(row.quarantine_status == "QUARANTINED" for row in attempts)
+    semantic_minimum = int(policy["semantic_policy_minimum_attempts"])
+    semantic_window_complete = len(current_operational_attempts) >= semantic_minimum
+    semantic = (
+        semantic_health(
+            current_operational_attempts,
+            elevated=float(policy["semantic_elevated_failure_rate"]),
+            critical=float(policy["semantic_critical_failure_rate"]),
+        ).value
+        if semantic_window_complete
+        else "INSUFFICIENT_SAMPLE"
+    )
+    quarantined_attempts = sum(
+        row.quarantine_status == "QUARANTINED" for row in current_operational_attempts
+    )
     latest_by_event = {}
-    for row in attempts:
+    for row in current_operational_attempts:
         latest_by_event[row.canonical_event_id] = row
     terminal_quarantines = sum(
         row.terminal_disposition.value == "QUARANTINED" for row in latest_by_event.values()
     )
     validation_failures = [
-        row for row in attempts if row.structured_validation_status.value == "FAIL"
+        row
+        for row in current_operational_attempts
+        if row.structured_validation_status.value == "FAIL"
     ]
-    transport_failures = [row for row in attempts if row.transport_status.value == "FAILED"]
+    transport_failures = [
+        row for row in current_operational_attempts if row.transport_status.value == "FAILED"
+    ]
     collection_failures = [
         row for row in collection_attempts if row.transport_status.value == "FAILED"
     ]
@@ -144,6 +186,8 @@ def build_current_health(
         alerts.append("PROVIDER_TRANSPORT_DEGRADED")
     if semantic in {"ELEVATED_FAILURES", "CRITICAL_FAILURE_RATE"}:
         alerts.append("SEMANTIC_FAILURE_SPIKE")
+    if not semantic_window_complete:
+        alerts.append("SEMANTIC_SAMPLE_INCOMPLETE")
     if terminal_quarantines >= int(policy["quarantine_warning_count"]):
         alerts.append("QUARANTINE_SPIKE")
     alerts.extend(
@@ -214,6 +258,30 @@ def build_current_health(
             "quarantined_attempts": quarantined_attempts,
             "transport_failures": len(transport_failures),
             "validation_failures": len(validation_failures),
+            "current_policy": {
+                "identity": policy_identity,
+                "minimum_operational_attempts": semantic_minimum,
+                "operational_attempts": len(current_operational_attempts),
+                "canary_attempts": len(current_policy_attempts)
+                - len(current_operational_attempts),
+                "window_complete": semantic_window_complete,
+                "transport_failures": len(transport_failures),
+                "validation_failures": len(validation_failures),
+                "failure_rate": round(
+                    len(validation_failures) / len(current_operational_attempts), 6
+                )
+                if current_operational_attempts
+                else None,
+            },
+            "historical_window_totals": {
+                "attempts": len(attempts),
+                "transport_failures": sum(
+                    row.transport_status.value == "FAILED" for row in attempts
+                ),
+                "validation_failures": sum(
+                    row.structured_validation_status.value == "FAIL" for row in attempts
+                ),
+            },
         },
         "cache": {
             "entries": int(
@@ -292,6 +360,10 @@ def write_current_health(report: dict[str, Any], output_root: str | Path) -> tup
         + f"- Transport: {report['provider_transport_health']}\n"
         + f"- Semantic: {report['semantic_validation_health']}\n"
         + f"- Attempts: {report['llm']['attempts']}\n"
+        + "- Current-policy operational sample: "
+        + f"{report['llm']['current_policy']['operational_attempts']}/"
+        + f"{report['llm']['current_policy']['minimum_operational_attempts']}\n"
+        + f"- Current-policy canaries: {report['llm']['current_policy']['canary_attempts']}\n"
         + f"- Quarantines: {report['llm']['quarantines']}\n"
         + f"- Estimated cost: ${report['llm']['estimated_cost_usd']:.8f}\n\n"
         + "## Scheduled recovery observation\n\n"

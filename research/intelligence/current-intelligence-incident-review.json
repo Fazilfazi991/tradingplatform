@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T07:58:30Z",
+  "generated_at": "2026-09-08T08:24:17Z",
   "authority": "post-soak supervised operational recovery",
   "historical_soak_report_mutated": false,
   "historical_high_incidents": [
@@ -62,7 +62,7 @@
   ],
   "current_evidence": {
     "provider_transport_health": "HEALTHY",
-    "semantic_validation_health": "CRITICAL_FAILURE_RATE",
+    "semantic_validation_health": "INSUFFICIENT_SAMPLE",
     "semantic_attempts": 31,
     "validation_failures": 8,
     "cumulative_failure_rate": 0.25806452,
@@ -78,11 +78,15 @@
   "remediation_validation": {
     "prompt_version": "event-grounding-v2",
     "grounding_policy_version": "visible-text-signed-decimal-v2",
-    "offline_backend_tests_passed": 382,
+    "offline_backend_tests_passed": 385,
     "live_canary_attempts": 1,
     "live_canary_transport_successes": 1,
     "live_canary_validation_successes": 1,
     "live_canary_cost_usd": 0.000542,
+    "operational_attempts_required": 40,
+    "operational_attempts_observed": 0,
+    "historical_window_attempts": 31,
+    "historical_window_validation_failures": 8,
     "representative_frozen_window_complete": false,
     "incident_resolution_authorized": false
   },

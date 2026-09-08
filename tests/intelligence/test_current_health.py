@@ -3,7 +3,11 @@ from datetime import UTC, datetime, timedelta
 
 from intelligence_core.current_health import build_current_health, write_current_health
 from intelligence_core.durable import SQLiteOperationsStore
-from intelligence_core.runtime_forensics import CollectionAttemptRecord, ForensicRuntimeStore
+from intelligence_core.runtime_forensics import (
+    CollectionAttemptRecord,
+    ForensicRuntimeStore,
+    LLMAttemptRecord,
+)
 
 NOW = datetime(2026, 9, 8, 6, tzinfo=UTC)
 
@@ -38,6 +42,7 @@ def policy():
         "semantic_elevated_failure_rate": 0.05,
         "semantic_critical_failure_rate": 0.2,
         "semantic_health_window_seconds": 86400,
+        "semantic_policy_minimum_attempts": 40,
         "quarantine_warning_count": 1,
         "minimum_recovery_cycles": 3,
     }
@@ -54,7 +59,12 @@ def test_current_health_reports_stale_without_worker(tmp_path):
     )
     assert report["overall_state"] == "DEGRADED"
     assert report["worker"]["status"] == "NOT_STARTED"
-    assert report["alerts"] == ["RBI_STALE", "SEBI_STALE", "WORKER_NOT_STARTED"]
+    assert report["alerts"] == [
+        "RBI_STALE",
+        "SEBI_STALE",
+        "SEMANTIC_SAMPLE_INCOMPLETE",
+        "WORKER_NOT_STARTED",
+    ]
 
 
 def test_current_health_uses_configured_cadence_and_writes_atomically(tmp_path):
@@ -134,3 +144,79 @@ def test_recovery_observation_requires_three_on_time_cycles_per_source(tmp_path)
         value["successful_cycles"] == 3
         for value in report["scheduled_observation"]["sources"].values()
     )
+
+
+def llm_attempt(index: int, *, policy: str, failed: bool = False, canary: bool = False):
+    return LLMAttemptRecord.model_validate(
+        {
+            "semantic_request_id": f"semantic-{policy}-{index}",
+            "canonical_event_id": f"{'CANARY:' if canary else ''}event-{index}",
+            "source_id": "rbi",
+            "source_artifact_hash": f"artifact-{index}",
+            "semantic_hash": f"meaning-{index}",
+            "task": "EVENT_CLASSIFICATION",
+            "provider": "openai",
+            "model": "gpt-5.6-luna",
+            "prompt_version": f"prompt-{policy}",
+            "schema_version": "s1",
+            "schema_hash": "schema-hash",
+            "routing_version": "route-1",
+            "configuration_hash": f"config-{policy}",
+            "attempt_ordinal": 1,
+            "max_attempts": 2,
+            "retry_policy_version": "bounded-v1",
+            "grounding_policy_version": policy,
+            "started_at": NOW - timedelta(minutes=2) + timedelta(seconds=index),
+            "completed_at": NOW - timedelta(minutes=2) + timedelta(seconds=index + 1),
+            "latency_ms": 1000,
+            "transport_status": "SUCCEEDED",
+            "input_tokens": 100,
+            "output_tokens": 10,
+            "estimated_input_cost": 0.00002,
+            "estimated_output_cost": 0.000012,
+            "estimated_total_cost": 0.000032,
+            "structured_validation_status": "FAIL" if failed else "PASS",
+            "validation_error_category": "UNSUPPORTED_NUMERIC_CLAIM" if failed else None,
+            "terminal_disposition": "QUARANTINED" if failed else "SUCCESS",
+            "quarantine_status": "QUARANTINED" if failed else "NONE",
+            "provenance_hash": f"provenance-{policy}-{index}",
+        }
+    )
+
+
+def test_semantic_health_is_scoped_to_latest_frozen_policy_and_requires_sample(tmp_path):
+    store = SQLiteOperationsStore(tmp_path / "ops.sqlite3")
+    forensics = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
+    for index in range(5):
+        forensics.add_attempt(llm_attempt(index, policy="legacy", failed=True))
+    forensics.add_attempt(llm_attempt(20, policy="v2", canary=True))
+
+    report = build_current_health(
+        store, forensics, schedules=definitions(), policy=policy(), now=NOW
+    )
+
+    assert report["semantic_validation_health"] == "INSUFFICIENT_SAMPLE"
+    assert report["llm"]["historical_window_totals"]["validation_failures"] == 5
+    assert report["llm"]["current_policy"]["operational_attempts"] == 0
+    assert report["llm"]["current_policy"]["canary_attempts"] == 1
+    assert report["llm"]["current_policy"]["validation_failures"] == 0
+    assert "SEMANTIC_FAILURE_SPIKE" not in report["alerts"]
+    assert "SEMANTIC_SAMPLE_INCOMPLETE" in report["alerts"]
+
+
+def test_current_policy_becomes_healthy_only_after_representative_window(tmp_path):
+    store = SQLiteOperationsStore(tmp_path / "ops.sqlite3")
+    forensics = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
+    forensics.add_attempt(llm_attempt(0, policy="legacy", failed=True))
+    for index in range(40):
+        forensics.add_attempt(llm_attempt(index + 10, policy="v2"))
+
+    report = build_current_health(
+        store, forensics, schedules=definitions(), policy=policy(), now=NOW
+    )
+
+    assert report["semantic_validation_health"] == "HEALTHY"
+    assert report["llm"]["current_policy"]["window_complete"] is True
+    assert report["llm"]["current_policy"]["failure_rate"] == 0
+    assert report["llm"]["historical_window_totals"]["validation_failures"] == 1
+    assert "SEMANTIC_SAMPLE_INCOMPLETE" not in report["alerts"]

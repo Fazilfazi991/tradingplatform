@@ -13,7 +13,7 @@ Containment remains effective: unsupported numeric claims do not enter the succe
 invalid results create tombstones, and quarantined results remain excluded from specialist/Fusion
 handoff. This containment is not a reason to call semantic health healthy.
 
-Current transport is `HEALTHY`; semantic validation is `CRITICAL_FAILURE_RATE`. Three current HIGH
+Current transport is `HEALTHY`; current-policy semantic validation is `INSUFFICIENT_SAMPLE`. Three current HIGH
 incidents remain open: two `LLM_HALLUCINATION_QUARANTINE` incidents and one
 `LLM_SCHEMA_FAILURE_SPIKE`. RBI and SEBI collection are current after three scheduled cycles each.
 Forward Paper remains `DISABLED`.
@@ -24,6 +24,9 @@ units remain mandatory. The worker now loads `event-grounding-v2` and
 `visible-text-signed-decimal-v2`; both are included in semantic/cache identity. Historical attempts
 and tombstones remain unchanged. Offline verification passed 382 backend tests, and one bounded live
 canary passed transport and structured/grounding validation at an estimated cost of `$0.000542`.
+The health model now retains the legacy 31-attempt/8-failure history separately and requires 40
+non-canary attempts under one exact frozen policy identity before it can report current semantic
+health as healthy or resolve the incident. The current operational sample is 0/40.
 
 The incidents remain open. One canary is not the representative frozen window required by their
 closure criteria; the platform-owned hourly semantic job will provide the next bounded production

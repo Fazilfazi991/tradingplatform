@@ -6,6 +6,7 @@
   "semantic_elevated_failure_rate": 0.05,
   "semantic_critical_failure_rate": 0.2,
   "semantic_health_window_seconds": 86400,
+  "semantic_policy_minimum_attempts": 40,
   "quarantine_warning_count": 1,
   "monitor_cadence_seconds": 300,
   "minimum_recovery_cycles": 3

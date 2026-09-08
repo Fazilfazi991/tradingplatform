@@ -180,6 +180,16 @@ def build_semantic_handler(
             for attempt in forensics.attempts()
             if attempt.completed_at.astimezone(UTC).date() == day
             and attempt.transport_status is TransportStatus.SUCCEEDED
+            and attempt.provider == processor.config.provider
+            and attempt.model == processor.config.model
+            and attempt.prompt_version == processor.prompt_version
+            and attempt.schema_version == processor.schema_version
+            and attempt.schema_hash == processor.schema_hash
+            and attempt.routing_version == processor.routing_version
+            and attempt.configuration_hash == processor.configuration_hash
+            and attempt.retry_policy_version == processor.retry_policy_version
+            and attempt.grounding_policy_version == processor.grounding_policy_version
+            and not attempt.canonical_event_id.startswith("CANARY:")
         ]
         schema_failures = sum(
             attempt.structured_validation_status is StructuredValidationStatus.FAIL
