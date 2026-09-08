@@ -337,6 +337,9 @@ The following are release artifacts, not aspirational prose:
   Node 20 action-runtime deprecation without changing the project's pnpm 11.19.0 contract.
 - A versioned production-build browser budget now gates representative public routes on navigation response, LCP, CLS, document, JavaScript, CSS, font, and total encoded payload; deployed field Web Vitals and INP remain external acceptance evidence.
 - GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
+- An authenticated read-only repository-settings audit confirms GitHub secret protection and push
+  protection are enabled. No ruleset or classic branch protection exists for `main`, so required
+  checks and pull-request review remain an external repository-control blocker.
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
 - A hardened systemd service template now provides environment preflight, persistent state outside
   release directories, bounded restart, process-group stop, and least-privilege filesystem/kernel

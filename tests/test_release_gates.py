@@ -31,6 +31,26 @@ def test_current_manifest_is_evidenced_and_fail_closed() -> None:
     assert report["tracks"]["prediction"]["ready"] is False
 
 
+def test_repository_security_is_partial_and_does_not_close_engineering() -> None:
+    evidence = json.loads(
+        (
+            REPO
+            / "research"
+            / "release-readiness"
+            / "repository-controls-2026-09-08.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert evidence["secret_protection_enabled"] is True
+    assert evidence["push_protection_enabled"] is True
+    assert evidence["rulesets_configured"] is False
+    assert evidence["classic_branch_protection_configured"] is False
+
+    current = manifest()
+    engineering = next(gate for gate in current["gates"] if gate["id"] == "engineering")
+    assert engineering["state"] == "EXTERNAL"
+    assert "EXT-07" in engineering["blockers"]
+
+
 def test_unknown_state_is_rejected() -> None:
     changed = copy.deepcopy(manifest())
     changed["gates"][0]["state"] = "ALMOST_READY"
@@ -81,6 +101,7 @@ def test_missing_evidence_blocks_every_dependent_track() -> None:
     changed["gates"][0]["state"] = "PASS"
     changed["gates"][0]["blockers"] = []
     changed["gates"][0]["evidence"] = ["does-not-exist.txt"]
+    changed["gates"][0]["assertions"] = []
     report = audit_manifest(changed, repo=REPO)
     assert report["evidence_errors"] == [
         "engineering:does-not-exist.txt:MISSING_OR_OUTSIDE_REPO"

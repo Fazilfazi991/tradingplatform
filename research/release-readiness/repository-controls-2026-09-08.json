@@ -1,0 +1,21 @@
+{
+  "version": "repository-controls-evidence-v1",
+  "observed_at": "2026-09-08T07:00:37.9665181+04:00",
+  "repository": "Fazilfazi991/tradingplatform",
+  "branch": "main",
+  "observation_method": "AUTHENTICATED_GITHUB_SETTINGS_UI_READ_ONLY",
+  "sources": [
+    "https://github.com/Fazilfazi991/tradingplatform/settings/rules",
+    "https://github.com/Fazilfazi991/tradingplatform/settings/branches",
+    "https://github.com/Fazilfazi991/tradingplatform/settings/security_analysis"
+  ],
+  "rulesets_configured": false,
+  "classic_branch_protection_configured": false,
+  "required_status_checks_enforced": false,
+  "pull_request_review_enforced": false,
+  "force_push_protection_enforced": false,
+  "secret_protection_enabled": true,
+  "push_protection_enabled": true,
+  "values_or_alerts_captured": false,
+  "release_impact": "EXT-07_REMAINS_OPEN_FOR_BRANCH_PROTECTION_AND_REQUIRED_CHECKS"
+}

@@ -13,10 +13,17 @@
         ".github/workflows/quality.yml",
         ".github/workflows/release.yml",
         "VERIFIED_EDGE_FINAL_READINESS_REPORT.md",
+        "research/release-readiness/repository-controls-2026-09-08.json",
         "requirements-dev.lock",
         "pnpm-lock.yaml",
         "apps/web/scripts/deployment-smoke.mjs",
         "scripts/validate_deployment_evidence.py"
+      ],
+      "assertions": [
+        {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "secret_protection_enabled", "equals": true},
+        {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "push_protection_enabled", "equals": true},
+        {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "rulesets_configured", "equals": false},
+        {"path": "research/release-readiness/repository-controls-2026-09-08.json", "json_path": "classic_branch_protection_configured", "equals": false}
       ],
       "blockers": [
         "EXT-06",

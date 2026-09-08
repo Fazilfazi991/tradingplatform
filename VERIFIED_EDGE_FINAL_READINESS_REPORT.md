@@ -74,8 +74,8 @@ verification and source-policy approval.
 Server-side secret boundaries, fail-closed internal authentication, API rate limiting/caching,
 safe-source fetching, prompt-injection controls, security headers, dependency audit, repository
 secret scan, public-payload rejection, noindex/no-store controls, and source-map rejection are
-automated. Hosted branch protection and secret-scanning settings remain owner-controlled and
-unverified.
+automated. Authenticated GitHub settings inspection confirms secret protection and push protection
+are enabled. Branch rules, required checks, and pull-request review remain absent.
 
 ## 10. Performance
 
@@ -138,7 +138,7 @@ Evidence baseline results:
 
 The authoritative list is `EXTERNAL_BLOCKERS.md`. Open dependencies cover provider data rights,
 point-in-time membership, corporate-action semantics, independent reconciliation, legal/regulatory
-approval, hosting/domain, repository controls, analytics/consent, positioning/publication approval,
+approval, hosting/domain, branch protection, analytics/consent, positioning/publication approval,
 additional intelligence sources, prospective validation time, and manual accessibility/deployed
 performance acceptance.
 
