@@ -3,9 +3,11 @@
 Only decisions or credentials that require owner authority are listed here. Ordinary engineering work remains with the implementation team.
 
 1. Obtain written Upstox/provider confirmation for public redistribution and derived/commercial display rights, including caching and retention terms.
-2. Approve the existing linked Vercel project for release, choose the canonical production domain,
-   and configure the protected `production-staging` and `production` GitHub environments with
-   scoped Vercel credentials. The project root now matches the repository-root deployment contract.
+2. Approve the existing linked Vercel project for release and choose the canonical production
+   domain. Add the exact GitHub environment `production-staging`; harden the existing `Production`
+   environment with required reviewer approval and branch restrictions; add the scoped Vercel
+   secrets and canonical URL variable to both workflow environments. The Vercel project currently
+   has no project variables. The project root already matches the repository-root contract.
 3. Arrange legal/compliance review of the actual informational-research perimeter, Terms, Privacy, Risk Disclosure, data-source wording, validation-status wording, and any future paid/security-specific research.
 4. Decide whether synthetic demo forecasts may be publicly indexable or must remain unindexed/private during validation.
 5. Decide whether privacy-conscious analytics are approved; if yes, approve provider, events, retention, cookie/consent behavior, and privacy disclosure.

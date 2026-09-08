@@ -24,6 +24,10 @@ production.
 The eventual release commit must be recorded by the deployment-evidence artifact. A tracked report
 cannot truthfully embed the hash of the commit that first contains itself.
 
+Environment audit: the linked Vercel project has no project variables. GitHub has `Preview` and
+`Production`, but lacks the workflow-required `production-staging`; the existing environments have
+no reviewers, branch restrictions, secrets, or variables. No values were inspected or disclosed.
+
 ## 3. Product
 
 Fourteen approved public/demo routes and six protected internal/API routes are covered by the

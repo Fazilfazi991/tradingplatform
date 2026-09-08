@@ -357,6 +357,11 @@ The following are release artifacts, not aspirational prose:
   remaining commit is patch-equivalent to code already on `main`, and the local integration branch
   has no unmerged patch. Branches were retained to avoid destructive worktree cleanup; the evidence
   is recorded in `research/release-readiness/git-branches-2026-09-08.json`.
+- Names-and-presence-only environment inspection found zero Vercel project variables. GitHub has
+  `Preview` and `Production`, but no exact `production-staging` environment; neither observed
+  environment has secrets, variables, branch restrictions, or required reviewers. No values were
+  inspected and no settings were changed. The authoritative checklist is
+  `research/release-readiness/release-environments-2026-09-08.json`.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
 - A read-only EOD market collector and append-only ledger are wired into the platform scheduler. They
   enforce the India close window, exchange-complete status, exact current-universe mapping, atomic

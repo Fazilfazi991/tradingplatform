@@ -98,6 +98,25 @@ def test_open_branch_audit_does_not_hide_unmerged_functional_work() -> None:
     assert statuses == {"PATCH_EQUIVALENT_IN_MAIN", "NO_UNMERGED_PATCH"}
 
 
+def test_release_environment_audit_is_names_only_and_fail_closed() -> None:
+    evidence = json.loads(
+        (
+            REPO
+            / "research"
+            / "release-readiness"
+            / "release-environments-2026-09-08.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert evidence["values_disclosed"] is False
+    assert evidence["vercel"]["project_environment_variable_count"] == 0
+    assert evidence["github"]["production_staging_exists"] is False
+    assert evidence["github"]["production_exists"] is True
+    assert evidence["github"]["production_required_reviewers"] is False
+    assert evidence["github"]["production_secret_count"] == 0
+    assert evidence["release_workflow_environment_contract_ready"] is False
+    assert evidence["deployment_triggered"] is False
+
+
 def test_unknown_state_is_rejected() -> None:
     changed = copy.deepcopy(manifest())
     changed["gates"][0]["state"] = "ALMOST_READY"

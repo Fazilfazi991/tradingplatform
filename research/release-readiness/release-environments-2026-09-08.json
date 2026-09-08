@@ -1,0 +1,34 @@
+{
+  "version": "release-environment-evidence-v1",
+  "observed_at": "2026-09-08T07:40:00+04:00",
+  "observation_method": "AUTHENTICATED_DASHBOARD_NAMES_AND_PRESENCE_ONLY",
+  "values_disclosed": false,
+  "vercel": {
+    "project_linked": true,
+    "project_environment_variable_count": 0,
+    "required_public_web_variables_present": false
+  },
+  "github": {
+    "observed_environment_names": [
+      "Preview",
+      "Production"
+    ],
+    "required_environment_names": [
+      "production-staging",
+      "production"
+    ],
+    "production_staging_exists": false,
+    "production_exists": true,
+    "production_required_reviewers": false,
+    "production_branch_restrictions": false,
+    "production_secret_count": 0,
+    "production_variable_count": 0,
+    "preview_required_reviewers": false,
+    "preview_branch_restrictions": false,
+    "preview_secret_count": 0,
+    "preview_variable_count": 0
+  },
+  "release_workflow_environment_contract_ready": false,
+  "deployment_triggered": false,
+  "release_impact": "EXT_06_REMAINS_OPEN"
+}
