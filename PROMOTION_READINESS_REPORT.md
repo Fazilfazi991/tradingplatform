@@ -20,9 +20,9 @@ Decision: **BLOCKED**
 - Keyboard-first skip navigation and automated structural accessibility checks now pass across
   all 14 public routes; local optimized-build response and bundle baselines are recorded in
   `PUBLIC_PRODUCT_QA.md`.
-- Reproducible GitHub CI now runs pinned backend, frontend, repository-safety, dependency-audit,
-  environment-contract, production-build, and smoke gates. Hosted runs through the backup-tooling
-  commit passed; the current worker-heartbeat commit is awaiting its hosted result.
+- Reproducible GitHub CI runs pinned backend, frontend, repository-safety, dependency-audit,
+  environment-contract, production-build, smoke, public-boundary, and local-performance gates.
+  Every release candidate remains subject to a successful hosted run at its exact commit.
 - Local SQLite backup/restore integrity checks and a real intelligence-worker
   start/heartbeat/graceful-stop rehearsal pass. These do not substitute for managed production
   storage, retention, host supervision, or deployed recovery evidence.
