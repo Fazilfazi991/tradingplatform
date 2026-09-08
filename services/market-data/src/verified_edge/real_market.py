@@ -115,7 +115,7 @@ def real_market_manifest(
     collection_mode: CollectionMode, quality_summary: dict[str, Any],
     corporate_action_coverage: dict[str, Any],
 ) -> dict[str, Any]:
-    base = {
+    base: dict[str, Any] = {
         "created_at": created_at.isoformat(), "provider": "UPSTOX",
         "provider_api": "Historical Candle V3 days/1",
         "universe_state": "CURRENT_UNIVERSE_SNAPSHOT",

@@ -293,6 +293,10 @@ The following are release artifacts, not aspirational prose:
 - GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
+- A read-only EOD market collector and append-only ledger are wired into the platform scheduler. They
+  enforce the India close window, exchange-complete status, exact current-universe mapping, atomic
+  run/bar persistence, quarantine/missing disclosure, and blocked public delivery. The committed
+  execution gate remains false; no EOD collection or forward prediction was started.
 - SQLite online backup, integrity/hash manifest verification, traversal-safe restore verification, and non-overwriting restore tests are implemented. Managed production retention, off-host encryption, RPO/RTO, and restore evidence remain external to the local SQLite tool.
 - The forward-validation ledger is append-only and causal. A disabled, fail-closed runtime now gates
   atomic issuance on an approved hash-sealed package and resolves exact completed-session evidence

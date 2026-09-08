@@ -13,6 +13,7 @@
     {"name": "pre-market-positioning-build", "kind": "DAILY", "local_time": "08:55"},
     {"name": "pre-market-fusion-build", "kind": "DAILY", "local_time": "09:00"},
     {"name": "event-intelligence-build", "kind": "DAILY", "local_time": "16:15"},
+    {"name": "market-data-eod", "kind": "DAILY", "local_time": "16:15"},
     {"name": "eod-macro-build", "kind": "DAILY", "local_time": "16:20"},
     {"name": "eod-psychology-build", "kind": "DAILY", "local_time": "16:25"},
     {"name": "daily-intelligence-build", "kind": "DAILY", "local_time": "16:30"},

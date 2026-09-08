@@ -196,6 +196,18 @@ def test_every_configured_job_has_an_operational_handler(tmp_path):
     assert names == {job["name"] for job in configured["jobs"]}
 
 
+def test_market_eod_scheduler_handler_is_fail_closed_by_config(tmp_path):
+    store = SQLiteOperationsStore(tmp_path / "ops.db")
+    now = datetime(2026, 9, 7, 11, tzinfo=UTC)
+    job = DurableJob("market-data-eod", "DAILY", None, None, "16:15", None, now, "1")
+    result = operational_handlers(store, tmp_path / "out")["market-data-eod"](job, now)
+    assert result == {
+        "status": "DISABLED",
+        "reason": "MARKET_DATA_EOD_EXECUTION_OPERATIONS_FALSE",
+        "public_delivery": "BLOCKED",
+    }
+
+
 def test_source_health_incident_is_deduplicated_and_resolvable(tmp_path):
     now = datetime(2026, 8, 30, 12, tzinfo=UTC)
     store = SQLiteOperationsStore(tmp_path / "ops.db")

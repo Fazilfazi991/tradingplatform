@@ -1,9 +1,14 @@
 from __future__ import annotations
 
 import json
+import os
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from zoneinfo import ZoneInfo
+
+from verified_edge.eod import EodCollector, EodConfig, EodLedger
+from verified_edge.providers.upstox import UpstoxMarketDataProvider
 
 from intelligence_core.catalog import initial_sources
 from intelligence_core.collectors import OfficialRssCollector
@@ -221,6 +226,34 @@ def operational_handlers(
             "observations": len(snapshot.observations),
         }
 
+    def market_eod(_job: DurableJob, now: datetime) -> dict:
+        config_path = Path("config/market-data-eod.json")
+        config = EodConfig.model_validate_json(config_path.read_text(encoding="utf-8"))
+        if not config.execution_operations:
+            return {
+                "status": "DISABLED",
+                "reason": "MARKET_DATA_EOD_EXECUTION_OPERATIONS_FALSE",
+                "public_delivery": "BLOCKED",
+            }
+        token = os.getenv(config.credential)
+        if not token:
+            raise RuntimeError("UPSTOX_ANALYTICS_TOKEN_ABSENT")
+        universe = json.loads(
+            Path("data/manifests/current_nifty200_mapping.json").read_text(encoding="utf-8")
+        )["mappings"]
+        collector = EodCollector(UpstoxMarketDataProvider(token=token), config, universe)
+        session_date = now.astimezone(ZoneInfo(config.timezone)).date()
+        run, bars = collector.collect(session_date, now=now)
+        ledger_path = Path("data/local/market-data-eod.sqlite3")
+        ledger_path.parent.mkdir(parents=True, exist_ok=True)
+        ledger = EodLedger(ledger_path)
+        try:
+            ledger.append(run, bars)
+            report = ledger.report()
+        finally:
+            ledger.close()
+        return {**report, "run_state": run.state}
+
     return {
         "source-health": health,
         "macro-release-processing": lambda _job, _now: {
@@ -279,6 +312,7 @@ def operational_handlers(
             "status": "PASS_DETERMINISTIC_FIXTURE_CONTRACTS"
         },
         "event-intelligence-build": event_build,
+        "market-data-eod": market_eod,
         "daily-intelligence-build": build,
         "intelligence-summary": summary,
         "daily-quality-audit": audit,
