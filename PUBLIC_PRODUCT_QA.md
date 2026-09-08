@@ -38,6 +38,11 @@ was constrained to its one complete RELIANCE walkthrough, inert horizon/universe
 removed, and an honest no-result search state was added. The rebuilt smoke gate verified all 14
 discovered internal links; the post-fix Chrome matrix again passed 98/98 with zero errors.
 
+The same production-build gate now inspects response headers rather than treating configuration as
+proof. It requires the deployed CSP to retain self-only defaults plus blocked framing and objects,
+and verifies the frame, referrer, permissions, MIME-sniffing, and production HSTS policies. A
+missing header or required directive fails the release smoke run.
+
 ## Mobile interaction
 
 At 390 × 844, every visible link and button measured at least 44px high after remediation.

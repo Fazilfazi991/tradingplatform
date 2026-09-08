@@ -83,6 +83,22 @@ try {
     const body = await response.text();
     assert(/<meta name="robots" content="noindex, nofollow"/i.test(body), `${path} lacks noindex`);
   }
+  const securityResponse = await request("/");
+  const requiredSecurityHeaders = {
+    "content-security-policy": ["default-src 'self'", "frame-ancestors 'none'", "object-src 'none'"],
+    "permissions-policy": ["camera=()", "microphone=()", "geolocation=()", "payment=()"],
+    "referrer-policy": ["strict-origin-when-cross-origin"],
+    "strict-transport-security": ["max-age=63072000", "includeSubDomains", "preload"],
+    "x-content-type-options": ["nosniff"],
+    "x-frame-options": ["DENY"],
+  };
+  for (const [header, directives] of Object.entries(requiredSecurityHeaders)) {
+    const value = securityResponse.headers.get(header);
+    assert(value, `homepage omitted ${header}`);
+    for (const directive of directives) {
+      assert(value.includes(directive), `${header} omitted ${directive}`);
+    }
+  }
   assert((await request("/stocks/NOT-A-SYMBOL")).status === 404, "unknown stock did not 404");
   const sitemap = await (await request("/sitemap.xml")).text();
   assert(sitemap.includes("/methodology"), "sitemap omitted public methodology");
@@ -90,7 +106,7 @@ try {
   const robots = await (await request("/robots.txt")).text();
   assert(robots.includes("Disallow: /research"), "robots omitted internal route policy");
   assert(robots.includes("Disallow: /predictions"), "robots omitted demo route policy");
-  const homepage = await (await request("/")).text();
+  const homepage = await securityResponse.text();
   assert(homepage.includes('rel="manifest" href="/manifest.webmanifest"'), "homepage omitted manifest");
   const structuredMatch = homepage.match(/<script type="application\/ld\+json">(.*?)<\/script>/);
   assert(structuredMatch, "homepage omitted structured data");
