@@ -10,3 +10,5 @@ Only decisions or credentials that require owner authority are listed here. Ordi
 6. Enable protected `main`, required CI checks, pull-request review, and hosted secret scanning in the Git repository settings.
 7. Approve final public positioning and the evidence-linked claims ledger before any promotion is published.
 8. Supply strong staging/production internal-access credentials through the hosting secret store; never commit or message their values.
+9. Provide or approve the Linux worker host, locked service identity, persistent encrypted storage,
+   and incident notification destinations needed to install the reviewed systemd service.

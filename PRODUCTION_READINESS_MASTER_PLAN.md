@@ -292,6 +292,13 @@ The following are release artifacts, not aspirational prose:
 - Public information architecture, draft policy pages, honest demo state, unknown-stock 404, responsive repair, keyboard skip navigation, and restricted sitemap/robots are implemented and locally verified.
 - GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
+- A hardened systemd service template now provides environment preflight, persistent state outside
+  release directories, bounded restart, process-group stop, and least-privilege filesystem/kernel
+  controls. Installation and notification routing require the production worker host.
+- Deployment evidence now has a hash-sealed validator requiring the exact commit, immutable
+  deployment and rollback identifiers, HTTPS origin, environment contract, public/internal and
+  payload boundaries, headers/indexing/404/console checks, migration state, and rollback rehearsal.
+  No staging or production evidence has been fabricated.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
 - A read-only EOD market collector and append-only ledger are wired into the platform scheduler. They
   enforce the India close window, exchange-complete status, exact current-universe mapping, atomic

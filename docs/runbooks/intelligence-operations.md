@@ -28,6 +28,29 @@ the timeout is detected after return. Production supervision must additionally a
 stop timeout and restart policy so native code or an uninterruptible system call cannot hang the
 service indefinitely.
 
+## Linux service installation
+
+The reviewed unit template is `infra/systemd/verified-edge-intelligence.service`. On the approved
+host, create the locked `verified-edge` service account, `/var/lib/verified-edge` owned only by that
+account, `/etc/verified-edge/intelligence.env` readable only by root/service group, and an immutable
+release symlink at `/opt/verified-edge/current`. Never put secrets in the unit file or repository.
+
+After adapting only the approved installation paths:
+
+```text
+sudo systemctl daemon-reload
+sudo systemctl enable --now verified-edge-intelligence.service
+sudo systemctl status verified-edge-intelligence.service
+sudo journalctl -u verified-edge-intelligence.service --since today
+sudo systemctl stop verified-edge-intelligence.service
+```
+
+The unit runs the production environment-name preflight before startup, writes durable state outside
+the release directory, restarts boundedly on failure, kills the whole process group after a 30-second
+graceful stop, and applies filesystem/kernel privilege restrictions. After start, corroborate systemd
+status with the worker `--status --state /var/lib/verified-edge/intelligence-operations.sqlite3`
+heartbeat. Installation and notification destinations remain production-host owner actions.
+
 Backfills require source, bounded start/end, reason, operator identity, and `BACKFILL`; they may never
 be relabelled as prospectively observed. Daily archives are immutable. Reprocessing the same raw
 artifacts must reproduce the same semantic hash or open a replay incident.

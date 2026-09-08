@@ -17,6 +17,7 @@ def main() -> None:
     parser.add_argument("--once", action="store_true")
     parser.add_argument("--status", action="store_true")
     parser.add_argument("--state", default="data/local/intelligence-operations.sqlite3")
+    parser.add_argument("--output-root", default="data/local/intelligence")
     args = parser.parse_args()
     store = SQLiteOperationsStore(args.state)
     try:
@@ -32,7 +33,10 @@ def main() -> None:
             return
         store.load_config(Path("config/intelligence-schedules.json"), now=datetime.now(UTC))
         store.recover_interrupted(datetime.now(UTC))
-        handlers = {**live_source_handlers(store), **operational_handlers(store)}
+        handlers = {
+            **live_source_handlers(store),
+            **operational_handlers(store, args.output_root),
+        }
         handlers["llm-event-analysis"] = configured_semantic_handler(store, workspace=Path.cwd())
         worker = IntelligenceWorker(store, handlers, mode=IntelligenceRuntimeMode.INTERNAL_LIVE)
         if args.once:

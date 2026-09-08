@@ -36,6 +36,18 @@ Verify the exact built commit over HTTPS:
 
 Promote the already-verified immutable staging build. Do not rebuild from a different commit. Run the production smoke suite and record timestamp, commit, deployment ID, domain, operator, result, and rollback target.
 
+Seal the evidence as `deployment-evidence-v1` and validate it with:
+
+```powershell
+.\.venv\Scripts\python.exe scripts\validate_deployment_evidence.py --file <evidence.json>
+```
+
+The contract requires an HTTPS non-local origin, full commit SHA, distinct rollback deployment,
+timezone-aware timestamp, environment validation, public/internal and payload boundaries, security
+headers, canonical/indexing checks, unknown-stock 404, clean console/network evidence, and a passed
+rollback rehearsal. It rejects incomplete checks and detects post-recording modification. Store no
+credentials, response bodies, raw provider data, or internal research payloads in this artifact.
+
 ## Rollback
 
 Rollback when the public/internal boundary, content rights, data provenance, major routes, security headers, or availability checks fail. Promote the recorded previous healthy deployment, rerun smoke checks, open an incident, and preserve failed-deployment logs. Application rollback must never rewrite append-only research or forward-paper records.
