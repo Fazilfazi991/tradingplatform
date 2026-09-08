@@ -49,7 +49,8 @@
       "evidence": [
         "config/intelligence-schedules.json",
         "infra/systemd/verified-edge-intelligence.service",
-        "docs/runbooks/intelligence-operations.md"
+        "docs/runbooks/intelligence-operations.md",
+        "docs/runbooks/chatgpt-work-research.md"
       ],
       "blockers": [
         "EXT-06"

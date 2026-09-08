@@ -310,6 +310,9 @@ The following are release artifacts, not aspirational prose:
 - A read-only weekly Codex readiness audit is installed against the saved local project and recorded
   in `CODEX_MAINTENANCE_AUTOMATIONS.md`. Its prompt prohibits mutation, deployment, publication,
   runtime activation, and predictions; it remains separate from platform-owned scheduling.
+- `docs/runbooks/chatgpt-work-research.md` defines optional local/cloud Work boundaries, a bounded
+  research brief, a candidate-only handoff contract, and independent verification before any source
+  can enter the platform evidence pipeline. No Work task is represented as active.
 - A versioned production-build browser budget now gates representative public routes on navigation response, LCP, CLS, document, JavaScript, CSS, font, and total encoded payload; deployed field Web Vitals and INP remain external acceptance evidence.
 - GitHub CI uses pinned actions and reproducible Python/Node dependency contracts; backend, frontend, audit, secret-scan, build, and production smoke jobs passed on hosted Actions.
 - Release environment validation fails closed by deployment profile and never prints values. A canonical domain, separate hosted environments, and production credentials are still external.
