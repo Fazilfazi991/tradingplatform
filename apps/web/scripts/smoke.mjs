@@ -90,6 +90,19 @@ try {
   const robots = await (await request("/robots.txt")).text();
   assert(robots.includes("Disallow: /research"), "robots omitted internal route policy");
   assert(robots.includes("Disallow: /predictions"), "robots omitted demo route policy");
+  const homepage = await (await request("/")).text();
+  assert(homepage.includes('rel="manifest" href="/manifest.webmanifest"'), "homepage omitted manifest");
+  const structuredMatch = homepage.match(/<script type="application\/ld\+json">(.*?)<\/script>/);
+  assert(structuredMatch, "homepage omitted structured data");
+  const structuredData = JSON.parse(structuredMatch[1]);
+  assert(structuredData["@type"] === "WebSite", "structured data misclassified the product");
+  assert(structuredData.url === `${origin}/`, "structured data used a non-canonical URL");
+  const manifestResponse = await request("/manifest.webmanifest");
+  assert(manifestResponse.status === 200, "web manifest unavailable");
+  assert(manifestResponse.headers.get("content-type")?.includes("application/manifest+json"), "web manifest has wrong content type");
+  const manifest = await manifestResponse.json();
+  assert(manifest.name === "Verified Edge — Market Prediction Intelligence", "web manifest has wrong identity");
+  assert(manifest.start_url === "/" && manifest.scope === "/", "web manifest escapes public root");
   console.log(`Public release smoke checks passed; ${linkedPaths.size} internal links verified.`);
 } finally {
   server.kill("SIGTERM");
