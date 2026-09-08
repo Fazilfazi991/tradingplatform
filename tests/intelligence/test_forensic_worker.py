@@ -82,6 +82,34 @@ def invoke(worker: ForensicSemanticProcessor, *, artifact: str = "artifact-1"):
     )
 
 
+def operations_with_event(tmp_path, *, event_number: int = 8):
+    operations = SQLiteOperationsStore(tmp_path / "operations.sqlite3")
+    source_event = InformationEvent(
+        event_id=UUID(int=event_number),
+        entity_id=None,
+        entity_type="REGULATOR",
+        source_id="rbi-rss",
+        source_event_id=f"policy-{event_number}",
+        event_type=EventType.CENTRAL_BANK,
+        title="RBI update dated September 08",
+        summary="The notice was published on September 08.",
+        raw_artifact_uri=f"artifact://policy-{event_number}",
+        raw_payload_hash=f"artifact-{event_number}",
+        event_time=NOW,
+        published_at=NOW,
+        observed_at=NOW,
+        available_at=NOW,
+        ingested_at=NOW,
+    )
+    operations.persist_collection(
+        RawArtifact(
+            "rbi-rss", source_event.raw_artifact_uri, "text/plain", b"policy", NOW
+        ),
+        [source_event],
+    )
+    return operations, source_event
+
+
 def test_success_is_cached_by_semantics_not_wrapper_artifact(tmp_path):
     store, adapter, worker = processor(tmp_path, [result()])
     assert invoke(worker)["disposition"] == TerminalDisposition.SUCCESS
@@ -196,30 +224,9 @@ def test_disposition_history_is_append_only_and_schema_reopen_is_idempotent(tmp_
     reopened.close()
 
 
-def test_revised_policy_boundedly_reevaluates_only_prior_failures(tmp_path):
+def test_revised_policy_boundedly_reevaluates_prior_terminal_failure(tmp_path):
     runtime_now = datetime.now(UTC)
-    operations = SQLiteOperationsStore(tmp_path / "operations.sqlite3")
-    source_event = InformationEvent(
-        event_id=UUID(int=8),
-        entity_id=None,
-        entity_type="REGULATOR",
-        source_id="rbi-rss",
-        source_event_id="policy-8",
-        event_type=EventType.CENTRAL_BANK,
-        title="RBI update dated September 08",
-        summary="The notice was published on September 08.",
-        raw_artifact_uri="artifact://policy-8",
-        raw_payload_hash="artifact-8",
-        event_time=NOW,
-        published_at=NOW,
-        observed_at=NOW,
-        available_at=NOW,
-        ingested_at=NOW,
-    )
-    operations.persist_collection(
-        RawArtifact("rbi-rss", "artifact://policy-8", "text/plain", b"policy", NOW),
-        [source_event],
-    )
+    operations, source_event = operations_with_event(tmp_path)
     store = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
     config = ProviderConfig(provider="openai", model="gpt-5.6-luna", model_version="frozen")
     old = ForensicSemanticProcessor(
@@ -261,6 +268,96 @@ def test_revised_policy_boundedly_reevaluates_only_prior_failures(tmp_path):
     assert outcome["processed"] == 1
     assert revised_adapter.calls == 1
     assert len(store.attempts()) == 3
+    assert store.disposition(str(source_event.event_id))[1] is TerminalDisposition.SUCCESS
+    operations.close()
+    store.close()
+
+
+def test_revised_schema_reevaluates_success_but_same_policy_does_not(tmp_path):
+    runtime_now = datetime.now(UTC)
+    operations, source_event = operations_with_event(tmp_path)
+    store = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
+    config = ProviderConfig(provider="openai", model="gpt-5.6-luna", model_version="frozen")
+    original_adapter = QueueAdapter([result()])
+    original = ForensicSemanticProcessor(
+        store=store,
+        adapter=original_adapter,
+        provider_config=config,
+        prompt_version="p2",
+        schema_version="s1",
+        schema_hash="schema-v1",
+        routing_version="route",
+        configuration_hash="config-v1",
+    )
+    original.process(
+        event_id=str(source_event.event_id), source_id=source_event.source_id,
+        source_artifact_hash=source_event.raw_payload_hash, title=source_event.title,
+        content=source_event.summary, published_at=source_event.published_at,
+        task=AnalyzerTask.EVENT_CLASSIFICATION, now=runtime_now,
+    )
+    unchanged = build_semantic_handler(
+        operations, store, original, daily_budget_usd=1, max_events_per_cycle=1
+    )
+    unchanged_outcome = unchanged(
+        DurableJob("llm-event-analysis", "INTERVAL", None, 900, None, None, NOW, "1"),
+        runtime_now,
+    )
+    assert unchanged_outcome["processed"] == 0
+
+    revised_adapter = QueueAdapter([result()])
+    revised = ForensicSemanticProcessor(
+        store=store,
+        adapter=revised_adapter,
+        provider_config=config,
+        prompt_version="p3",
+        schema_version="s2",
+        schema_hash="schema-v2",
+        routing_version="route",
+        configuration_hash="config-v2",
+    )
+    revised_outcome = build_semantic_handler(
+        operations, store, revised, daily_budget_usd=1, max_events_per_cycle=1
+    )(
+        DurableJob("llm-event-analysis", "INTERVAL", None, 900, None, None, NOW, "1"),
+        runtime_now,
+    )
+    assert revised_outcome["processed"] == 1
+    assert revised_adapter.calls == 1
+    operations.close()
+    store.close()
+
+
+def test_budget_deferred_event_returns_to_pending_queue(tmp_path):
+    runtime_now = datetime.now(UTC)
+    operations, source_event = operations_with_event(tmp_path)
+    store = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
+    store.set_disposition(
+        event_id=str(source_event.event_id),
+        semantic_id=None,
+        disposition=TerminalDisposition.NOT_ANALYZED_BY_POLICY,
+        detail={"reason": "DAILY_BUDGET_EXHAUSTED", "state": "PENDING_ANALYSIS"},
+    )
+    adapter = QueueAdapter([result()])
+    worker = ForensicSemanticProcessor(
+        store=store,
+        adapter=adapter,
+        provider_config=ProviderConfig(
+            provider="openai", model="gpt-5.6-luna", model_version="frozen"
+        ),
+        prompt_version="p3",
+        schema_version="s2",
+        schema_hash="schema-v2",
+        routing_version="route",
+        configuration_hash="config-v2",
+    )
+    outcome = build_semantic_handler(
+        operations, store, worker, daily_budget_usd=1, max_events_per_cycle=1
+    )(
+        DurableJob("llm-event-analysis", "INTERVAL", None, 900, None, None, NOW, "1"),
+        runtime_now,
+    )
+    assert outcome["processed"] == 1
+    assert adapter.calls == 1
     assert store.disposition(str(source_event.event_id))[1] is TerminalDisposition.SUCCESS
     operations.close()
     store.close()

@@ -44,6 +44,7 @@ def build_current_health(
     policy: dict[str, Any],
     now: datetime,
     runtime_lock: dict[str, Any] | None = None,
+    expected_policy_identity: dict[str, str] | None = None,
 ) -> dict[str, Any]:
     now = now.astimezone(UTC)
     heartbeat_limit = timedelta(seconds=int(policy["heartbeat_stale_seconds"]))
@@ -82,7 +83,7 @@ def build_current_health(
         if row.completed_at >= now - timedelta(seconds=int(policy["semantic_health_window_seconds"]))
     ]
     latest_attempt = max(attempts, key=lambda row: row.completed_at) if attempts else None
-    policy_identity = (
+    latest_policy_identity = (
         {
             "provider": latest_attempt.provider,
             "model": latest_attempt.model,
@@ -97,6 +98,7 @@ def build_current_health(
         if latest_attempt
         else None
     )
+    policy_identity = expected_policy_identity or latest_policy_identity
     current_policy_attempts = (
         [
             row

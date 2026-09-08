@@ -2,16 +2,19 @@
   "version": "intelligence-runtime-lock-v1",
   "files": {
     "config/intelligence-health.json": "309a3e1108a5d7e0de63024c0470edcb16bff2b59df5774037e7bc19167d9324",
-    "config/intelligence-llm-runtime.json": "4538717d1353127b7803f4be520e2592e465cbe255019d1be4ad7b1869749305",
+    "config/intelligence-llm-runtime.json": "ba2ee52b644cce3c7afc20821f0cf81c9101e60c7d738a9649684bbdbd56bb9f",
     "config/intelligence-schedules.json": "c8c264e89591098c8df59f9dafd50f481548c8104cc969379a3c462b0e120d60",
     "services/intelligence-core/src/intelligence_core/catalog.py": "eb819cf6b1d70c3df183789d5f7e4e44630ce60cbd745e96fffddf7d252e6fd9",
     "services/intelligence-core/src/intelligence_core/collectors.py": "9df6c70c1a54bb351691067653d2c8fe47c8fa0a832a2cf7e0b425f37a96cc28",
-    "services/intelligence-core/src/intelligence_core/current_health.py": "b0de64aa7f2937b6d575cf1b50b914c63fe6131798c3b86e9b4ee32b67bd89d0",
+    "services/intelligence-core/src/intelligence_core/current_health.py": "5de015d8d823fab5b5f7efb3f600b76f93589423f171183f13d1d49d1d3dac01",
+    "services/intelligence-core/src/intelligence_core/llm_analyzer.py": "0b82cf41e773a3ead6b5e1b6a1b4235e711e91b76d6c5871979a9ebceaa6993d",
+    "scripts/build_current_intelligence_health.py": "0047cd1ba6e77800a2c4f6c363da15cfe7aafc19521370badd9972b3d387fe24",
+    "scripts/run_current_intelligence_canary.py": "4b0eb54f0b108ba09528e1c3e79f7b1020412e511a4f0305c89ad4a3ef680c73",
     "scripts/run_intelligence_worker.py": "e5ea55a32f2ef803207ffb993b0af3807bf0ddec5012bd5565ffe78a62de6ae7",
     "services/intelligence-core/src/intelligence_core/durable.py": "2970b1a8c176e82bda5c218fb0152ee9dad9c70a81eda15b38fbdd5e3ccdfb49",
-    "services/intelligence-core/src/intelligence_core/forensic_worker.py": "cb8168e537fb9a46ac722e4be8f6b03808864e3de862ecc44f98c866a0fe37ad",
+    "services/intelligence-core/src/intelligence_core/forensic_worker.py": "988fe6f84c591f772325cceaee71cc5b5b0b2a1546bb2565763eb9ddb21407d1",
     "services/intelligence-core/src/intelligence_core/live.py": "8774cb93470cd2bf9ef2ba23e16eba8a47f3633172d397424e6ca4dc78a5ecc6",
-    "services/intelligence-core/src/intelligence_core/semantic_runtime.py": "8753f1fae0845c2d0907293649cc25869d04f24df50b205753b93f860bfba5ee",
+    "services/intelligence-core/src/intelligence_core/semantic_runtime.py": "3642ad6e523b20134bdd06de843f999b89023ee31a571effdb01d9bc03889f67",
     "services/intelligence-core/src/intelligence_core/worker.py": "4124c919a9fb9d496786ccaf4de6b3db4c09439bcd160859b113f0c61654b690"
   }
 }

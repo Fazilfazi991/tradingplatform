@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T08:24:17Z",
+  "generated_at": "2026-09-08T08:58:03Z",
   "authority": "post-soak supervised operational recovery",
   "historical_soak_report_mutated": false,
   "historical_high_incidents": [
@@ -12,7 +12,7 @@
       "current_status": "OPEN_ACTIVE_RECURRENCE",
       "affected_subsystem": "Luna semantic validation",
       "containment_status": "PASS",
-      "remediation": "Containment remains intact. A sign- and unit-preserving visible-text grounding policy has been implemented as visible-text-signed-decimal-v2; historical attempts and tombstones remain immutable.",
+      "remediation": "Containment remains intact. Sign- and unit-preserving visible-text grounding is frozen as visible-text-signed-decimal-v2. The event taxonomy is now closed by schema llm-analysis-result-v2-taxonomy; historical attempts and tombstones remain immutable and prior-policy results are boundedly re-evaluated.",
       "closure_criteria": "A frozen bounded live semantic window completes below the configured failure threshold with no terminal quarantine recurrence."
     },
     {
@@ -24,7 +24,7 @@
       "current_status": "OPEN_ACTIVE_RECURRENCE",
       "affected_subsystem": "Semantic structured-output validation",
       "containment_status": "PASS",
-      "remediation": "Strict validation was retained; transport and semantic health remain separate. Prompt event-grounding-v2 and the versioned numeric grounding policy are loaded by the supervised worker.",
+      "remediation": "Strict validation was retained; transport and semantic health remain separate. Prompt event-grounding-v3-taxonomy, schema llm-analysis-result-v2-taxonomy, and the versioned numeric grounding policy are configured for the supervised worker.",
       "closure_criteria": "A representative frozen live canary window remains below the 5% threshold without weakening validation."
     },
     {
@@ -63,9 +63,9 @@
   "current_evidence": {
     "provider_transport_health": "HEALTHY",
     "semantic_validation_health": "INSUFFICIENT_SAMPLE",
-    "semantic_attempts": 31,
+    "semantic_attempts": 42,
     "validation_failures": 8,
-    "cumulative_failure_rate": 0.25806452,
+    "cumulative_failure_rate": 0.19047619,
     "terminal_quarantines": 2,
     "active_tombstones": 2,
     "transport_failures": 0,
@@ -76,17 +76,23 @@
     "forward_paper": "DISABLED"
   },
   "remediation_validation": {
-    "prompt_version": "event-grounding-v2",
+    "prompt_version": "event-grounding-v3-taxonomy",
+    "schema_version": "llm-analysis-result-v2-taxonomy",
+    "schema_hash": "1c538eee0e0502ce38385c3574ac9c4de51a25b8935094dc5fe89461ccb7b09d",
     "grounding_policy_version": "visible-text-signed-decimal-v2",
-    "offline_backend_tests_passed": 385,
+    "offline_backend_tests_passed": 389,
     "live_canary_attempts": 1,
     "live_canary_transport_successes": 1,
     "live_canary_validation_successes": 1,
-    "live_canary_cost_usd": 0.000542,
+    "live_canary_cost_usd": 0.0004614,
     "operational_attempts_required": 40,
     "operational_attempts_observed": 0,
-    "historical_window_attempts": 31,
+    "historical_window_attempts": 42,
     "historical_window_validation_failures": 8,
+    "grounding_v2_operational_attempts": 10,
+    "grounding_v2_validation_failures": 0,
+    "grounding_v2_taxonomy_qualifying": false,
+    "taxonomy_finding": "The grounding-v2 schema accepted unrestricted event_type strings. Its 10 successful operational attempts are preserved but excluded from the v3 taxonomy qualification window.",
     "representative_frozen_window_complete": false,
     "incident_resolution_authorized": false
   },

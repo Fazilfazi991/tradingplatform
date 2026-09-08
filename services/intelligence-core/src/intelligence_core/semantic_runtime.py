@@ -55,15 +55,26 @@ def build_semantic_handler(
         if current is None:
             return True
         semantic_id, disposition = current
-        if disposition not in {
-            TerminalDisposition.QUARANTINED,
-            TerminalDisposition.FAILED_VALIDATION,
-        } or semantic_id is None:
+        if disposition is TerminalDisposition.NOT_ANALYZED_BY_POLICY:
+            return True
+        if semantic_id is None:
             return False
         prior = forensics.attempts(semantic_id)
         return bool(
             prior
-            and prior[-1].grounding_policy_version != processor.grounding_policy_version
+            and any(
+                (
+                    prior[-1].provider != processor.config.provider,
+                    prior[-1].model != processor.config.model,
+                    prior[-1].prompt_version != processor.prompt_version,
+                    prior[-1].schema_version != processor.schema_version,
+                    prior[-1].schema_hash != processor.schema_hash,
+                    prior[-1].routing_version != processor.routing_version,
+                    prior[-1].configuration_hash != processor.configuration_hash,
+                    prior[-1].retry_policy_version != processor.retry_policy_version,
+                    prior[-1].grounding_policy_version != processor.grounding_policy_version,
+                )
+            )
         )
 
     def analyze(_job: DurableJob, now: datetime) -> dict[str, Any]:
@@ -247,6 +258,8 @@ def configured_semantic_handler(
     model = os.getenv("OPENAI_MODEL")
     if not model:
         return _disabled_handler("OPENAI_MODEL_ABSENT")
+    if model != config["model"]:
+        return _disabled_handler("OPENAI_MODEL_CONFIG_MISMATCH")
     state_path = root / "data/local/intelligence-forensics.sqlite3"
     state_path.parent.mkdir(parents=True, exist_ok=True)
     forensics = ForensicRuntimeStore(state_path)

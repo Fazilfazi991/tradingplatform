@@ -1,6 +1,6 @@
 # Current Intelligence Incident Review
 
-Updated at 2026-09-08T07:58:30Z from the supervised post-soak runtime. The historical
+Updated at 2026-09-08T08:58:03Z from the supervised post-soak runtime. The historical
 24-hour soak report remains unchanged.
 
 | Historical incident | Type | Historical status | Current status | Evidence |
@@ -18,15 +18,22 @@ incidents remain open: two `LLM_HALLUCINATION_QUARANTINE` incidents and one
 `LLM_SCHEMA_FAILURE_SPIKE`. RBI and SEBI collection are current after three scheduled cycles each.
 Forward Paper remains `DISABLED`.
 
-The root cause was repaired without weakening quarantine: HTML attributes/scripts/styles are no
-longer evidence, harmless numeric formatting is normalized with `Decimal`, and signs plus bounded
-units remain mandatory. The worker now loads `event-grounding-v2` and
-`visible-text-signed-decimal-v2`; both are included in semantic/cache identity. Historical attempts
-and tombstones remain unchanged. Offline verification passed 382 backend tests, and one bounded live
-canary passed transport and structured/grounding validation at an estimated cost of `$0.000542`.
-The health model now retains the legacy 31-attempt/8-failure history separately and requires 40
-non-canary attempts under one exact frozen policy identity before it can report current semantic
-health as healthy or resolve the incident. The current operational sample is 0/40.
+The numeric-grounding root cause was repaired without weakening quarantine: HTML
+attributes/scripts/styles are no longer evidence, harmless numeric formatting is normalized with
+`Decimal`, and signs plus bounded units remain mandatory. A subsequent 10-attempt production-path
+window under `event-grounding-v2` had no validation failures, but inspection exposed a separate
+schema defect: `event_type` was an unrestricted string and accepted values outside the declared
+taxonomy. Those attempts remain immutable evidence but do not qualify the final semantic window.
+
+The frozen replacement is `event-grounding-v3-taxonomy` with schema
+`llm-analysis-result-v2-taxonomy` and grounding policy `visible-text-signed-decimal-v2`. Policy
+identity now includes the closed event taxonomy; prior terminal results are boundedly re-evaluated
+when that identity changes, while an unchanged successful policy is not repeatedly billed. Events
+deferred by the daily budget return to the pending queue on a later eligible cycle. One bounded v3
+canary passed transport and structured/grounding validation at an estimated cost of `$0.0004614`.
+The historical ledger contains 42 attempts and 8 validation failures. Current health requires 40
+non-canary operational attempts under the exact v3 identity before it can report semantic health as
+healthy or resolve the incidents. The v3 operational sample is 0/40.
 
 The incidents remain open. One canary is not the representative frozen window required by their
 closure criteria; the platform-owned hourly semantic job will provide the next bounded production

@@ -52,6 +52,28 @@ class AnalyzerTask(StrEnum):
     FUSION_EXPLANATION = "FUSION_EXPLANATION"
 
 
+class AnalysisEventType(StrEnum):
+    EARNINGS = "EARNINGS"
+    ORDER_WIN = "ORDER_WIN"
+    ORDER_LOSS = "ORDER_LOSS"
+    GUIDANCE = "GUIDANCE"
+    REGULATORY = "REGULATORY"
+    ACQUISITION = "ACQUISITION"
+    DIVIDEND = "DIVIDEND"
+    CEO_CHANGE = "CEO_CHANGE"
+    MERGER = "MERGER"
+    RBI_POLICY = "RBI_POLICY"
+    REGULATION = "REGULATION"
+    GEOPOLITICAL = "GEOPOLITICAL"
+    COMMODITY = "COMMODITY"
+    JOINT_VENTURE = "JOINT_VENTURE"
+    OTHER = "OTHER"
+    UNKNOWN = "UNKNOWN"
+
+
+EVENT_TYPE_TAXONOMY = tuple(item.value for item in AnalysisEventType)
+
+
 class ProviderConfig(BaseModel):
     model_config = ConfigDict(frozen=True)
     provider: str
@@ -68,7 +90,7 @@ class ProviderConfig(BaseModel):
 
 class LLMAnalysisResult(BaseModel):
     model_config = ConfigDict(frozen=True)
-    event_type: str = "UNKNOWN"
+    event_type: AnalysisEventType = AnalysisEventType.UNKNOWN
     direction: EventDirection = EventDirection.UNKNOWN
     materiality: Materiality = Materiality.UNKNOWN
     confirmation_state: ConfirmationState = ConfirmationState.UNKNOWN
@@ -128,13 +150,6 @@ class RoutedAnalysis(BaseModel):
 
 class LLMAnalysisUnavailable(RuntimeError):
     pass
-
-
-EVENT_TYPE_TAXONOMY = (
-    "EARNINGS", "ORDER_WIN", "ORDER_LOSS", "GUIDANCE", "REGULATORY", "ACQUISITION",
-    "DIVIDEND", "CEO_CHANGE", "MERGER", "RBI_POLICY", "REGULATION", "GEOPOLITICAL",
-    "COMMODITY", "JOINT_VENTURE", "OTHER", "UNKNOWN",
-)
 
 
 class OpenAIProviderError(RuntimeError):

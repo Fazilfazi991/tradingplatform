@@ -29,11 +29,13 @@ def main() -> None:
     load_local_env(workspace / ".env")
     api_key = os.getenv("OPENAI_API_KEY", "")
     model = os.getenv("OPENAI_MODEL", "")
-    if not api_key or model != "gpt-5.6-luna":
+    if not api_key:
         raise SystemExit("APPROVED_LUNA_CONFIGURATION_REQUIRED")
     config = json.loads(
         (workspace / "config/intelligence-llm-runtime.json").read_text(encoding="utf-8")
     )
+    if model != config["model"]:
+        raise SystemExit("APPROVED_LUNA_CONFIGURATION_REQUIRED")
     operations = SQLiteOperationsStore(workspace / "data/local/intelligence-operations.sqlite3")
     forensics = ForensicRuntimeStore(workspace / "data/local/intelligence-forensics.sqlite3")
     try:

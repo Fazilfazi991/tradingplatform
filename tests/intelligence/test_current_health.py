@@ -220,3 +220,35 @@ def test_current_policy_becomes_healthy_only_after_representative_window(tmp_pat
     assert report["llm"]["current_policy"]["failure_rate"] == 0
     assert report["llm"]["historical_window_totals"]["validation_failures"] == 1
     assert "SEMANTIC_SAMPLE_INCOMPLETE" not in report["alerts"]
+
+
+def test_configured_policy_identity_does_not_reuse_latest_old_policy_sample(tmp_path):
+    store = SQLiteOperationsStore(tmp_path / "ops.sqlite3")
+    forensics = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
+    for index in range(40):
+        forensics.add_attempt(llm_attempt(index, policy="v2"))
+    expected = {
+        "provider": "openai",
+        "model": "gpt-5.6-luna",
+        "prompt_version": "prompt-v3",
+        "schema_version": "s2",
+        "schema_hash": "schema-v2",
+        "routing_version": "route-1",
+        "configuration_hash": "config-v3",
+        "retry_policy_version": "bounded-v1",
+        "grounding_policy_version": "v2",
+    }
+
+    report = build_current_health(
+        store,
+        forensics,
+        schedules=definitions(),
+        policy=policy(),
+        now=NOW,
+        expected_policy_identity=expected,
+    )
+
+    assert report["semantic_validation_health"] == "INSUFFICIENT_SAMPLE"
+    assert report["llm"]["current_policy"]["identity"] == expected
+    assert report["llm"]["current_policy"]["operational_attempts"] == 0
+    assert report["llm"]["historical_window_totals"]["attempts"] == 40

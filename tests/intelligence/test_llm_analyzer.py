@@ -4,6 +4,7 @@ import httpx
 import pytest
 from intelligence_core.llm_analyzer import (
     AnalyzerTask,
+    LLMAnalysisResult,
     LLMAnalysisUnavailable,
     LLMIntelligenceAnalyzer,
     OpenAIProviderError,
@@ -121,6 +122,16 @@ def test_out_of_envelope_evidence_is_rejected():
             source_evidence={},
             evidence_references=("artifact://one",),
         )
+
+
+def test_event_type_is_a_closed_taxonomy_in_the_structured_schema():
+    schema = LLMAnalysisResult.model_json_schema()
+    event_type_schema = schema["properties"]["event_type"]
+    event_type_ref = event_type_schema.get("$ref") or event_type_schema["allOf"][0]["$ref"]
+    enum_name = event_type_ref.rsplit("/", 1)[-1]
+    assert "REGULATORY" in schema["$defs"][enum_name]["enum"]
+    with pytest.raises(ValueError):
+        LLMAnalysisResult.model_validate(output() | {"event_type": "Regulatory appeal filing"})
 
 
 def test_openai_responses_adapter_uses_strict_schema_and_parses_usage():

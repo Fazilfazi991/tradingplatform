@@ -66,7 +66,10 @@ only the internal LLM runtime. Forward Paper remains controlled separately and d
   remain visible under `historical_window_totals` but cannot contaminate the new rate. A canary proves
   connectivity and basic validation only; it is excluded from the configured 40-attempt operational
   closure sample. Until that sample completes, report `INSUFFICIENT_SAMPLE` and keep prior semantic
-  incidents open.
+  incidents open. A changed policy identity boundedly re-evaluates prior terminal results under the
+  existing per-cycle and daily-budget limits; an unchanged successful result is not reprocessed.
+  Events deferred as `NOT_ANALYZED_BY_POLICY` when the daily budget is exhausted return to the queue
+  when budget becomes available, while collection continues independently.
 - Supervisor failure: inspect Task Scheduler history and process ancestry. A current worker must be
   descended from the Task Scheduler service. A singleton rejection normally means another healthy
   worker already owns the runtime.

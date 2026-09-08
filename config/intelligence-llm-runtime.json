@@ -1,8 +1,9 @@
 {
   "version": "internal-semantic-runtime-v1",
   "provider": "openai",
-  "prompt_version": "event-grounding-v2",
-  "schema_version": "llm-analysis-result-v1",
+  "model": "gpt-5.6-luna",
+  "prompt_version": "event-grounding-v3-taxonomy",
+  "schema_version": "llm-analysis-result-v2-taxonomy",
   "routing_version": "openai-primary-v1",
   "retry_policy_version": "structured-bounded-v1",
   "grounding_policy_version": "visible-text-signed-decimal-v2",
