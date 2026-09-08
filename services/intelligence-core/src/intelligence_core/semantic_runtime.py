@@ -50,6 +50,22 @@ def build_semantic_handler(
     schema_failure_rate_threshold: float = 0.05,
     schema_failure_minimum_attempts: int = 5,
 ) -> JobHandler:
+    def needs_analysis(event_id: str) -> bool:
+        current = forensics.disposition(event_id)
+        if current is None:
+            return True
+        semantic_id, disposition = current
+        if disposition not in {
+            TerminalDisposition.QUARANTINED,
+            TerminalDisposition.FAILED_VALIDATION,
+        } or semantic_id is None:
+            return False
+        prior = forensics.attempts(semantic_id)
+        return bool(
+            prior
+            and prior[-1].grounding_policy_version != processor.grounding_policy_version
+        )
+
     def analyze(_job: DurableJob, now: datetime) -> dict[str, Any]:
         day = now.astimezone(UTC).date()
         spent = sum(
@@ -61,7 +77,7 @@ def build_semantic_handler(
         pending = [
             event
             for event in operations.events()
-            if event.available_at <= now and not forensics.has_disposition(str(event.event_id))
+            if event.available_at <= now and needs_analysis(str(event.event_id))
         ][:max_events_per_cycle]
         for event in pending:
             if spent >= daily_budget_usd:
@@ -246,6 +262,7 @@ def configured_semantic_handler(
         routing_version=config["routing_version"],
         configuration_hash=configuration_hash,
         retry_policy_version=config["retry_policy_version"],
+        grounding_policy_version=config["grounding_policy_version"],
         max_attempts=int(config["max_attempts"]),
         input_price=float(config["input_cost_per_million"]),
         output_price=float(config["output_cost_per_million"]),

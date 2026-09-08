@@ -2,7 +2,9 @@
 
 Only decisions or credentials that require owner authority are listed here. Ordinary engineering work remains with the implementation team.
 
-1. Obtain written Upstox/provider confirmation for public redistribution and derived/commercial display rights, including caching and retention terms.
+1. Before enabling any provider-derived public content, obtain written Upstox/provider confirmation
+   for redistribution and derived/commercial display rights, including caching and retention terms.
+   This is not required to launch the explicitly synthetic informational Track A surface.
 2. Approve the existing linked Vercel project for release and choose the canonical production
    domain. Add the exact GitHub environment `production-staging`; harden the existing `Production`
    environment with required reviewer approval and branch restrictions; add the scoped Vercel

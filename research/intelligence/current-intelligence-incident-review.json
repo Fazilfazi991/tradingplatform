@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-08T07:31:24.982379Z",
+  "generated_at": "2026-09-08T07:58:30Z",
   "authority": "post-soak supervised operational recovery",
   "historical_soak_report_mutated": false,
   "historical_high_incidents": [
@@ -12,7 +12,7 @@
       "current_status": "OPEN_ACTIVE_RECURRENCE",
       "affected_subsystem": "Luna semantic validation",
       "containment_status": "PASS",
-      "remediation": "Unsupported numeric claims remain quarantined, tombstoned, uncached and excluded downstream.",
+      "remediation": "Containment remains intact. A sign- and unit-preserving visible-text grounding policy has been implemented as visible-text-signed-decimal-v2; historical attempts and tombstones remain immutable.",
       "closure_criteria": "A frozen bounded live semantic window completes below the configured failure threshold with no terminal quarantine recurrence."
     },
     {
@@ -24,7 +24,7 @@
       "current_status": "OPEN_ACTIVE_RECURRENCE",
       "affected_subsystem": "Semantic structured-output validation",
       "containment_status": "PASS",
-      "remediation": "Strict validation was retained; transport and semantic health remain separate.",
+      "remediation": "Strict validation was retained; transport and semantic health remain separate. Prompt event-grounding-v2 and the versioned numeric grounding policy are loaded by the supervised worker.",
       "closure_criteria": "A representative frozen live canary window remains below the 5% threshold without weakening validation."
     },
     {
@@ -63,9 +63,9 @@
   "current_evidence": {
     "provider_transport_health": "HEALTHY",
     "semantic_validation_health": "CRITICAL_FAILURE_RATE",
-    "semantic_attempts": 20,
+    "semantic_attempts": 31,
     "validation_failures": 8,
-    "failure_rate": 0.4,
+    "cumulative_failure_rate": 0.25806452,
     "terminal_quarantines": 2,
     "active_tombstones": 2,
     "transport_failures": 0,
@@ -74,6 +74,17 @@
     "collection_failures": 0,
     "configuration_drift": "PASS",
     "forward_paper": "DISABLED"
+  },
+  "remediation_validation": {
+    "prompt_version": "event-grounding-v2",
+    "grounding_policy_version": "visible-text-signed-decimal-v2",
+    "offline_backend_tests_passed": 382,
+    "live_canary_attempts": 1,
+    "live_canary_transport_successes": 1,
+    "live_canary_validation_successes": 1,
+    "live_canary_cost_usd": 0.000542,
+    "representative_frozen_window_complete": false,
+    "incident_resolution_authorized": false
   },
   "decision": "INTELLIGENCE OPERATIONS RECOVERY NEEDS WORK"
 }

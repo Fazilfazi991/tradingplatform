@@ -1,6 +1,6 @@
 # Current Intelligence Incident Review
 
-Generated at 2026-09-08T07:31:24.982379Z from the supervised post-soak runtime. The historical
+Updated at 2026-09-08T07:58:30Z from the supervised post-soak runtime. The historical
 24-hour soak report remains unchanged.
 
 | Historical incident | Type | Historical status | Current status | Evidence |
@@ -17,5 +17,16 @@ Current transport is `HEALTHY`; semantic validation is `CRITICAL_FAILURE_RATE`. 
 incidents remain open: two `LLM_HALLUCINATION_QUARANTINE` incidents and one
 `LLM_SCHEMA_FAILURE_SPIKE`. RBI and SEBI collection are current after three scheduled cycles each.
 Forward Paper remains `DISABLED`.
+
+The root cause was repaired without weakening quarantine: HTML attributes/scripts/styles are no
+longer evidence, harmless numeric formatting is normalized with `Decimal`, and signs plus bounded
+units remain mandatory. The worker now loads `event-grounding-v2` and
+`visible-text-signed-decimal-v2`; both are included in semantic/cache identity. Historical attempts
+and tombstones remain unchanged. Offline verification passed 382 backend tests, and one bounded live
+canary passed transport and structured/grounding validation at an estimated cost of `$0.000542`.
+
+The incidents remain open. One canary is not the representative frozen window required by their
+closure criteria; the platform-owned hourly semantic job will provide the next bounded production
+path evidence.
 
 Decision: **INTELLIGENCE OPERATIONS RECOVERY NEEDS WORK**.

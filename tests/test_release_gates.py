@@ -150,13 +150,35 @@ def test_current_public_track_is_not_authorized_for_release() -> None:
         "decision": "PRODUCTION BLOCKED",
         "nonpassing_gates": [
             "engineering",
-            "data",
-            "intelligence",
             "public_safety",
             "product",
             "operations",
         ],
     }
+
+
+def test_public_tracks_do_not_depend_on_predictive_data_qualification() -> None:
+    current = manifest()
+    public_required = current["tracks"]["public_platform"]["required_gates"]
+    promotion_required = current["tracks"]["promotion"]["required_gates"]
+    prediction_required = current["tracks"]["prediction"]["required_gates"]
+
+    assert "predictive_data" not in public_required
+    assert "predictive_data" not in promotion_required
+    assert "intelligence" not in public_required
+    assert "intelligence" not in promotion_required
+    assert "predictive_data" in prediction_required
+
+    predictive_data = next(
+        gate for gate in current["gates"] if gate["id"] == "predictive_data"
+    )
+    assert {"EXT-02", "EXT-03", "EXT-04"}.issubset(predictive_data["blockers"])
+
+    public_safety = next(
+        gate for gate in current["gates"] if gate["id"] == "public_safety"
+    )
+    assert "EXT-01" not in public_safety["blockers"]
+    assert "EXT-05" in public_safety["blockers"]
 
 
 def test_unknown_release_track_is_rejected() -> None:

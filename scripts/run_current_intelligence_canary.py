@@ -62,6 +62,7 @@ def main() -> None:
             routing_version=config["routing_version"],
             configuration_hash=configuration_hash,
             retry_policy_version=config["retry_policy_version"],
+            grounding_policy_version=config["grounding_policy_version"],
             max_attempts=int(config["max_attempts"]),
             input_price=float(config["input_cost_per_million"]),
             output_price=float(config["output_cost_per_million"]),

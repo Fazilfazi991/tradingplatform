@@ -29,7 +29,9 @@ fails closed when evidence is missing or the manifest is inconsistent.
 
 ### Current operating truth
 
-- No production intelligence worker is installed or running. The local worker rehearsal is stopped.
+- A supervised Windows intelligence worker is currently running as a local/internal operational
+  recovery deployment. It proves current scheduler continuity on this host, but it is not an
+  approved production host and does not satisfy Track A public-web deployment acceptance.
 - Historical local operations/soak databases contain real executions and evidence, but they do not
   prove current production continuity.
 - Market-data EOD and provider-health jobs are owned by the platform scheduler. EOD execution remains
@@ -40,7 +42,9 @@ fails closed when evidence is missing or the manifest is inconsistent.
   production process.
 - Internal/admin pages and `/api/research-desk` deny anonymous access, are no-store/noindex, and log
   sanitized authorization outcomes.
-- Public redistribution rights for Upstox/provider data are not approved.
+- Public redistribution rights for Upstox/provider data are not approved. Track A therefore remains
+  restricted to synthetic or independently safe informational content; the predictive-data gate and
+  provider-derived public-data activation are not Track A prerequisites.
 - Reproducible GitHub CI, explicit Vercel root configuration, environment contracts, deployment and
   rollback runbooks, a hash-sealed deployment-evidence validator, and post-build smoke gates exist.
   No canonical staging/production deployment evidence has been supplied.
@@ -76,20 +80,23 @@ Gate states are `PASS`, `FAIL`, or `EXTERNAL`. A track releases only when every 
 - [x] Provider errors and runtime failures create sanitized actionable incidents.
 - [ ] Production supervision, monitoring continuity, deployment promotion, and post-deploy verification require the external host/domain and repository controls.
 
-### Data gate — EXTERNAL
+### Predictive-data gate — EXTERNAL (Track B only)
 
 - [x] Upstox authentication health verified through a bounded read-only canary without exposing credentials.
-- [ ] Current-universe mapping is 200/200 exact; point-in-time historical membership remains external.
+- [x] Current-universe mapping is 200/200 exact; point-in-time historical membership remains external.
 - [x] Freshness enforcement, stale blocking, deterministic manifests, provenance, and corporate-action warnings are implemented and tested at local boundaries.
 - [x] Live/demo separation is enforced in serializers and negative tests.
 - [x] Data-health evidence is visible only to authorized operators and does not pretend to be a live browser probe.
 - [ ] Public redistribution/derived-data rights approved or public output limited to independently safe content. **EXTERNAL**
 
-### Intelligence gate — EXTERNAL
+### Intelligence gate — EXTERNAL (internal runtime; independent of Track A)
 
-- [ ] RBI/SEBI collection is wired to the supervised platform scheduler; continuous production execution requires the external worker host.
+- [x] RBI/SEBI collection is wired to the supervised platform scheduler and is currently running on
+  the local/internal Windows supervisor; approved production hosting remains external.
 - [x] Luna structured analysis is wired into the normal worker under frozen prompt/model/schema controls.
-- [ ] Hallucination quarantine, provider cost ledger, provenance, Research Desk, and Fusion abstention are implemented; continuous production operation is not yet evidenced.
+- [x] Hallucination quarantine, provider cost ledger, provenance, Research Desk, and Fusion abstention
+  are implemented. Current semantic health is degraded and must pass a new frozen validation window
+  after the grounding-policy repair; continuous approved-production operation is not yet evidenced.
 - [x] Unverified inputs remain blocked; source staleness and collection failures open and resolve incidents.
 
 ### Public safety gate — EXTERNAL
@@ -108,17 +115,23 @@ Gate states are `PASS`, `FAIL`, or `EXTERNAL`. A track releases only when every 
 - [x] Data surfaces preserve honest empty, stale, unavailable, insufficient, and abstention states; custom 404 exists.
 - [ ] Metadata (including generated Open Graph, Twitter, and Apple touch assets), automated accessibility, local performance budgets, sitemap/robots, and canonical behavior pass; manual assistive-technology and deployed Web Vitals acceptance remain external.
 
-### Operations gate — EXTERNAL
+### Public-web operations gate — EXTERNAL
 
-- [ ] Authorized health surfaces exist, but live provider/collector/spend/scheduler/incident continuity awaits the production worker and storage host.
-- [x] Incident taxonomy, thresholds, deduplication, resolution, and runbooks are implemented and locally tested.
-- [ ] Deployment evidence, rollback, backup, restore, retention, and archive contracts are implemented; managed off-host retention and deployed recovery evidence remain external.
+- [x] Public deployment, security-boundary smoke, evidence sealing, and rollback contracts are
+  implemented and locally tested.
+- [ ] Protected staging/production execution, a healthy rollback target, and canonical deployment
+  evidence remain external.
 - [ ] Staging and production are separate, documented, and smoke-tested.
-- [x] Platform-owned schedules are distinct from Codex review/maintenance work.
 
-## 4. P0 — blockers that must be resolved before Track A production
+Internal intelligence supervision, storage, backup, and incident routing remain tracked under the
+independent Intelligence gate and do not block a synthetic informational Track A launch.
 
-### P0.1 Public/internal security boundary
+## 4. P0 — implementation record and remaining Track A blockers
+
+Items marked implemented below are retained as the historical acceptance contract. They are not
+open work. Only explicitly external acceptance clauses remain blockers.
+
+### P0.1 Public/internal security boundary — IMPLEMENTED LOCALLY
 
 1. Introduce an explicit route policy with `PUBLIC`, `DEMO`, `INTERNAL_RESEARCH`, and `INTERNAL_ADMIN` classifications.
 2. Remove internal links from the public shell and create a separate authenticated internal shell.
@@ -128,7 +141,7 @@ Gate states are `PASS`, `FAIL`, or `EXTERNAL`. A track releases only when every 
 
 Acceptance: anonymous requests cannot discover or retrieve internal pages/API payloads; public bundles contain no internal study data; authenticated operator access is logged without sensitive data.
 
-### P0.2 Public-safe data contract
+### P0.2 Public-safe data contract — IMPLEMENTED LOCALLY
 
 1. Define and version a narrow public serializer that accepts only approved synthetic/demo or rights-cleared derived fields.
 2. Enforce provenance, content class, rights state, freshness, and validation state before serialization.
@@ -137,7 +150,7 @@ Acceptance: anonymous requests cannot discover or retrieve internal pages/API pa
 
 Acceptance: public delivery is technically impossible unless the record is explicitly public-safe; approval is machine-verifiable, not a UI label.
 
-### P0.3 Authoritative state vocabulary
+### P0.3 Authoritative state vocabulary — IMPLEMENTED LOCALLY
 
 Create one shared registry for lifecycle and evidence labels. Minimum canonical states:
 
@@ -155,7 +168,7 @@ Create one shared registry for lifecycle and evidence labels. Minimum canonical 
 
 Replace contradictory model, research, prediction, and data-health strings. Never display `FORWARD VALIDATION IN PROGRESS` until the immutable registry contains issued forward predictions.
 
-### P0.4 Supervised data/intelligence operations
+### P0.4 Supervised data/intelligence operations — IMPLEMENTED LOCALLY; PRODUCTION HOST EXTERNAL
 
 1. Build one platform-owned service entrypoint for market collection, RBI/SEBI collection, deterministic processing, selective LLM analysis, snapshots, Fusion abstention, archival, and reports.
 2. Replace silent `NOOP` handlers with startup/configuration failures.
@@ -167,7 +180,7 @@ Replace contradictory model, research, prediction, and data-health strings. Neve
 
 Acceptance: a real bounded soak under the production-shaped service shows scheduled executions, artifacts, cost/cache telemetry, incidents, recovery, and immutable reports without a human or Codex acting as scheduler.
 
-### P0.5 Market-data EOD and forward-paper runtime
+### P0.5 Market-data EOD and forward-paper runtime — TRACK B ONLY; NOT A TRACK A PREREQUISITE
 
 1. Implement and activate the disabled EOD workflow only in approved internal mode.
 2. Add immutable forward-prediction issuance before outcomes, dataset/model/prompt/config hashes, issued-at timestamps, eligibility/abstention reasons, and append-only storage.
@@ -177,7 +190,7 @@ Acceptance: a real bounded soak under the production-shaped service shows schedu
 
 Acceptance: forward observations accumulate prospectively from real timestamps; no backfill can masquerade as a forward prediction; Track B remains gated until elapsed time and sample sufficiency are met.
 
-### P0.6 CI/CD and deployment safety
+### P0.6 CI/CD and deployment safety — IMPLEMENTED LOCALLY; DEPLOYMENT CONTROLS EXTERNAL
 
 1. Add CI with pinned/reproducible Python dependencies and the complete engineering/security test matrix.
 2. Resolve hosting root/runtime ambiguity explicitly for the Next application; never rely on provider auto-detection in this mixed Python/Next repository.
@@ -187,22 +200,26 @@ Acceptance: forward observations accumulate prospectively from real timestamps; 
 
 Acceptance: a clean commit promotes through CI to staging, passes full smoke/security/data-boundary checks, and can be rolled back without data loss. Production remains blocked until external hosting/domain configuration is available.
 
-### P0.7 Legal, compliance, and claims perimeter
+### P0.7 Legal, compliance, and claims perimeter — DRAFTS IMPLEMENTED; APPROVAL EXTERNAL
 
 Create draft Terms, Privacy, Risk Disclosure, Data Sources, Methodology, Prediction Validation Status, and Contact surfaces. State clearly that the product is informational research, experimental where applicable, not investment advice, and does not provide execution. Do not invent permissions or imply regulatory avoidance through wording.
 
 Acceptance: routes exist, match actual behavior and data rights, and receive owner/legal approval before public production. Until approval, mark them draft and keep the production gate failed.
 
-## 5. P1 — required before promotion
+## 5. P1 — implementation record and remaining promotion acceptance
 
-### Public information architecture and homepage
+The application work in this section is implemented and locally verified unless an item explicitly
+requires a canonical deployment, human accessibility review, owner decision, or legal/publication
+approval. Those external acceptances remain open.
+
+### Public information architecture and homepage — IMPLEMENTED LOCALLY
 
 - Replace the dashboard-first home with a plain-language launch page: proposition, how evidence is assembled, seven engine overview, validation status, limitations, trust/data provenance, FAQ, and a primary CTA to explore a demo stock or methodology.
 - Add coherent public navigation and footer: Product, Methodology, Data Sources, Validation Status, About, FAQ, Risk, Privacy, Terms, Contact.
 - Explain differentiation through verification, contradiction handling, abstention, provenance, and uncertainty—not unsupported performance claims.
 - Keep implementation secrets and internal operational detail out of public copy.
 
-### Stock and prediction experience
+### Stock and prediction experience — IMPLEMENTED LOCALLY
 
 - Validate the stock universe; unknown symbols return a genuine 404 instead of RELIANCE-like fixtures.
 - Make research/experimental status more visually prominent than direction or range.
@@ -210,14 +227,14 @@ Acceptance: routes exist, match actual behavior and data rights, and receive own
 - Show evidence, provenance, freshness, data class, validation state, uncertainty, contradictions, and abstention reasons consistently.
 - Keep fixture/demo mode unmistakable at page, card, chart, and export level.
 
-### Reliability, accessibility, and responsive QA
+### Reliability, accessibility, and responsive QA — AUTOMATED WORK COMPLETE; HUMAN/CANONICAL ACCEPTANCE EXTERNAL
 
 - Add route/global error boundaries, loading states, offline/network failure, stale data, insufficient history, unavailable provider, and abstention states.
 - Add a skip link, keyboard/focus verification, semantic chart/figure/table alternatives, accessible active filters, labels, contrast checks, and reduced-motion validation.
 - Execute screenshot-driven QA at every required viewport and preserve approved desktop/mobile launch captures.
 - Remove hard-coded misleading timestamps; show explicit snapshot times and stale states.
 
-### SEO, indexing, performance, and brand
+### SEO, indexing, performance, and brand — IMPLEMENTED LOCALLY; CANONICAL ACTIVATION EXTERNAL
 
 - Add route metadata, canonical strategy, OpenGraph/Twitter assets, manifest, favicon family, structured data where accurate, sitemap, and robots rules.
 - Index only approved public information pages. Never index internal routes, admin surfaces, research ledgers, data health, or settings.
@@ -225,14 +242,14 @@ Acceptance: routes exist, match actual behavior and data rights, and receive own
 - Establish performance budgets and measure production builds for bundle size, LCP/INP/CLS, image/font loading, route payloads, and API latency.
 - Standardize naming, typography, tone, badges, colors, and evidence terminology.
 
-### Monitoring, incidents, and maintenance
+### Monitoring, incidents, and maintenance — IMPLEMENTED LOCALLY; PRODUCTION INSTALLATION EXTERNAL
 
 - Implement provider, collector, freshness, scheduler, cost, schema, quarantine, snapshot, backup, and deployment monitoring.
 - Version thresholds; deduplicate and resolve incidents; document severity, ownership, response, rollback, and postmortem flow.
 - Add privacy-conscious analytics only after owner approval. If enabled, track CTA, search, demo exploration, methodology, validation, and waitlist/contact funnels without sensitive research data.
 - Define safe Codex maintenance routines and periodic audits; scheduled Codex work may inspect/report but must not be the production runtime. The installed daily runtime-triage heartbeat and weekly readiness audit are review-only and explicitly prohibited from starting workers, changing gates, issuing predictions, deploying, or publishing; their safety contract is recorded in `CODEX_MAINTENANCE_AUTOMATIONS.md`.
 
-### Promotion package
+### Promotion package — DRAFTED; APPROVAL AND PUBLICATION EXTERNAL
 
 - Produce approved desktop/mobile screenshots, short and long product descriptions, founder talking points, launch post, walkthrough script, FAQ answers, trust/validation copy, and a claims ledger mapping each public statement to evidence.
 - Do not publish or schedule promotion until the promotion gate is explicitly `PASS`.

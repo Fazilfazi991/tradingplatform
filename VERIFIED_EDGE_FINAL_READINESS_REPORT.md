@@ -153,11 +153,12 @@ Evidence baseline results:
 
 ## 18. External blockers
 
-The authoritative list is `EXTERNAL_BLOCKERS.md`. Open dependencies cover provider data rights,
-point-in-time membership, corporate-action semantics, independent reconciliation, legal/regulatory
-approval, hosting/domain, branch protection, analytics/consent, positioning/publication approval,
-additional intelligence sources, prospective validation time, and manual accessibility/deployed
-performance acceptance.
+The authoritative list is `EXTERNAL_BLOCKERS.md`. Track A depends on legal/regulatory approval,
+hosting/domain and protected release controls, product acceptance, and public-web operational
+evidence. Provider data rights, point-in-time membership, corporate-action semantics, independent
+reconciliation, additional intelligence sources, and prospective validation remain explicit Track B
+or future provider-derived-public-data dependencies; they do not block the synthetic informational
+Track A surface.
 
 ## 19. Owner actions
 

@@ -93,6 +93,7 @@ class LLMAttemptRecord(BaseModel):
     retry_reason: str | None = None
     retry_delay_ms: int = Field(default=0, ge=0)
     retry_policy_version: str
+    grounding_policy_version: str = "legacy-unspecified"
     started_at: datetime
     completed_at: datetime
     latency_ms: float = Field(ge=0)
@@ -139,6 +140,7 @@ class InvalidSemanticTombstone(BaseModel):
     created_at: datetime
     expires_at: datetime
     retry_policy_version: str
+    grounding_policy_version: str = "legacy-unspecified"
     reason: str
 
 
@@ -273,6 +275,11 @@ class ForensicRuntimeStore:
         CREATE TABLE IF NOT EXISTS event_dispositions (
           canonical_event_id TEXT PRIMARY KEY, semantic_request_id TEXT,
           disposition TEXT NOT NULL, payload_json TEXT NOT NULL
+        );
+        CREATE TABLE IF NOT EXISTS event_disposition_history (
+          sequence INTEGER PRIMARY KEY AUTOINCREMENT, canonical_event_id TEXT NOT NULL,
+          semantic_request_id TEXT, disposition TEXT NOT NULL, recorded_at TEXT NOT NULL,
+          payload_json TEXT NOT NULL
         );
         CREATE TABLE IF NOT EXISTS semantic_success_cache (
           cache_key TEXT PRIMARY KEY, semantic_request_id TEXT NOT NULL,
@@ -473,6 +480,18 @@ class ForensicRuntimeStore:
             "INSERT OR REPLACE INTO event_dispositions VALUES(?,?,?,?)",
             (event_id, semantic_id, disposition, json.dumps(payload, sort_keys=True, default=str)),
         )
+        self.connection.execute(
+            "INSERT INTO event_disposition_history"
+            "(canonical_event_id,semantic_request_id,disposition,recorded_at,payload_json) "
+            "VALUES(?,?,?,?,?)",
+            (
+                event_id,
+                semantic_id,
+                disposition,
+                datetime.now(UTC).isoformat(),
+                json.dumps(payload, sort_keys=True, default=str),
+            ),
+        )
         self.connection.commit()
 
     def has_disposition(self, event_id: str) -> bool:
@@ -482,6 +501,14 @@ class ForensicRuntimeStore:
             ).fetchone()
             is not None
         )
+
+    def disposition(self, event_id: str) -> tuple[str | None, TerminalDisposition] | None:
+        row = self.connection.execute(
+            "SELECT semantic_request_id,disposition FROM event_dispositions "
+            "WHERE canonical_event_id=?",
+            (event_id,),
+        ).fetchone()
+        return (row[0], TerminalDisposition(row[1])) if row else None
 
     def reconciliation(self) -> dict[str, Any]:
         attempts = self.attempts()
@@ -571,6 +598,7 @@ def tombstone_for(
     category: ValidationErrorCategory,
     attempts: int,
     retry_policy_version: str,
+    grounding_policy_version: str = "legacy-unspecified",
     now: datetime | None = None,
     ttl: timedelta = timedelta(hours=24),
 ) -> InvalidSemanticTombstone:
@@ -589,5 +617,6 @@ def tombstone_for(
         created_at=created,
         expires_at=created + ttl,
         retry_policy_version=retry_policy_version,
+        grounding_policy_version=grounding_policy_version,
         reason="UNCHANGED_SEMANTIC_INPUT_FAILED_VALIDATION",
     )

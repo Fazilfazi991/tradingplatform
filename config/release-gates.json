@@ -44,7 +44,7 @@
       "reason": "Local and hosted checks pass, the linked Vercel root is reconciled, and the manual release workflow fails closed; approved release environments, protected promotion, and production smoke evidence remain external."
     },
     {
-      "id": "data",
+      "id": "predictive_data",
       "state": "EXTERNAL",
       "evidence": [
         "research/market-readiness/current-nifty200-validation.json",
@@ -63,7 +63,7 @@
         "EXT-03",
         "EXT-04"
       ],
-      "reason": "Internal backfill and mapping evidence exist; public rights, point-in-time membership, adjustment semantics, and independent reconciliation remain open."
+      "reason": "Internal predictive backfill and mapping evidence exist; public rights, point-in-time membership, adjustment semantics, and independent reconciliation remain open. This gate qualifies Track B research data and is not a prerequisite for the synthetic informational Track A surface."
     },
     {
       "id": "intelligence",
@@ -90,10 +90,9 @@
         "CLAIMS_LEDGER.md"
       ],
       "blockers": [
-        "EXT-01",
         "EXT-05"
       ],
-      "reason": "Technical boundaries are enforced; data-rights and legal approval remain external."
+      "reason": "Technical boundaries are enforced and the public surface is limited to explicitly synthetic or independently safe content. Legal approval remains external; EXT-01 is required only before provider-derived content can become public."
     },
     {
       "id": "product",
@@ -119,15 +118,14 @@
       "id": "operations",
       "state": "EXTERNAL",
       "evidence": [
-        "infra/systemd/verified-edge-intelligence.service",
-        "scripts/runtime_backup.py",
         "scripts/validate_deployment_evidence.py",
-        "CODEX_MAINTENANCE_AUTOMATIONS.md"
+        "docs/runbooks/deployment.md",
+        ".github/workflows/release.yml"
       ],
       "blockers": [
         "EXT-06"
       ],
-      "reason": "Service, recovery, and deployment evidence contracts exist, but production supervision, storage, alert routing, and rollback evidence do not."
+      "reason": "Public-web deployment, smoke, evidence, and rollback contracts exist, but protected staging/production execution and a proven rollback target remain external. Internal intelligence supervision is tracked separately and is not a prerequisite for the synthetic informational public surface."
     },
     {
       "id": "promotion",
@@ -176,8 +174,6 @@
     "public_platform": {
       "required_gates": [
         "engineering",
-        "data",
-        "intelligence",
         "public_safety",
         "product",
         "operations"
@@ -188,8 +184,6 @@
     "promotion": {
       "required_gates": [
         "engineering",
-        "data",
-        "intelligence",
         "public_safety",
         "product",
         "operations",
@@ -200,6 +194,7 @@
     },
     "prediction": {
       "required_gates": [
+        "predictive_data",
         "prediction"
       ],
       "ready_decision": "PREDICTION FEATURE READY",

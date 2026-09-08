@@ -1,9 +1,14 @@
 from datetime import UTC, datetime
 from uuid import UUID
 
+import pytest
 from intelligence_core.collectors import RawArtifact
 from intelligence_core.durable import DurableJob, SQLiteOperationsStore
-from intelligence_core.forensic_worker import ForensicSemanticProcessor
+from intelligence_core.forensic_worker import (
+    ForensicSemanticProcessor,
+    validate_summary_numbers,
+    visible_source_text,
+)
 from intelligence_core.llm_analyzer import AnalyzerTask, ProviderConfig, ProviderResponse
 from intelligence_core.models import EventType, InformationEvent
 from intelligence_core.runtime_forensics import ForensicRuntimeStore, TerminalDisposition
@@ -99,6 +104,165 @@ def test_paid_invalid_responses_are_ledgered_then_tombstoned(tmp_path):
     assert rows[-1].claim_field == "summary"
     again = invoke(worker)
     assert again["tombstone_hit"] is True and adapter.calls == 2
+    store.close()
+
+
+def test_numeric_grounding_accepts_only_safe_formatting_equivalence():
+    source = "Dates September 08 and 09. Amount ₹ -2,64,000.00 crore and rate 5.24%."
+    validate_summary_numbers(
+        "Dates 8 and 9; amount ₹ -264000 crore and rate 5.240%.", source
+    )
+
+
+def test_numeric_grounding_preserves_sign_percent_and_magnitude():
+    source = "Amount -2,45,922.00 and rate 5.24%."
+    for unsupported in (
+        "Amount 245922.",
+        "Rate 5.24.",
+        "Rate 5.25%.",
+        "Amount -245923.",
+        "Amount -245922 crore.",
+    ):
+        with pytest.raises(ValueError, match="INVENTED_NUMBER"):
+            validate_summary_numbers(unsupported, source)
+
+
+def test_html_attributes_scripts_and_styles_are_not_numeric_evidence():
+    source = '<table width="100" border="7"><style>.x{width:88px}</style><script>99</script><td>8</td></table>'
+    assert visible_source_text(source) == "8"
+    validate_summary_numbers("Value 08.", visible_source_text(source))
+    for unsupported in ("Value 100.", "Value 7.", "Value 88.", "Value 99."):
+        with pytest.raises(ValueError, match="INVENTED_NUMBER"):
+            validate_summary_numbers(unsupported, visible_source_text(source))
+    escaped = "Visible &lt;script&gt;99&lt;/script&gt; evidence"
+    assert visible_source_text(escaped) == "Visible <script>99</script> evidence"
+    validate_summary_numbers("Value 99.", visible_source_text(escaped))
+
+
+def test_grounding_policy_is_part_of_attempt_and_semantic_identity(tmp_path):
+    first_store = ForensicRuntimeStore(tmp_path / "first.sqlite3")
+    second_store = ForensicRuntimeStore(tmp_path / "second.sqlite3")
+    config = ProviderConfig(provider="openai", model="gpt-5.6-luna", model_version="frozen")
+    first = ForensicSemanticProcessor(
+        store=first_store,
+        adapter=QueueAdapter([result()]),
+        provider_config=config,
+        prompt_version="p2",
+        schema_version="s1",
+        schema_hash="schema",
+        routing_version="route",
+        configuration_hash="config",
+        grounding_policy_version="grounding-v1",
+    )
+    second = ForensicSemanticProcessor(
+        store=second_store,
+        adapter=QueueAdapter([result()]),
+        provider_config=config,
+        prompt_version="p2",
+        schema_version="s1",
+        schema_hash="schema",
+        routing_version="route",
+        configuration_hash="config",
+        grounding_policy_version="grounding-v2",
+    )
+    first_result, second_result = invoke(first), invoke(second)
+    assert first_result["semantic_request_id"] != second_result["semantic_request_id"]
+    assert first_store.attempts()[0].grounding_policy_version == "grounding-v1"
+    assert second_store.attempts()[0].grounding_policy_version == "grounding-v2"
+    first_store.close()
+    second_store.close()
+
+
+def test_disposition_history_is_append_only_and_schema_reopen_is_idempotent(tmp_path):
+    path = tmp_path / "history.sqlite3"
+    store = ForensicRuntimeStore(path)
+    store.set_disposition(
+        event_id="event-1", semantic_id="semantic-v1",
+        disposition=TerminalDisposition.QUARANTINED, detail={"policy": "v1"},
+    )
+    store.set_disposition(
+        event_id="event-1", semantic_id="semantic-v2",
+        disposition=TerminalDisposition.SUCCESS, detail={"policy": "v2"},
+    )
+    assert store.connection.execute(
+        "SELECT COUNT(*) FROM event_disposition_history"
+    ).fetchone()[0] == 2
+    store.close()
+    reopened = ForensicRuntimeStore(path)
+    assert reopened.connection.execute(
+        "SELECT COUNT(*) FROM event_disposition_history"
+    ).fetchone()[0] == 2
+    assert reopened.disposition("event-1") == ("semantic-v2", TerminalDisposition.SUCCESS)
+    reopened.close()
+
+
+def test_revised_policy_boundedly_reevaluates_only_prior_failures(tmp_path):
+    runtime_now = datetime.now(UTC)
+    operations = SQLiteOperationsStore(tmp_path / "operations.sqlite3")
+    source_event = InformationEvent(
+        event_id=UUID(int=8),
+        entity_id=None,
+        entity_type="REGULATOR",
+        source_id="rbi-rss",
+        source_event_id="policy-8",
+        event_type=EventType.CENTRAL_BANK,
+        title="RBI update dated September 08",
+        summary="The notice was published on September 08.",
+        raw_artifact_uri="artifact://policy-8",
+        raw_payload_hash="artifact-8",
+        event_time=NOW,
+        published_at=NOW,
+        observed_at=NOW,
+        available_at=NOW,
+        ingested_at=NOW,
+    )
+    operations.persist_collection(
+        RawArtifact("rbi-rss", "artifact://policy-8", "text/plain", b"policy", NOW),
+        [source_event],
+    )
+    store = ForensicRuntimeStore(tmp_path / "forensics.sqlite3")
+    config = ProviderConfig(provider="openai", model="gpt-5.6-luna", model_version="frozen")
+    old = ForensicSemanticProcessor(
+        store=store,
+        adapter=QueueAdapter([result("Unsupported 99.")]),
+        provider_config=config,
+        prompt_version="p1",
+        schema_version="s1",
+        schema_hash="schema",
+        routing_version="route",
+        configuration_hash="config",
+        grounding_policy_version="grounding-v1",
+    )
+    old.process(
+        event_id=str(source_event.event_id), source_id=source_event.source_id,
+        source_artifact_hash=source_event.raw_payload_hash, title=source_event.title,
+        content=source_event.summary, published_at=source_event.published_at,
+        task=AnalyzerTask.EVENT_CLASSIFICATION, now=runtime_now,
+    )
+    revised_adapter = QueueAdapter([result("Published on September 8.")])
+    revised = ForensicSemanticProcessor(
+        store=store,
+        adapter=revised_adapter,
+        provider_config=config,
+        prompt_version="p2",
+        schema_version="s1",
+        schema_hash="schema",
+        routing_version="route",
+        configuration_hash="config-v2",
+        grounding_policy_version="grounding-v2",
+    )
+    handler = build_semantic_handler(
+        operations, store, revised, daily_budget_usd=1, max_events_per_cycle=1
+    )
+    outcome = handler(
+        DurableJob("llm-event-analysis", "INTERVAL", None, 900, None, None, NOW, "1"),
+        runtime_now,
+    )
+    assert outcome["processed"] == 1
+    assert revised_adapter.calls == 1
+    assert len(store.attempts()) == 3
+    assert store.disposition(str(source_event.event_id))[1] is TerminalDisposition.SUCCESS
+    operations.close()
     store.close()
 
 
