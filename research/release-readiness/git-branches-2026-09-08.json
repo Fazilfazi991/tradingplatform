@@ -1,0 +1,28 @@
+{
+  "version": "git-branch-audit-v1",
+  "observed_at": "2026-09-08T07:25:00+04:00",
+  "canonical_branch": "main",
+  "canonical_head_at_observation": "59ca13fd405536f0a826cd4193703afb23a82585",
+  "branches": [
+    {
+      "name": "codex/autonomous-research-operator",
+      "scope": "LOCAL_AND_ORIGIN",
+      "checked_out_in_linked_worktree": true,
+      "tip": "2e7db401530eb8c226cf371378ff1e75f6051720",
+      "unique_patch_status": "PATCH_EQUIVALENT_IN_MAIN",
+      "git_cherry_marker": "-",
+      "action": "RETAIN_UNTIL_OWNER_OR_WORKTREE_CLEANUP"
+    },
+    {
+      "name": "codex/batch-12-1-integration",
+      "scope": "LOCAL_ONLY",
+      "checked_out_in_linked_worktree": false,
+      "tip": "1ebb02d",
+      "unique_patch_status": "NO_UNMERGED_PATCH",
+      "action": "RETAIN_UNTIL_ROUTINE_LOCAL_CLEANUP"
+    }
+  ],
+  "unmerged_functional_work_detected": false,
+  "destructive_cleanup_performed": false,
+  "release_impact": "NONE"
+}

@@ -13,6 +13,7 @@
         ".github/workflows/quality.yml",
         ".github/workflows/release.yml",
         "VERIFIED_EDGE_FINAL_READINESS_REPORT.md",
+        "research/release-readiness/git-branches-2026-09-08.json",
         "research/release-readiness/hosting-project-2026-09-08.json",
         "research/release-readiness/repository-controls-2026-09-08.json",
         "requirements-dev.lock",
@@ -21,6 +22,8 @@
         "scripts/validate_deployment_evidence.py"
       ],
       "assertions": [
+        {"path": "research/release-readiness/git-branches-2026-09-08.json", "json_path": "unmerged_functional_work_detected", "equals": false},
+        {"path": "research/release-readiness/git-branches-2026-09-08.json", "json_path": "destructive_cleanup_performed", "equals": false},
         {"path": "research/release-readiness/hosting-project-2026-09-08.json", "json_path": "project_linked", "equals": true},
         {"path": "research/release-readiness/hosting-project-2026-09-08.json", "json_path": "root_directory", "equals": "REPOSITORY_ROOT"},
         {"path": "research/release-readiness/hosting-project-2026-09-08.json", "json_path": "successful_production_evidence", "equals": false},

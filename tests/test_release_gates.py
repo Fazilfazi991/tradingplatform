@@ -82,6 +82,22 @@ def test_codex_maintenance_contract_separates_review_from_runtime() -> None:
     assert "production worker supervision" in text
 
 
+def test_open_branch_audit_does_not_hide_unmerged_functional_work() -> None:
+    evidence = json.loads(
+        (
+            REPO
+            / "research"
+            / "release-readiness"
+            / "git-branches-2026-09-08.json"
+        ).read_text(encoding="utf-8")
+    )
+    assert evidence["canonical_branch"] == "main"
+    assert evidence["unmerged_functional_work_detected"] is False
+    assert evidence["destructive_cleanup_performed"] is False
+    statuses = {branch["unique_patch_status"] for branch in evidence["branches"]}
+    assert statuses == {"PATCH_EQUIVALENT_IN_MAIN", "NO_UNMERGED_PATCH"}
+
+
 def test_unknown_state_is_rejected() -> None:
     changed = copy.deepcopy(manifest())
     changed["gates"][0]["state"] = "ALMOST_READY"

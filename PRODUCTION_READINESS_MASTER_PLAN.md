@@ -353,6 +353,10 @@ The following are release artifacts, not aspirational prose:
   `/apps/web/apps`. The project root is now reconciled to the repository root without triggering a
   deployment. Automatic Git deployments remain disabled; canonical domain, protected release
   environments, credentials, staged smoke, promotion, and rollback evidence remain external.
+- The open-branch audit found no unmerged functional work: the linked Research Operator worktree's
+  remaining commit is patch-equivalent to code already on `main`, and the local integration branch
+  has no unmerged patch. Branches were retained to avoid destructive worktree cleanup; the evidence
+  is recorded in `research/release-readiness/git-branches-2026-09-08.json`.
 - The intelligence worker rejects missing handlers, records sanitized incidents, uses bounded source retries/checkpoints/leases, and now persists start/heartbeat/stop state. A local start/status/stop rehearsal passed; production host supervision and a new production-shaped soak remain unproved.
 - A read-only EOD market collector and append-only ledger are wired into the platform scheduler. They
   enforce the India close window, exchange-complete status, exact current-universe mapping, atomic
