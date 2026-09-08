@@ -23,3 +23,19 @@ export function validBasicAuthorization(
     return false;
   }
 }
+
+export function internalAccessAudit(
+  method: string,
+  path: string,
+  outcome: "AUTHORIZED" | "DENIED",
+  occurredAt: Date = new Date(),
+) {
+  return {
+    event: "INTERNAL_ROUTE_ACCESS" as const,
+    outcome,
+    method,
+    path,
+    occurred_at: occurredAt.toISOString(),
+    sensitive_values_logged: false as const,
+  };
+}

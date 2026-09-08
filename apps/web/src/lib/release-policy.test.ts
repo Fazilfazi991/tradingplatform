@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { validBasicAuthorization } from "./internal-auth.ts";
+import { internalAccessAudit, validBasicAuthorization } from "./internal-auth.ts";
 import { assertPublicDelivery, PublicDeliveryRejected } from "./public-delivery.ts";
 import { classifySurface, isInternalPath } from "./route-policy.ts";
 
@@ -20,6 +20,24 @@ test("internal authorization is disabled when either credential is absent", () =
   assert.equal(validBasicAuthorization(valid, "operator", "correct horse battery staple"), true);
   assert.equal(validBasicAuthorization(valid, "operator", "wrong"), false);
   assert.equal(validBasicAuthorization("Bearer token", "operator", "correct horse battery staple"), false);
+});
+
+test("internal access audit contains no identity, credential, query, or payload", () => {
+  const record = internalAccessAudit(
+    "GET",
+    "/research/prediction-v1",
+    "AUTHORIZED",
+    new Date("2026-09-08T00:00:00Z"),
+  );
+  assert.deepEqual(record, {
+    event: "INTERNAL_ROUTE_ACCESS",
+    outcome: "AUTHORIZED",
+    method: "GET",
+    path: "/research/prediction-v1",
+    occurred_at: "2026-09-08T00:00:00.000Z",
+    sensitive_values_logged: false,
+  });
+  assert.equal(JSON.stringify(record).includes("authorization"), false);
 });
 
 test("public delivery accepts only fresh, rights-approved, unmixed content", () => {

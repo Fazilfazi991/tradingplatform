@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { validBasicAuthorization } from "@/lib/internal-auth";
+import { internalAccessAudit, validBasicAuthorization } from "@/lib/internal-auth";
 import { isInternalPath } from "@/lib/route-policy";
 
 function authorized(request: NextRequest): boolean {
@@ -10,9 +10,14 @@ function authorized(request: NextRequest): boolean {
   );
 }
 
+function auditInternalAccess(request: NextRequest, outcome: "AUTHORIZED" | "DENIED") {
+  console.info(JSON.stringify(internalAccessAudit(request.method, request.nextUrl.pathname, outcome)));
+}
+
 export function proxy(request: NextRequest) {
   if (!isInternalPath(request.nextUrl.pathname)) return NextResponse.next();
   if (!authorized(request)) {
+    auditInternalAccess(request, "DENIED");
     return new NextResponse("Internal operator access required.", {
       status: 401,
       headers: {
@@ -24,6 +29,7 @@ export function proxy(request: NextRequest) {
     });
   }
 
+  auditInternalAccess(request, "AUTHORIZED");
   const response = NextResponse.next();
   response.headers.set("Cache-Control", "private, no-store");
   response.headers.set("X-Robots-Tag", "noindex, nofollow, noarchive");
