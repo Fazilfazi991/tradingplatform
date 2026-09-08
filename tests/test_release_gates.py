@@ -109,6 +109,9 @@ def test_release_environment_audit_is_names_only_and_fail_closed() -> None:
     )
     assert evidence["values_disclosed"] is False
     assert evidence["vercel"]["project_environment_variable_count"] == 0
+    assert evidence["vercel"]["deployment_protection"]["enabled"] is True
+    assert evidence["vercel"]["deployment_protection"]["generated_deployment_urls_protected"] is True
+    assert evidence["vercel"]["deployment_protection"]["automation_bypass_secret_configured"] is False
     assert evidence["github"]["production_staging_exists"] is False
     assert evidence["github"]["production_exists"] is True
     assert evidence["github"]["production_required_reviewers"] is False

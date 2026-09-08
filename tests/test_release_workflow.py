@@ -53,6 +53,13 @@ def test_staged_build_receives_the_validated_canonical_origin() -> None:
     assert "https://*)" in staging
 
 
+def test_protected_staging_requires_automation_bypass_secret() -> None:
+    text = workflow()
+    staging = text[text.index("stage-production-build:") : text.index("authorize-production:")]
+    assert "VERCEL_AUTOMATION_BYPASS_SECRET: ${{ secrets.VERCEL_AUTOMATION_BYPASS_SECRET }}" in staging
+    assert 'test -n "${VERCEL_AUTOMATION_BYPASS_SECRET}"' in staging
+
+
 def test_staged_build_validates_pulled_server_environment_without_retaining_it() -> None:
     text = workflow()
     staging = text[text.index("stage-production-build:") : text.index("authorize-production:")]

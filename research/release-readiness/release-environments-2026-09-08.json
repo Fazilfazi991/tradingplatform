@@ -1,12 +1,21 @@
 {
   "version": "release-environment-evidence-v1",
-  "observed_at": "2026-09-08T07:40:00+04:00",
+  "observed_at": "2026-09-08T08:22:50.0334454+04:00",
   "observation_method": "AUTHENTICATED_DASHBOARD_NAMES_AND_PRESENCE_ONLY",
   "values_disclosed": false,
   "vercel": {
     "project_linked": true,
     "project_environment_variable_count": 0,
-    "required_public_web_variables_present": false
+    "required_public_web_variables_present": false,
+    "deployment_protection": {
+      "method": "VERCEL_AUTHENTICATION",
+      "scope": "STANDARD_PROTECTION",
+      "enabled": true,
+      "generated_deployment_urls_protected": true,
+      "production_domain_protected": false,
+      "automation_bypass_secret_configured": false,
+      "trusted_source_for_github_actions_configured": false
+    }
   },
   "github": {
     "observed_environment_names": [
@@ -30,5 +39,5 @@
   },
   "release_workflow_environment_contract_ready": false,
   "deployment_triggered": false,
-  "release_impact": "EXT_06_REMAINS_OPEN"
+  "release_impact": "EXT_06_REMAINS_OPEN_PROTECTED_STAGING_REQUIRES_BYPASS_CREDENTIAL"
 }

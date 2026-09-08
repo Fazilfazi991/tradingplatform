@@ -37,7 +37,7 @@ Never prefix provider, database, or internal-access credentials with `NEXT_PUBLI
 
 Configure two protected GitHub environments; do not store their values in the repository:
 
-- `production-staging`: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, optional
+- `production-staging`: `VERCEL_TOKEN`, `VERCEL_ORG_ID`, `VERCEL_PROJECT_ID`, required
   `VERCEL_AUTOMATION_BYPASS_SECRET`, and `VERIFIED_EDGE_CANONICAL_URL` as a non-secret variable.
 - `production`: the same scoped Vercel identifiers and canonical URL, with required owner/reviewer
   approval and no self-approval.
@@ -81,8 +81,10 @@ for forbidden internal markers and local paths, and rejects exposed JavaScript s
 deployment evidence, not a substitute for the owner/legal/accessibility approvals in the release
 manifest.
 
-When Vercel Deployment Protection is enabled, the smoke runner transmits the optional
-`VERCEL_AUTOMATION_BYPASS_SECRET` only in the `x-vercel-protection-bypass` request header. It never
+When Vercel Deployment Protection is enabled, the smoke runner transmits the configured
+`VERCEL_AUTOMATION_BYPASS_SECRET` only in the `x-vercel-protection-bypass` request header. For the
+protected staging workflow this secret is required and the job fails before build when it is
+absent. It never
 places the credential in a URL, output, artifact, or bypass cookie. Every request supplies the
 header directly, so redirect-based cookie setup is intentionally disabled and an unexpected
 protection redirect fails the smoke test.
