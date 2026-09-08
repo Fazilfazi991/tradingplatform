@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).parents[1]
@@ -56,6 +57,27 @@ def test_staged_build_validates_pulled_server_environment_without_retaining_it()
     validation = staging.index("Validate pulled public-web environment")
     build = staging.index("Build production artifact")
     assert validation < build
+
+
+def test_release_workflow_uses_lockfile_installed_vercel_cli() -> None:
+    text = workflow()
+    package = json.loads((ROOT / "package.json").read_text(encoding="utf-8"))
+    assert package["devDependencies"]["vercel"] == "59.11.7"
+    assert "pnpm dlx vercel" not in text
+    assert text.count("pnpm exec vercel") >= 6
+
+
+def test_failed_production_smoke_attempts_rollback_and_rejects_release() -> None:
+    text = workflow()
+    promotion = text[text.index("promote-production:") :]
+    smoke = promotion.index("id: production_smoke")
+    rollback = promotion.index("vercel rollback --yes --timeout=3m")
+    status = promotion.index("vercel rollback status --timeout=3m")
+    rejection = promotion.index("Fail release after rollback attempt")
+    assert smoke < rollback < status < rejection
+    assert "continue-on-error: true" in promotion
+    assert "if: steps.production_smoke.outcome == 'failure'" in promotion
+    assert "if: always() && steps.production_smoke.outcome == 'failure'" in promotion
 
 
 def test_release_workflow_fails_closed_before_production_approval() -> None:

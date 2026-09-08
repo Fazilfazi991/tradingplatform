@@ -11,9 +11,6 @@ concurrency:
   group: production-release
   cancel-in-progress: false
 
-env:
-  VERCEL_CLI_VERSION: 59.3.0
-
 jobs:
   authorize-staging:
     name: Verify hosted quality
@@ -81,21 +78,21 @@ jobs:
           esac
       - run: pnpm install --frozen-lockfile
       - name: Pull production project settings
-        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} pull --yes --environment=production --token="${VERCEL_TOKEN}"
+        run: pnpm exec vercel pull --yes --environment=production --token="${VERCEL_TOKEN}"
       - name: Validate pulled public-web environment without disclosing values
         shell: bash
         run: |
           release_env="${RUNNER_TEMP}/verified-edge-release.env"
           trap 'rm -f "${release_env}"' EXIT
-          pnpm dlx vercel@${VERCEL_CLI_VERSION} env pull "${release_env}" --yes --environment=production --token="${VERCEL_TOKEN}"
+          pnpm exec vercel env pull "${release_env}" --yes --environment=production --token="${VERCEL_TOKEN}"
           python scripts/verify_release_environment.py --profile public-web --stage production --dotenv-file "${release_env}"
       - name: Build production artifact
-        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} build --prod --token="${VERCEL_TOKEN}"
+        run: pnpm exec vercel build --prod --token="${VERCEL_TOKEN}"
       - name: Deploy without assigning production domains
         id: deploy
         shell: bash
         run: |
-          deployment_url="$(pnpm dlx vercel@${VERCEL_CLI_VERSION} deploy --prebuilt --prod --skip-domain --yes --token="${VERCEL_TOKEN}")"
+          deployment_url="$(pnpm exec vercel deploy --prebuilt --prod --skip-domain --yes --token="${VERCEL_TOKEN}")"
           case "${deployment_url}" in
             https://*.vercel.app) ;;
             *) echo "Vercel returned an invalid deployment URL" >&2; exit 1 ;;
@@ -155,9 +152,22 @@ jobs:
             *) echo "Staged deployment URL is invalid" >&2; exit 1 ;;
           esac
       - name: Promote without rebuilding
-        run: pnpm dlx vercel@${VERCEL_CLI_VERSION} promote "${STAGED_DEPLOYMENT_URL}" --yes --token="${VERCEL_TOKEN}"
+        run: pnpm exec vercel promote "${STAGED_DEPLOYMENT_URL}" --yes --token="${VERCEL_TOKEN}"
       - name: Smoke canonical production deployment
+        id: production_smoke
+        continue-on-error: true
         run: pnpm --dir apps/web deployment:smoke -- "${VERIFIED_EDGE_CANONICAL_URL}" "${VERIFIED_EDGE_CANONICAL_URL}"
+      - name: Roll back failed production promotion
+        if: steps.production_smoke.outcome == 'failure'
+        shell: bash
+        run: |
+          pnpm exec vercel rollback --yes --timeout=3m --token="${VERCEL_TOKEN}"
+          pnpm exec vercel rollback status --timeout=3m --token="${VERCEL_TOKEN}"
+      - name: Fail release after rollback attempt
+        if: always() && steps.production_smoke.outcome == 'failure'
+        run: |
+          echo "Production smoke failed; rollback was attempted and the release is rejected." >&2
+          exit 1
       - name: Record immutable release identity
         shell: bash
         run: |

@@ -135,14 +135,14 @@ redistribution and derived/commercial-use rights remain absent.
 
 Evidence baseline results:
 
-- Backend: 352 passed, 1 skipped
+- Backend: 359 passed, 1 skipped
 - Ruff: pass
 - Mypy: pass across 69 source files
 - Frontend unit tests: 11 passed
 - Frontend lint/typecheck/build: pass
-- Production dependency audit: no known vulnerabilities
+- Full Node dependency audit, including locked release tooling: no known vulnerabilities
 - Repository secret scan and diff check: pass
-- Hosted quality run 34183532768: backend, web, and repository-safety pass
+- Hosted quality run 34184909520: backend, web, and repository-safety pass
 
 ## 18. External blockers
 

@@ -60,6 +60,11 @@ output directly; it cannot accept a caller-supplied deployment URL. It runs only
 The workflow must remain red/blocked while the release manifest contains external or failed Track A
 gates.
 
+The Vercel CLI is an exact lockfile-installed root development dependency and every release command
+uses `pnpm exec vercel`. Do not replace it with a transient `pnpm dlx` install: that command is not
+part of the reproducible dependency graph and has failed module resolution under the pinned pnpm
+runtime.
+
 ## Staging verification
 
 Verify the exact built commit over HTTPS:
@@ -78,7 +83,12 @@ manifest.
 
 ## Production promotion
 
-Promote the already-verified immutable staging build. Do not rebuild from a different commit. Run the production smoke suite and record timestamp, commit, deployment ID, domain, operator, result, and rollback target.
+Promote the already-verified immutable staging build. Do not rebuild from a different commit. Run
+the production smoke suite and record timestamp, commit, deployment ID, domain, operator, result,
+and rollback target. If canonical smoke fails, the workflow requests an immediate Vercel rollback,
+waits for rollback status, and then rejects the release. A failed rollback also leaves the workflow
+red and requires the bad-deployment incident runbook; it must never be treated as a successful
+release.
 
 Seal the evidence as `deployment-evidence-v1` and validate it with:
 
