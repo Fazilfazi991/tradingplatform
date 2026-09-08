@@ -34,6 +34,9 @@ Decision: **BLOCKED**
   seals and validates `deployment-evidence-v1`, and retains it as a commit-addressed artifact. A
   smoke, sealing, or upload failure restores the exact recorded healthy deployment, re-smokes the
   canonical boundary, and rejects the release.
+- Before staging a new build, the workflow authenticates the recorded rollback target through the
+  linked Vercel project without retaining inspection output, so a missing or inaccessible recovery
+  deployment fails before production-shaped build work begins.
 - Authenticated Vercel inspection confirms Standard Protection covers the staged generated URL.
   The workflow now requires a dedicated automation-bypass secret before build and sends it only in
   the protection-bypass header; the project and GitHub release environments do not yet contain that
