@@ -32,7 +32,8 @@ Decision: **BLOCKED**
 - The manual workflow now requires a previous healthy deployment ID and successful rollback-rehearsal
   attestation before staging. After promotion it runs HTTP and real-browser console/network checks,
   seals and validates `deployment-evidence-v1`, and retains it as a commit-addressed artifact. A
-  smoke, sealing, or upload failure triggers rollback and rejects the release.
+  smoke, sealing, or upload failure restores the exact recorded healthy deployment, re-smokes the
+  canonical boundary, and rejects the release.
 - Authenticated Vercel inspection confirms Standard Protection covers the staged generated URL.
   The workflow now requires a dedicated automation-bypass secret before build and sends it only in
   the protection-bypass header; the project and GitHub release environments do not yet contain that
